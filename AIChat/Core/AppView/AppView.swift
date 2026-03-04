@@ -25,9 +25,6 @@ struct AppView: View {
                     Text("Onboarding View")
             }
         })
-        .onTapGesture {
-            showTabBar.toggle()
-        }
     }
 }
 
