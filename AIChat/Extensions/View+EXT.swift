@@ -12,4 +12,9 @@ extension View {
         self
             .modifier(CTAButtonViewModifier())
     }
+
+    func tappableBackground() -> some View {
+        self
+            .background(Color.black.opacity(0.001))
+    }
 }

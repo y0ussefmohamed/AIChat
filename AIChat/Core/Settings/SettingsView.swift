@@ -21,7 +21,10 @@ struct SettingsView: View {
             .navigationTitle("Settings")
         }
     }
+}
 
+// MARK: - Seperate Business Logic out of Views
+extension SettingsView {
     private func onSignOutPressed() {
         Task {
             dismiss()

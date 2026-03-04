@@ -24,10 +24,10 @@ struct AppView: View {
     }
 }
 
-#Preview("AppView - Tabbar") {
-    AppView(appState: AppState(showTabBar: true))
+#Preview("Onboarding") {
+    AppView(appState: AppState(showTabBar: false))
 }
 
-#Preview("AppView - Onboarding") {
-    AppView(appState: AppState(showTabBar: false))
+#Preview("Tabbar") {
+    AppView(appState: AppState(showTabBar: true))
 }

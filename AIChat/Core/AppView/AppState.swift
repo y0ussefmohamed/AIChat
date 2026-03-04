@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-@Observable
+@Observable /// instead of using an `@Published` in the `showTabBar` variable
 class AppState { /// holds variable for showTabBar across the whole app
     private(set) var showTabBar: Bool {
         didSet { /// before `=` (When it's getting changed)

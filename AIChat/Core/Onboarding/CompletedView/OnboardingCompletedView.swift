@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OnboardingCompletedView: View {
+    /// extracts the `AppState` type variable that was passed as an environment(`object`)
     @Environment(AppState.self) private var rootAppState
 
     var body: some View {
@@ -17,9 +18,7 @@ struct OnboardingCompletedView: View {
                 .foregroundStyle(.accent)
                 .frame(maxHeight: .infinity)
 
-            Button {
-                onFinishButtonPressed()
-            } label: {
+            Button(action: onFinishButtonPressed) {
                 Text("Finish")
                     .callToActionButton()
             }
@@ -27,12 +26,14 @@ struct OnboardingCompletedView: View {
         .navigationBarBackButtonHidden()
         .padding(16)
     }
+}
 
+// MARK: - Seperate Business Logic out of Views
+extension OnboardingCompletedView {
     private func onFinishButtonPressed() {
         rootAppState.updateViewState(showTabBar: true)
     }
 }
-
 
 
 #Preview {

@@ -30,8 +30,10 @@ struct ProfileView: View {
             Image(systemName: "gear")
         }
     }
+}
 
-    /// Seperate the business logic from the views
+// MARK: - Seperate Business Logic out of Views
+extension ProfileView {
     private func onSettingsButtonPressed() {
         showSettingsView = true
     }
