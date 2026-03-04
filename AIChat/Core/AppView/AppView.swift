@@ -8,24 +8,26 @@
 import SwiftUI
 
 struct AppView: View {
-    @AppStorage("showTabbarView") var showTabBar: Bool = false
+    @State var appState: AppState = AppState()
 
     var body: some View {
         AppViewBuilder(
-            showTabBar: showTabBar,
+            showTabBar: appState.showTabBar,
             tabbarView: {
                 TabBarView()
             },
             onboardingView: {
                 WelcomeView()
         })
+        /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
+        .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
     }
 }
 
 #Preview("AppView - Tabbar") {
-    AppView(showTabBar: true)
+    AppView(appState: AppState(showTabBar: true))
 }
 
 #Preview("AppView - Onboarding") {
-    AppView(showTabBar: false)
+    AppView(appState: AppState(showTabBar: false))
 }
