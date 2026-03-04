@@ -12,6 +12,7 @@ import SwiftUI
 struct AppViewBuilder<TabbarView: View, OnboardingView: View>: View {
     var showTabBar: Bool = false
 
+    // @ViewBuilder var tabbarView: Any View (THIS IS WRONG)
     @ViewBuilder var tabbarView: TabbarView
     @ViewBuilder var onboardingView: OnboardingView
 
