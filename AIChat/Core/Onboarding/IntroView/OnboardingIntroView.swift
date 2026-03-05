@@ -27,18 +27,24 @@ struct OnboardingIntroView: View {
                     Text("with AI generated responses")
                 }
                 .frame(maxHeight: .infinity)
-                
-                
-                NavigationLink {
-                    OnboardingColorView()
-                } label: {
-                    Text("Continue")
-                        .callToActionButton()
-                }
+
+
+                ctaButton
             }
             .navigationBarBackButtonHidden()
             .padding(16)
             .font(.title3)
+        }
+    }
+}
+
+extension OnboardingIntroView {
+    private var ctaButton: some View {
+        NavigationLink {
+            OnboardingColorView()
+        } label: {
+            Text("Continue")
+                .callToActionButton()
         }
     }
 }
