@@ -10,28 +10,54 @@ import SwiftUI
 struct OnboardingCompletedView: View {
     /// extracts the `AppState` type variable that was passed as an environment(`object`)
     @Environment(AppState.self) private var rootAppState
+    var selectedColor: Color?
+
+    @State private var isLoadingToSetupProfile: Bool = false
 
     var body: some View {
-        VStack {
-            Text("Onboarding Completed! 🎉")
-                .font(Font.title.bold())
-                .foregroundStyle(.accent)
-                .frame(maxHeight: .infinity)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Setup Completed! 🎉")
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+                .foregroundStyle(selectedColor ?? .accent)
 
-            Button(action: onFinishButtonPressed) {
-                Text("Finish")
-                    .callToActionButton()
-                    .padding(16)
-            }
+            Text("We've set up your profile and you're ready to start chatting")
+                .font(.title)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
         }
-        .navigationBarBackButtonHidden()
+        .frame(maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom) {
+            Button(action: onFinishButtonPressed) {
+                ZStack {
+                    if isLoadingToSetupProfile {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("Finish")
+                    }
+                }
+                .callToActionButton()
+            }
+            .disabled(isLoadingToSetupProfile)
+        }
+        .padding(16)
     }
 }
 
 // MARK: - Seperate Business Logic out of Views
 extension OnboardingCompletedView {
     private func onFinishButtonPressed() {
-        rootAppState.updateViewState(showTabBar: true)
+        isLoadingToSetupProfile = true
+
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            isLoadingToSetupProfile = false
+
+            rootAppState.updateViewState(showTabBar: true)
+        }
+
+
     }
 }
 

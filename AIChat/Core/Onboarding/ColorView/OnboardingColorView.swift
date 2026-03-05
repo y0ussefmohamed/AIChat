@@ -18,9 +18,9 @@ struct OnboardingColorView: View {
         }
         .navigationBarBackButtonHidden()
         .safeAreaInset(edge: .bottom, alignment: .center, spacing: 16) {
-            if selectedColorIdx != nil {
+            if let selectedColorIdx {
                 ZStack {
-                    ctaButton
+                    ctaButton(selectedColor: profileColors[selectedColorIdx])
                         .background(Color(.systemBackground))
                 }
                 .transition(.move(edge: .bottom))
@@ -61,9 +61,9 @@ extension OnboardingColorView {
         )
     }
 
-    private var ctaButton: some View {
+    private func ctaButton(selectedColor: Color) -> some View {
         NavigationLink {
-            OnboardingCompletedView()
+            OnboardingCompletedView(selectedColor: selectedColor)
         } label: {
             Text("Continue")
                 .callToActionButton()
