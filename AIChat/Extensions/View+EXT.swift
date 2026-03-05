@@ -8,9 +8,9 @@
 import SwiftUI
 
 extension View {
-    func callToActionButton() -> some View {
+    func callToActionButton(buttonColor: Color = .accent) -> some View {
         self
-            .modifier(CTAButtonViewModifier())
+            .modifier(CTAButtonViewModifier(buttonColor: buttonColor))
     }
 
     func tappableBackground() -> some View {

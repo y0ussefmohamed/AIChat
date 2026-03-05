@@ -37,7 +37,7 @@ struct OnboardingCompletedView: View {
                         Text("Finish")
                     }
                 }
-                .callToActionButton()
+                .callToActionButton(buttonColor: selectedColor ?? .accent)
             }
             .disabled(isLoadingToSetupProfile)
         }
