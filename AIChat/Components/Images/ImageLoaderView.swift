@@ -13,7 +13,7 @@ struct ImageLoaderView: View {
     var resizingMode: ContentMode = .fill
 
     var body: some View {
-        Rectangle().opacity(0)
+        Rectangle().opacity(0) /// use this to frame the image better
             .overlay {
                 WebImage(url: URL(string: imageUrlString))
                     .resizable()

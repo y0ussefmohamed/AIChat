@@ -45,7 +45,7 @@ extension WelcomeView {
     private var ctaButtons: some View {
         VStack {
             NavigationLink {
-                OnboardingCompletedView()
+                OnboardingIntroView()
             } label: {
                 Text("Get Started")
                     .callToActionButton()

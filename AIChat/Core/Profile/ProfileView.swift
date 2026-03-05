@@ -20,9 +20,9 @@ struct ProfileView: View {
                     }
                 }
         }
-        .sheet(isPresented: $showSettingsView, content: {
+        .sheet(isPresented: $showSettingsView) {
             SettingsView()
-        })
+        }
     }
 
     private var settingsButton: some View {

@@ -13,7 +13,7 @@ struct OnboardingCompletedView: View {
 
     var body: some View {
         VStack {
-            Text("Onboarding Completed!")
+            Text("Onboarding Completed! 🎉")
                 .font(Font.title.bold())
                 .foregroundStyle(.accent)
                 .frame(maxHeight: .infinity)
@@ -21,10 +21,10 @@ struct OnboardingCompletedView: View {
             Button(action: onFinishButtonPressed) {
                 Text("Finish")
                     .callToActionButton()
+                    .padding(16)
             }
         }
         .navigationBarBackButtonHidden()
-        .padding(16)
     }
 }
 
