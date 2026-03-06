@@ -66,7 +66,7 @@ extension OnboardingColorView {
             OnboardingCompletedView(selectedColor: selectedColor)
         } label: {
             Text("Continue")
-                .callToActionButton()
+                .callToActionButton(buttonColor: selectedColor)
                 .padding(16)
         }
     }
