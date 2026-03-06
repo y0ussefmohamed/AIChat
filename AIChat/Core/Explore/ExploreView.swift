@@ -13,12 +13,8 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                HeroCellView(
-                    imageName: avatar.profileImageName,
-                    title: avatar.name,
-                    subtitle: avatar.characterDescription
-                )
-                .frame(width: 300, height: 200)
+                CarouselView()
+                    .padding()
             }
             .frame(maxHeight: .infinity, alignment: .top)
             .navigationTitle("Explore")
