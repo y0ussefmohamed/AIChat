@@ -27,15 +27,15 @@ class AppState { /// holds variable for showTabBar across the whole app
 
 extension UserDefaults {
     private struct Keys {
-        static let showTabbarView = "showTabbarView"
+        static let showTabbarViewKey = "showTabbarView"
     }
 
     static var showTabbarView: Bool {
         get { /// after `=` (being accessed)
-            standard.bool(forKey: Keys.showTabbarView)
+            standard.bool(forKey: Keys.showTabbarViewKey)
         }
         set { /// before `=`
-            standard.set(newValue, forKey: Keys.showTabbarView)
+            standard.set(newValue, forKey: Keys.showTabbarViewKey)
         }
     }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CarouselView<T: Hashable, PagingContent: View>: View {
-    var items: [T] = []
+    var items: [T]
     @ViewBuilder var pagingContent: (T) -> PagingContent
     @State private var selectedItem: T?
 
