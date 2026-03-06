@@ -13,7 +13,13 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                CarouselView()
+                CarouselView(items: Avatar.mocks) { avatar in
+                    HeroCellView(
+                        imageName: avatar.profileImageName,
+                        title: avatar.name,
+                        subtitle: avatar.characterDescription
+                    )
+                }
                     .padding()
             }
             .frame(maxHeight: .infinity, alignment: .top)
