@@ -50,7 +50,7 @@ extension View {
 
     private func asPlainButton(action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            self /// `self` is the view I did `.styledButton` from
+            self /// `self` is the view I did `.styledButton` from, so as if i wrapped the view in a button
         }
         .buttonStyle(PlainButtonStyle())
     }
