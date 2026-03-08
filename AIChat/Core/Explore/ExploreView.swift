@@ -10,6 +10,8 @@ import SwiftUI
 struct ExploreView: View {
     @State private var featuredAvatars: [Avatar] = Avatar.mocks
     @State private var categories: [CharacterOption] = CharacterOption.allCases
+    @State private var popularAvatars: [Avatar] = Avatar.mocks
+
 
     var body: some View {
         NavigationStack {
@@ -17,6 +19,8 @@ struct ExploreView: View {
                 featuredSection
 
                 categoriesSection
+
+                popularSection
             }
             .navigationTitle("Explore")
         }
@@ -32,10 +36,11 @@ extension ExploreView {
                     title: avatar.name,
                     subtitle: avatar.characterDescription,
                 )
+                .styledButton {}
             }
             .removeListRowFormatting()
         } header: {
-            Text("Featured Avatars")
+            Text("Featured")
         }
     }
 
@@ -48,6 +53,7 @@ extension ExploreView {
                             title: category.rawValue.capitalized,
                             imageName: Constants.randomImage
                         )
+                        .styledButton(.pressable) {}
                     }
                 }
                 .frame(height: 150)
@@ -59,6 +65,22 @@ extension ExploreView {
             .removeListRowFormatting()
         } header: {
             Text("Categories")
+        }
+    }
+
+    private var popularSection: some View {
+        Section {
+            ForEach(popularAvatars, id: \.self) { avatar in
+                CustomListCellView(
+                    avatarName: avatar.name,
+                    avatarDescription: avatar.characterDescription,
+                    imageName: avatar.profileImageName
+                )
+                .styledButton(.highlighted) {}
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("Popular")
         }
     }
 }
