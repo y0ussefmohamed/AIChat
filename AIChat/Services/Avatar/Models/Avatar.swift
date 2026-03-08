@@ -18,11 +18,9 @@ struct Avatar: Hashable {
     let dateCreated: Date?
 
     var characterDescription: String? {
-        guard characterOption != nil, characterAction != nil, characterLocation != nil else { return nil }
+        guard let characterOption = characterOption, let characterAction = characterAction, let characterLocation = characterLocation else { return nil }
 
-        let prefix = characterOption!.startsWithVowel ? "An" : "A"
-
-        return "\(prefix) \(String(describing: characterOption!.rawValue)) that is \(String(describing: characterAction!.rawValue)) in the \(String(describing: characterLocation!.rawValue))."
+        return "\(characterOption.prefix) \(characterOption.rawValue) that is \(characterAction.rawValue) in the \( characterLocation.rawValue)."
     }
 
     init(
@@ -66,12 +64,12 @@ enum CharacterOption: String, CaseIterable, Hashable {
         return .man
     }
 
-    var startsWithVowel: Bool {
+    var prefix: String {
         switch self {
         case .alien:
-            return true
+            return "An"
         default:
-            return false
+            return "A"
         }
     }
 }
