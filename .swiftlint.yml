@@ -9,3 +9,4 @@ disabled_rules:
  - trailing_whitespace
  - vertical_whitespace
  - opening_brace
+ - identifier_name
