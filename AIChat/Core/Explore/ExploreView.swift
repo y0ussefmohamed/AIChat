@@ -12,7 +12,6 @@ struct ExploreView: View {
     @State private var categories: [CharacterOption] = CharacterOption.allCases
     @State private var popularAvatars: [Avatar] = Avatar.mocks
 
-
     var body: some View {
         NavigationStack {
             List {

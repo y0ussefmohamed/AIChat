@@ -24,6 +24,11 @@ struct ChatMessage: Identifiable {
         self.dateCreated = dateCreated
     }
 
+    func isSeenBy(userId: String) -> Bool {
+        guard let seenByIds else { return false }
+        return seenByIds.contains(userId)
+    }
+
     static var mock: ChatMessage {
         mocks[0]
     }
@@ -59,7 +64,7 @@ struct ChatMessage: Identifiable {
             ChatMessage(
                 id: "msg4",
                 chatId: "chat_2",
-                authorId: "user_4",
+                authorId: "avt1",
                 content: "Almost! Just the last module left.",
                 seenByIds: ["user_3", "user_4"],
                 dateCreated: now.addingTimeInterval(hours: -1, minutes: -10)

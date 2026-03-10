@@ -8,7 +8,7 @@
 import Foundation
 
 struct Avatar: Hashable {
-    let avatarID: String
+    let avatarId: String
     let name: String?
     let characterOption: CharacterOption?
     let characterAction: CharacterAction?
@@ -24,7 +24,7 @@ struct Avatar: Hashable {
     }
 
     init(
-        avatarID: String,
+        avatarId: String,
         name: String? = nil,
         characterOption: CharacterOption? = nil,
         characterAction: CharacterAction? = nil,
@@ -33,7 +33,7 @@ struct Avatar: Hashable {
         authorId: String? = nil,
         dateCreated: Date? = nil
     ) {
-        self.avatarID = avatarID
+        self.avatarId = avatarId
         self.name = name
         self.characterOption = characterOption
         self.characterAction = characterAction
@@ -49,10 +49,10 @@ struct Avatar: Hashable {
 
     static var mocks: [Avatar] {
         [
-            Avatar(avatarID: UUID().uuidString, name: "Alpha", characterOption: .alien, characterAction: .smiling, characterLocation: .park, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now),
-            Avatar(avatarID: UUID().uuidString, name: "Beta", characterOption: .dog, characterAction: .eating, characterLocation: .forest, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now),
-            Avatar(avatarID: UUID().uuidString, name: "Gamma", characterOption: .cat, characterAction: .drinking, characterLocation: .meusem, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now),
-            Avatar(avatarID: UUID().uuidString, name: "Delta", characterOption: .woman, characterAction: .shopping, characterLocation: .park, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now)
+            Avatar(avatarId: UUID().uuidString, name: "Alpha", characterOption: .alien, characterAction: .smiling, characterLocation: .park, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now),
+            Avatar(avatarId: UUID().uuidString, name: "Beta", characterOption: .dog, characterAction: .eating, characterLocation: .forest, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now),
+            Avatar(avatarId: UUID().uuidString, name: "Gamma", characterOption: .cat, characterAction: .drinking, characterLocation: .meusem, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now),
+            Avatar(avatarId: UUID().uuidString, name: "Delta", characterOption: .woman, characterAction: .shopping, characterLocation: .park, profileImageName: Constants.randomImage, authorId: UUID().uuidString, dateCreated: .now)
         ]
     }
 }

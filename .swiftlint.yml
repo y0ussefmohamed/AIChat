@@ -1,5 +1,5 @@
 line_length:
-  warning: 300
+  warning: 500
 type_body_length:
   warning: 500
 file_length:
@@ -8,3 +8,4 @@ file_length:
 disabled_rules:
  - trailing_whitespace
  - vertical_whitespace
+ - opening_brace
