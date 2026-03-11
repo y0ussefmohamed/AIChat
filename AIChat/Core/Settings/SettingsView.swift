@@ -19,8 +19,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppState.self) private var appState
     @State private var isPremium: Bool = true
-    @State private var isAnonymousUser: Bool = false
+    @State private var isAnonymousUser: Bool = true
     @State private var versionTextWidth: CGFloat = 0
+    @State private var showCreateAccountView: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -34,18 +35,28 @@ struct SettingsView: View {
                 aboutSection
                     .offset(y: -5)
             }
+            .sheet(isPresented: $showCreateAccountView) {
+                LinkProviderView(usageOption: .createAccount)
+            }
             .navigationTitle("Settings")
         }
     }
 
     private var accountSection: some View {
         Section {
-            Text("Sign out")
-                .styledButton(.plain, action: onSignOutPressed)
+            if isAnonymousUser {
+                Text("Save & Backup Account")
+                    .styledButton(.plain, action: onCreateAccountPressed)
+            } else {
+                Text("Sign out")
+                    .styledButton(.plain, action: onSignOutPressed)
+            }
 
             Text("Delete Account")
                 .foregroundStyle(.red)
-                .styledButton(.plain, action: onSignOutPressed)
+                .styledButton(.plain) {
+                    onSignOutPressed()
+                }
         } header: {
             Text("Account")
         }
@@ -56,7 +67,9 @@ struct SettingsView: View {
             HStack {
                 Text("Account Status: \(premiumStatus)")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .styledButton(.plain, action: onSignOutPressed)
+                    .styledButton(.plain) {
+                        
+                    }
 
                 if isPremium {
                     Text("Manage")
@@ -77,11 +90,10 @@ struct SettingsView: View {
             HStack {
                 Text("Version")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .styledButton(.plain, action: onSignOutPressed)
 
                 Text(Utilities.appVersion ?? "")
                     .foregroundStyle(.secondary)
-                    /// this reads the width of the text and sends it the to `@State variable` above
+                /// this reads the width of the text and sends it the to `@State variable` above
                     .background(
                         GeometryReader { geometry in
                             Color.black.opacity(0.001)
@@ -96,7 +108,6 @@ struct SettingsView: View {
             HStack {
                 Text("Build Number")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .styledButton(.plain, action: onSignOutPressed)
 
                 Text(Utilities.buildNumber ?? "")
                     .frame(width: versionTextWidth, alignment: .center)
@@ -105,7 +116,6 @@ struct SettingsView: View {
 
             Text("Contact Us")
                 .foregroundStyle(.blue)
-                .styledButton(.plain, action: onSignOutPressed)
         } header: {
             Text("Application")
         }
@@ -132,6 +142,10 @@ extension SettingsView {
             try? await Task.sleep(for: .seconds(0.25))
             appState.updateViewState(showTabBar: false)
         }
+    }
+
+    private func onCreateAccountPressed() {
+        showCreateAccountView = true
     }
 
     private var premiumStatus: String {

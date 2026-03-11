@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    var imageName: String = Constants.randomImage
+    @State private var showSignInView: Bool = false
+    @State var imageName: String = Constants.randomImage
 
     var body: some View {
         NavigationStack {
@@ -23,6 +24,9 @@ struct WelcomeView: View {
 
                 policyLinks
                     .foregroundStyle(.accent)
+            }
+            .sheet(isPresented: $showSignInView) {
+                LinkProviderView(usageOption: .signIn)
             }
         }
     }
@@ -58,10 +62,14 @@ extension WelcomeView {
                 .font(.body)
                 .padding(8)
                 .tappableBackground()
-                .onTapGesture {
-
+                .styledButton {
+                    onSignInPressed()
                 }
         }
+    }
+
+    private func onSignInPressed() {
+        showSignInView = true
     }
 
     private var policyLinks: some View {
