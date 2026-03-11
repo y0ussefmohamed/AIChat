@@ -13,6 +13,17 @@ extension View {
             .modifier(CTAButtonViewModifier(buttonColor: buttonColor))
     }
 
+    func badgeButtonModifier() -> some View {
+        self
+            .font(.caption)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(.blue)
+            .cornerRadius(10)
+            .foregroundColor(.white)
+    }
+
     func tappableBackground() -> some View {
         background(Color.black.opacity(0.001))
     }

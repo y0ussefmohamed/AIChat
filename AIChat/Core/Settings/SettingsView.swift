@@ -6,20 +6,121 @@
 //
 
 import SwiftUI
+import SwiftfulUtilities
+
+struct TextWidthPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppState.self) private var appState
+    @State private var isPremium: Bool = true
+    @State private var isAnonymousUser: Bool = false
+    @State private var versionTextWidth: CGFloat = 0
 
     var body: some View {
         NavigationStack {
             List {
-                Button(action: onSignOutPressed) {
-                    Text("Sign out")
-                }
+                accountSection
+
+                purchasesSection
+
+                applicationSection
+
+                aboutSection
+                    .offset(y: -5)
             }
             .navigationTitle("Settings")
         }
+    }
+
+    private var accountSection: some View {
+        Section {
+            Text("Sign out")
+                .styledButton(.plain, action: onSignOutPressed)
+
+            Text("Delete Account")
+                .foregroundStyle(.red)
+                .styledButton(.plain, action: onSignOutPressed)
+        } header: {
+            Text("Account")
+        }
+    }
+
+    private var purchasesSection: some View {
+        Section {
+            HStack {
+                Text("Account Status: \(premiumStatus)")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .styledButton(.plain, action: onSignOutPressed)
+
+                if isPremium {
+                    Text("Manage")
+                        .badgeButtonModifier()
+                        .styledButton(.pressable) {
+
+                        }
+                }
+            }
+
+        } header: {
+            Text("Purchases")
+        }
+    }
+
+    private var applicationSection: some View {
+        Section {
+            HStack {
+                Text("Version")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .styledButton(.plain, action: onSignOutPressed)
+
+                Text(Utilities.appVersion ?? "")
+                    .foregroundStyle(.secondary)
+                    /// this reads the width of the text and sends it the to `@State variable` above
+                    .background(
+                        GeometryReader { geometry in
+                            Color.black.opacity(0.001)
+                                .preference(key: TextWidthPreferenceKey.self, value: geometry.size.width)
+                        }
+                    )
+                    .onPreferenceChange(TextWidthPreferenceKey.self) { width in
+                        versionTextWidth = width
+                    }
+            }
+
+            HStack {
+                Text("Build Number")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .styledButton(.plain, action: onSignOutPressed)
+
+                Text(Utilities.buildNumber ?? "")
+                    .frame(width: versionTextWidth, alignment: .center)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("Contact Us")
+                .foregroundStyle(.blue)
+                .styledButton(.plain, action: onSignOutPressed)
+        } header: {
+            Text("Application")
+        }
+    }
+
+    private var aboutSection: some View {
+        Section {
+
+        } header: {
+            Text("Developed by ") +
+            Text("Youssef Mohamed")
+                .fontWeight(.medium)
+                .foregroundStyle(.accent)
+        }
+        .font(.callout)
     }
 }
 
@@ -31,6 +132,10 @@ extension SettingsView {
             try? await Task.sleep(for: .seconds(0.25))
             appState.updateViewState(showTabBar: false)
         }
+    }
+
+    private var premiumStatus: String {
+        isPremium ? "Premium" : "Free"
     }
 }
 
