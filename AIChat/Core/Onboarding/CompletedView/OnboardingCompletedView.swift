@@ -28,18 +28,9 @@ struct OnboardingCompletedView: View {
         }
         .frame(maxHeight: .infinity)
         .safeAreaInset(edge: .bottom) {
-            Button(action: onFinishButtonPressed) {
-                ZStack {
-                    if isLoadingToSetupProfile {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Text("Finish")
-                    }
-                }
-                .callToActionButton(buttonColor: selectedColor ?? .accent)
+            AsyncCallToActionButton(title: "Finish", buttonColor: selectedColor, conditionToLoad: $isLoadingToSetupProfile) {
+                onFinishButtonPressed()
             }
-            .disabled(isLoadingToSetupProfile)
         }
         .padding(16)
     }
