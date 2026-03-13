@@ -40,7 +40,7 @@ struct ChatMessage: Identifiable {
             ChatMessage(
                 id: "msg1",
                 chatId: "chat_1",
-                authorId: "user_1",
+                authorId: "user",
                 content: "Hey! How are you?",
                 seenByIds: ["user_1"],
                 dateCreated: now.addingTimeInterval(minutes: -30)
@@ -56,7 +56,7 @@ struct ChatMessage: Identifiable {
             ChatMessage(
                 id: "msg3",
                 chatId: "chat_2",
-                authorId: "user_3",
+                authorId: "user",
                 content: "Did you finish the SwiftUI architecture course?",
                 seenByIds: ["user_3"],
                 dateCreated: now.addingTimeInterval(hours: -2)

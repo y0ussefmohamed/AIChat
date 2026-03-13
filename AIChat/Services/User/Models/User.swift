@@ -28,7 +28,7 @@ struct User {
     }
 
     static var mock: Self {
-        mocks[1]
+        mocks[0]
     }
 
     static var mocks: [Self] {
@@ -36,7 +36,7 @@ struct User {
 
         return [
             User(
-                userId: "user_001",
+                userId: "user",
                 dateCreated: now.addingTimeInterval(days: -1),
                 didCompleteOnboarding: true,
                 profileColorHex: "#FF6B6B"
@@ -51,7 +51,7 @@ struct User {
                 profileColorHex: "#4ECDC4"
             ),
             User(
-                userId: "user_003",
+                userId: "user",
                 dateCreated: now.addingTimeInterval(
                     days: -5,
                     hours: -4

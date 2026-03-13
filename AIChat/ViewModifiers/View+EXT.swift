@@ -49,4 +49,12 @@ extension View {
             )
         )
     }
+
+    func chatBubbleModifier(textUIColor: UIColor, backgroundColor: Color) -> some View {
+        self
+            .foregroundStyle(Color(uiColor: textUIColor))
+            .padding(13)
+            .background(backgroundColor)
+            .cornerRadius(10)
+    }
 }
