@@ -49,7 +49,7 @@ extension ExploreView {
                 HStack(spacing: 12) {
                     ForEach(categories, id: \.self) { category in
                         CategoryCellView(
-                            title: category.rawValue.capitalized,
+                            title: category.pluralRawValue.capitalized,
                             imageName: Constants.randomImage
                         )
                         .styledButton(.pressable) {}
