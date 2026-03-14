@@ -14,6 +14,7 @@ struct ChatView: View {
     @State private var messageTextField: String = ""
     @State private var showConfirmationDialog: Bool = false
     @State private var scrollPositionId: String?
+    @State private var showProfileModal: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,21 +32,28 @@ struct ChatView: View {
                     .foregroundStyle(.accent)
                     .padding(8)
                     .styledButton(action: onEllipsisButtonPressed)
-
             }
         }
+        .showModal(
+            isPresented: $showProfileModal,
+            content: {
+                if let avatar {
+                    profileModal(avatar: avatar)
+                }
+            },
+            transition: .slide)
     }
 
     private var confirmationDialogSheet: some View {
         Color.clear
-                .frame(width: 0, height: 0)
-                .confirmationDialog("What would you like to do?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
-                    Button("Report User/Chat", role: .destructive) { }
+            .frame(width: 0, height: 0)
+            .confirmationDialog("What would you like to do?", isPresented: $showConfirmationDialog, titleVisibility: .visible) {
+                Button("Report User/Chat", role: .destructive) { }
 
-                    Button("Delete Chat", role: .destructive) {
-                        chatMessages.removeAll()
-                    }
+                Button("Delete Chat", role: .destructive) {
+                    chatMessages.removeAll()
                 }
+            }
     }
 
     private var scrollViewSection: some View {
@@ -56,7 +64,8 @@ struct ChatView: View {
                         /// if messageAuthor not the user then it is the avatar
                         isAvatar: message.authorId != currentUser?.userId,
                         imageName: avatar?.profileImageName,
-                        message: message
+                        message: message,
+                        onImagePressed: self.onImagePressed
                     )
                     .id(message.id)
                 }
@@ -98,6 +107,15 @@ struct ChatView: View {
             .padding(.vertical, 8)
             .background(Color(uiColor: .secondarySystemBackground))
     }
+
+    private func profileModal(avatar: Avatar) -> some View {
+        ProfileModalView(
+            imageName: avatar.profileImageName,
+            title: avatar.name,
+            subtitle: avatar.characterOption?.rawValue,
+            onXMarkPressed: self.onXMarkPressed
+        )
+    }
 }
 
 extension ChatView {
@@ -122,6 +140,14 @@ extension ChatView {
 
     private func onEllipsisButtonPressed() {
         showConfirmationDialog.toggle()
+    }
+
+    private func onXMarkPressed() {
+        showProfileModal = false
+    }
+
+    private func onImagePressed() {
+        showProfileModal = true
     }
 }
 

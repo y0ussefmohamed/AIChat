@@ -12,6 +12,7 @@ struct ChatBubbleView: View {
     var isAvatar: Bool = true
     var avatarImageName: String?
     var text: String = "Hey, How are You?"
+    var onImagePressed: (() -> Void)?
 
     var body: some View {
         VStack {
@@ -20,6 +21,9 @@ struct ChatBubbleView: View {
                     ZStack {
                         if let avatarImageName, !avatarImageName.isEmpty {
                             ImageLoaderView(imageUrlString: avatarImageName)
+                                .onTapGesture {
+                                    onImagePressed?()
+                                }
                         } else {
                             Rectangle()
                                 .fill(.gray.opacity(0.7))

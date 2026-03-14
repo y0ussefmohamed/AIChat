@@ -57,4 +57,23 @@ extension View {
             .background(backgroundColor)
             .cornerRadius(10)
     }
+
+    @ViewBuilder
+    func ifSatisfiedCondition(_ satisfyCondtion: Bool, action: (Self) -> some View) -> some View {
+        if satisfyCondtion {
+            action(self)
+        } else {
+            self
+        }
+    }
+
+    func showModal(isPresented: Binding<Bool>, @ViewBuilder content: () -> some View, transition: AnyTransition) -> some View {
+        self
+            .overlay(
+                ModalSupportView(showProfileModal: isPresented) {
+                    content()
+                        .transition(transition)
+                }
+            )
+    }
 }
