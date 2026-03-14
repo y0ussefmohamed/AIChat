@@ -16,8 +16,9 @@ import SwiftUI
 struct ChatsView: View {
     @State private var chats: [Chat] = Chat.mocks
 
+    @State private var navPathStack: [String] = []
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPathStack) {
             List {
                 ForEach(chats) { chat in
                     /// use a `ViewBuilder` wrapper when the view of the for loop depends on its items (the `chat` item in our case)
@@ -25,6 +26,7 @@ struct ChatsView: View {
                         currentUserId: nil,
                         chat: chat,
                         getAvatar: {
+                            try? await Task.sleep(for: .seconds(1))
                             // Get Avatar by chat.avatarId
                             return .mock
                         },
@@ -34,13 +36,20 @@ struct ChatsView: View {
                         }
                     )
                     .styledButton(.pressable) {
-
+                        onRowTap(for: chat)
                     }
                     .removeListRowFormatting()
                 }
             }
             .navigationTitle("Chats")
+            .navigationDestination(for: String.self) { avatarId in
+                ChatView(avatarId: avatarId)
+            }
         }
+    }
+
+    private func onRowTap(for chat: Chat) {
+        navPathStack.append(chat.avatarId)
     }
 }
 

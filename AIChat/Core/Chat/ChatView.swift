@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ChatView: View {
+    var avatarId: String = Avatar.mock.avatarId /// to fetch avatar onAppear {}
+
     @State private var chatMessages: [ChatMessage] = ChatMessage.mocks
     @State private var avatar: Avatar? = .mock
     @State private var currentUser: User? = .mock

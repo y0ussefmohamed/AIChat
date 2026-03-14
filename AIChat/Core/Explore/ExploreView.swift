@@ -12,8 +12,9 @@ struct ExploreView: View {
     @State private var categories: [CharacterOption] = CharacterOption.allCases
     @State private var popularAvatars: [Avatar] = Avatar.mocks
 
+    @State private var navPathStack: [NavigationPathOption] = []
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPathStack) {
             List {
                 featuredSection
 
@@ -22,6 +23,14 @@ struct ExploreView: View {
                 popularSection
             }
             .navigationTitle("Explore")
+            .navigationDestination(for: NavigationPathOption.self) { pathOption in
+                switch pathOption {
+                case .chat(let avatarId):
+                    ChatView(avatarId: avatarId)
+                case .category(let category, let imageName):
+                    CategoryListView(category: category, categoryImageName: imageName, navPathStack: $navPathStack)
+                }
+            }
         }
     }
 }
@@ -35,7 +44,9 @@ extension ExploreView {
                     title: avatar.name,
                     subtitle: avatar.characterDescription,
                 )
-                .styledButton {}
+                .styledButton {
+                    onAvatarPressed(avatar.avatarId)
+                }
             }
             .removeListRowFormatting()
         } header: {
@@ -48,11 +59,20 @@ extension ExploreView {
             ScrollView(.horizontal) {
                 HStack(spacing: 12) {
                     ForEach(categories, id: \.self) { category in
-                        CategoryCellView(
-                            title: category.pluralRawValue.capitalized,
-                            imageName: Constants.randomImage
-                        )
-                        .styledButton(.pressable) {}
+                        let imageName = popularAvatars.first(
+                            where: {
+                                $0.characterOption == category
+                            })?.profileImageName
+
+                        if let imageName {
+                            CategoryCellView(
+                                title: category.pluralRawValue.capitalized,
+                                imageName: imageName
+                            )
+                            .styledButton(.pressable) {
+                                onCategoryPressed(category, imageName)
+                            }
+                        }
                     }
                 }
                 .frame(height: 150)
@@ -75,12 +95,22 @@ extension ExploreView {
                     avatarDescription: avatar.characterDescription,
                     imageName: avatar.profileImageName
                 )
-                .styledButton(.highlighted) {}
+                .styledButton(.highlighted) {
+                    onAvatarPressed(avatar.avatarId)
+                }
                 .removeListRowFormatting()
             }
         } header: {
             Text("Popular")
         }
+    }
+
+    private func onAvatarPressed(_ avatarId: String) {
+        navPathStack.append(.chat(avatarId))
+    }
+
+    private func onCategoryPressed(_ category: CharacterOption, _ imageName: String) {
+        navPathStack.append(.category(category, imageName))
     }
 }
 

@@ -15,8 +15,9 @@ struct ProfileView: View {
     @State private var myAvatars: [Avatar] = []
     @State private var isLoading: Bool = false
 
+    @State private var navPathStack: [String] = []
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPathStack) {
             List {
                 Section {
                     Circle()
@@ -45,6 +46,9 @@ struct ProfileView: View {
                                 avatarDescription: nil,
                                 imageName: avatar.profileImageName
                             )
+                            .styledButton(.pressable) {
+                                onAvatarPressed(avatar)
+                            }
                         }
                         .onDelete(perform: onDeleteAvatar)
                         .removeListRowFormatting()
@@ -68,6 +72,9 @@ struct ProfileView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     settingsButton
                 }
+            }
+            .navigationDestination(for: String.self) { avatarId in
+                ChatView(avatarId: avatarId)
             }
         }
         .task {
@@ -113,6 +120,10 @@ struct ProfileView: View {
                     .padding(.top, 8)
                     .styledButton(.pressable, action: onNewAvatarButtonPressed)
         }
+    }
+
+    private func onAvatarPressed(_ avatar: Avatar) {
+        navPathStack.append(avatar.avatarId)
     }
 }
 
