@@ -44,7 +44,7 @@ struct ChatsView: View {
         } description: {
             Text("You haven't started any conversations. Pick an AI avatar and say hello!")
         } actions: {
-            Button("Find Avatars") {
+            Button("Create Avatars") {
                 print("Navigate to discovery...")
             }
             .buttonStyle(.bordered)
@@ -86,7 +86,7 @@ struct ChatsView: View {
                     getAvatar: {
                         try? await Task.sleep(for: .seconds(1))
                         // Get Avatar by chat.avatarId
-                        return .mock
+                        return .mocks.shuffled().last
                     },
                     getLastChatMessage: {
                         // Get Last Chat Message by chat.id

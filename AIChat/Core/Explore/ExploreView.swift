@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ExploreView: View {
     @State private var featuredAvatars: [Avatar] = Avatar.mocks
-    @State private var categories: [CharacterOption] = CharacterOption.allCases
+    @State private var categories: [CharacterOption] = CharacterOption.allCases + CharacterOption.allCases
     @State private var popularAvatars: [Avatar] = Avatar.mocks
 
     @State private var navPathStack: [NavigationPathOption] = []
@@ -23,8 +23,8 @@ struct ExploreView: View {
                 popularSection
             }
             .navigationTitle("Explore")
-            .navigationDestination(for: NavigationPathOption.self) { pathOption in
-                switch pathOption {
+            .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
+                switch pathOptionTop {
                 case .chat(let avatarId):
                     ChatView(avatarId: avatarId)
                 case .category(let category, let imageName):

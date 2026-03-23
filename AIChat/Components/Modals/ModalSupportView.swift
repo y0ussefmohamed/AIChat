@@ -42,8 +42,8 @@ private struct PreviewView: View {
                 showProfileModal.toggle()
             }
 
-    //        ModalSupportView(showProfileModal: $showProfileModal, modalContent: { Text("Hello")
-    //        })
+            ModalSupportView(showProfileModal: $showProfileModal, modalContent: { Text("Hello")
+            })
         }
         .showModal(
             isPresented: $showProfileModal,

@@ -39,16 +39,13 @@ struct OnboardingCompletedView: View {
 // MARK: - Seperate Business Logic out of Views
 extension OnboardingCompletedView {
     private func onFinishButtonPressed() {
-        isLoadingToSetupProfile = true
-
         Task {
+            isLoadingToSetupProfile = true
             try? await Task.sleep(for: .seconds(3))
             isLoadingToSetupProfile = false
 
             rootAppState.updateViewState(showTabBar: true)
         }
-
-
     }
 }
 

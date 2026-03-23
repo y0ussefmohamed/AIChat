@@ -16,27 +16,27 @@ struct ChatRowCellViewBuilder: View {
     var currentUserId: String? = ""
     var chat: Chat = .mock
 
-    var getAvatar: () async -> Avatar?
-    var getLastChatMessage: () async -> ChatMessage?
-
     @State private var avatar: Avatar?
     @State private var lastChatMessage: ChatMessage?
+
+    var getAvatar: () async -> Avatar?
+    var getLastChatMessage: () async -> ChatMessage?
 
     @State private var didLoadAvatar: Bool = false
     @State private var didLoadChatMessage: Bool = false
 
     private var isLoading: Bool {
-        if didLoadAvatar && didLoadChatMessage {
-            return false
-        }
-
-        return true
+        didLoadAvatar && didLoadChatMessage ? false : true
     }
 
     private var hasNewChat: Bool {
         guard let lastChatMessage, let currentUserId else { return false }
 
         return lastChatMessage.isSeenBy(userId: currentUserId)
+    }
+
+    private var headline: String? {
+        isLoading ? ".... ...." : avatar?.name
     }
 
     private var subheadline: String? {
@@ -55,7 +55,7 @@ struct ChatRowCellViewBuilder: View {
     var body: some View {
         ChatRowCellView(
             imageName: avatar?.profileImageName,
-            headline: isLoading ? ".... ...." : avatar?.name,
+            headline: headline,
             subheadline: subheadline,
             isNewMessage: isLoading ? false : hasNewChat
         )

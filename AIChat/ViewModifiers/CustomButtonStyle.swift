@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+enum ButtonStyleOption {
+    case highlighted, pressable, plain
+}
+
 /// A `ViewModifier` can work with any view as a normal modifier, but a `ButtonStyle` only works on buttons
 struct HighlightedButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -25,10 +29,6 @@ struct PressableButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? 0.95 : 1)
             // .animation(.smooth, value: configuration.isPressed)
     }
-}
-
-enum ButtonStyleOption {
-    case pressable, highlighted, plain
 }
 
 extension View {

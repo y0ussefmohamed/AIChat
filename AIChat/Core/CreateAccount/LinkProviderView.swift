@@ -20,6 +20,15 @@ enum LinkProviderViewOptions: String {
             return "Create Account"
         }
     }
+
+    var ctaButtonTitle: String {
+        switch self {
+        case .signIn:
+            "Sign In"
+        case .createAccount:
+            "Sign Up"
+        }
+    }
 }
 
 struct LinkProviderView: View {
@@ -36,7 +45,7 @@ struct LinkProviderView: View {
                 viewHeader
                 textFields
 
-                Text("Sign Up")
+                Text(usageOption.ctaButtonTitle)
                     .callToActionButton()
                     .styledButton(.pressable) {
 
@@ -55,7 +64,7 @@ struct LinkProviderView: View {
                 }
                 .padding(.vertical, 8)
 
-                SignInWithAppleButton(.signIn) { _ in
+                SignInWithAppleButton(usageOption == .signIn ? .signIn : .signUp) { _ in
                     // No logic requested
                 } onCompletion: { _ in
                     // No logic requested
@@ -92,9 +101,12 @@ struct LinkProviderView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(usageOption.title)
                 .font(.title.bold())
-            Text("Don't Lose Your Data! \nConnect to an SSO Provider to Save Your Account")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Don't Lose Your Data!")
+                Text("Connect to an SSO Provider to \(usageOption == .signIn ? "Sign In to" : "Save") Your Account")
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 40)
@@ -108,7 +120,9 @@ struct LinkProviderView: View {
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
 
-                passwordField
+                if usageOption == .createAccount {
+                    passwordField
+                }
             }
         }
     }
