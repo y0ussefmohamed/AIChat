@@ -12,7 +12,7 @@ struct ChatView: View {
 
     @State private var chatMessages: [ChatMessage] = ChatMessage.mocks
     @State private var avatar: Avatar? = .mock
-    @State private var currentUser: User? = .mock
+    @State private var currentUser: UserModel? = .mock
     @State private var messageTextField: String = ""
     @State private var showConfirmationDialog: Bool = false
     @State private var scrollPositionId: String?

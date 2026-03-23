@@ -1,5 +1,5 @@
 //
-//  User.swift
+//  UserModel.swift
 //  AIChat
 //
 //  Created by Youssef Mohamed on 10/03/2026.
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct User {
+struct UserModel {
     let userId: String
     let dateCreated: Date?
     let didCompleteOnboarding: Bool?
@@ -35,13 +35,13 @@ struct User {
         let now = Date()
 
         return [
-            User(
+            UserModel(
                 userId: "user",
                 dateCreated: now.addingTimeInterval(days: -1),
                 didCompleteOnboarding: true,
                 profileColorHex: "#FF6B6B"
             ),
-            User(
+            UserModel(
                 userId: "user_002",
                 dateCreated: now.addingTimeInterval(
                     days: -3,
@@ -50,7 +50,7 @@ struct User {
                 didCompleteOnboarding: false,
                 profileColorHex: "#4ECDC4"
             ),
-            User(
+            UserModel(
                 userId: "user",
                 dateCreated: now.addingTimeInterval(
                     days: -5,
@@ -59,7 +59,7 @@ struct User {
                 didCompleteOnboarding: true,
                 profileColorHex: "#556270"
             ),
-            User(
+            UserModel(
                 userId: "user_004",
                 dateCreated: nil,
                 didCompleteOnboarding: nil,

@@ -11,7 +11,7 @@ struct ProfileView: View {
     @State private var showSettingsView: Bool = false
     @State private var showCreateAvatarView: Bool = false
 
-    @State private var currentUser: User? = .mock
+    @State private var currentUser: UserModel? = .mock
     @State private var myAvatars: [Avatar] = []
     @State private var isLoading: Bool = false
 

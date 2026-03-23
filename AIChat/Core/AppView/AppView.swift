@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AppView: View {
+    @Environment(\.authServices) private var authServices
     @State var appState: AppState = AppState()
 
     var body: some View {
@@ -21,6 +22,22 @@ struct AppView: View {
         })
         /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
         .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
+        .task {
+            await checkUserStatus()
+        }
+    }
+
+    private func checkUserStatus() async {
+        if let user = authServices.getAuthenticatedUser() {
+            print("User is already authenticated: \(user.uid)")
+        } else {
+            do {
+                let result = try await authServices.signInAnonymously()
+                print("User is now authenticated: \(result.user.uid)")
+            } catch {
+                print(error)
+            }
+        }
     }
 }
 
