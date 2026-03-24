@@ -16,10 +16,11 @@ struct TextWidthPreferenceKey: PreferenceKey {
 }
 
 struct SettingsView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.authServices) private var authServices
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     @State private var isPremium: Bool = true
-    @State private var isAnonymousUser: Bool = true
+    @State private var isAnonymousUser: Bool = false
     @State private var versionTextWidth: CGFloat = 0
     @State private var showCreateAccountView: Bool = false
 
@@ -35,10 +36,15 @@ struct SettingsView: View {
                 aboutSection
                     .offset(y: -5)
             }
-            .sheet(isPresented: $showCreateAccountView) {
+            .sheet(isPresented: $showCreateAccountView, onDismiss: {
+                setAnonymousAccountStatus()
+            }, content: {
                 LinkProviderView(usageOption: .createAccount)
-            }
+            })
             .navigationTitle("Settings")
+            .onAppear {
+                setAnonymousAccountStatus()
+            }
         }
     }
 
@@ -55,7 +61,7 @@ struct SettingsView: View {
             Text("Delete Account")
                 .foregroundStyle(.red)
                 .styledButton(.plain) {
-                    onSignOutPressed()
+                    onDeleteAccountPressed()
                 }
         } header: {
             Text("Account")
@@ -136,11 +142,16 @@ struct SettingsView: View {
 
 // MARK: - Seperate Business Logic out of Views
 extension SettingsView {
+    private func dismissScreen() async {
+        dismiss()
+        try? await Task.sleep(for: .seconds(0.25))
+        appState.updateViewState(showTabBar: false)
+    }
+
     private func onSignOutPressed() {
         Task {
-            dismiss()
-            try? await Task.sleep(for: .seconds(0.25))
-            appState.updateViewState(showTabBar: false)
+            try authServices.signOut()
+            await dismissScreen()
         }
     }
 
@@ -150,6 +161,20 @@ extension SettingsView {
 
     private var premiumStatus: String {
         isPremium ? "Premium" : "Free"
+    }
+
+    func setAnonymousAccountStatus() {
+        isAnonymousUser = authServices.getAuthenticatedUser()?.isAnonymous == true
+    }
+
+    private func onDeleteAccountPressed() {
+        // Show Alert
+        
+        Task {
+            try await authServices.deleteAccount()
+            setAnonymousAccountStatus()
+            await dismissScreen()
+        }
     }
 }
 

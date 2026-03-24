@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseAuth
+import SignInAppleAsync
 import SwiftUI
 
 extension EnvironmentValues {
@@ -15,32 +16,21 @@ extension EnvironmentValues {
     /// this class will be created at the start of the app and will always be in the `@Environment`
 }
 
-struct UserAuthInfo: Sendable {
-    let uid: String
-    let email: String?
-    let isAnonymous: Bool
-    let creationDate: Date?
-    let lastSignInDate: Date?
+enum AuthError: Error, LocalizedError {
+    case unknown
+    case userNotFound
 
-    init (uid: String, email: String? = nil, isAnonymous: Bool = false, creationDate: Date? = nil, lastSignInDate: Date? = nil) {
-        self.uid = uid
-        self.email = email
-        self.isAnonymous = isAnonymous
-        self.creationDate = creationDate
-        self.lastSignInDate = lastSignInDate
-    }
-
-    init(user: User) {
-        self.uid = user.uid
-        self.email = user.email
-        self.isAnonymous = user.isAnonymous
-        self.creationDate = user.metadata.creationDate
-        self.lastSignInDate = user.metadata.lastSignInDate
+    var errorDescription: String? {
+        switch self {
+        case .unknown:
+            return "An unknown error occurred."
+        case .userNotFound:
+            return "The user was not found."
+        }
     }
 }
 
 struct FirebaseAuthServices {
-
     func getAuthenticatedUser() -> UserAuthInfo? {
         if let user = Auth.auth().currentUser {
             return UserAuthInfo(user: user)
@@ -50,10 +40,37 @@ struct FirebaseAuthServices {
     }
 
     func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
-        let authData = try await Auth.auth().signInAnonymously()
+        let result = try await Auth.auth().signInAnonymously()
+        return result.asAuthInfo
+    }
 
-        let user = UserAuthInfo(user: authData.user)
-        let isNewUser = authData.additionalUserInfo?.isNewUser ?? true
+    func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        let helper = SignInWithAppleHelper()
+        let response = try await helper.signIn()
+        let credential = OAuthProvider.credential(
+            providerID: .apple,
+            idToken: response.token,
+            rawNonce: response.nonce
+        )
+
+        let result = try await Auth.auth().signIn(with: credential)
+        return result.asAuthInfo
+    }
+
+    func signOut() throws {
+        try Auth.auth().signOut()
+    }
+
+    func deleteAccount() async throws {
+        guard let user = Auth.auth().currentUser else { throw AuthError.userNotFound }
+        try await user.delete()
+    }
+}
+
+extension AuthDataResult {
+    var asAuthInfo: (user: UserAuthInfo, isNewUser: Bool) {
+        let user = UserAuthInfo(user: self.user)
+        let isNewUser = self.additionalUserInfo?.isNewUser ?? true
 
         return (user, isNewUser)
     }

@@ -33,7 +33,7 @@ struct AppView: View {
         } else {
             do {
                 let result = try await authServices.signInAnonymously()
-                print("User is now authenticated: \(result.user.uid)")
+                print("User is NEW, now authenticated: \(result.user.uid)")
             } catch {
                 print(error)
             }

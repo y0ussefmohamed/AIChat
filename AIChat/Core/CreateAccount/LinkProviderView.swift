@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import AuthenticationServices // Official Apple button
+import AuthenticationServices
 
 enum LinkProviderViewOptions: String {
     case signIn
@@ -32,8 +32,10 @@ enum LinkProviderViewOptions: String {
 }
 
 struct LinkProviderView: View {
-    var usageOption: LinkProviderViewOptions
+    @Environment(\.authServices) var authServices
     @Environment(\.dismiss) var dismiss
+
+    var usageOption: LinkProviderViewOptions
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
@@ -70,7 +72,7 @@ struct LinkProviderView: View {
                     // No logic requested
                 }
                 .styledButton(.pressable) {
-
+                    onSignInApple()
                 }
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 50)
@@ -150,6 +152,19 @@ struct LinkProviderView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(10)
+    }
+}
+
+extension LinkProviderView {
+    func onSignInApple() {
+        Task {
+            do {
+                let authInfo = try await authServices.signInApple()
+                print("Signed in with Apple: \(String(describing: authInfo.user.email))")
+            } catch {
+                print(error)
+            }
+        }
     }
 }
 

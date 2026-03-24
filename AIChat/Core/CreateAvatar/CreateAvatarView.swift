@@ -155,8 +155,17 @@ extension CreateAvatarView {
             isSavingAvatar = true
             try? await Task.sleep(for: .seconds(1))
             isSavingAvatar = false
+            resetForm()
             dismiss()
         }
+    }
+
+    private func resetForm() {
+        generatedImage = nil
+        avatarName = ""
+        characterAction = .default
+        characterOption = .default
+        characterLocation = .default
     }
 }
 
