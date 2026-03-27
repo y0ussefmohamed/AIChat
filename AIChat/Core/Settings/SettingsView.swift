@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var isAnonymousUser: Bool = false
     @State private var versionTextWidth: CGFloat = 0
     @State private var showCreateAccountView: Bool = false
+    @State private var showAlert: AnyAppAlert?
 
     var body: some View {
         NavigationStack {
@@ -36,6 +37,7 @@ struct SettingsView: View {
                 aboutSection
                     .offset(y: -5)
             }
+            .showCustomAlert(alert: $showAlert)
             .sheet(isPresented: $showCreateAccountView, onDismiss: {
                 setAnonymousAccountStatus()
             }, content: {
@@ -54,8 +56,12 @@ struct SettingsView: View {
                 Text("Save & Backup Account")
                     .styledButton(.plain, action: onCreateAccountPressed)
             } else {
-                Text("Sign out")
-                    .styledButton(.plain, action: onSignOutPressed)
+                if authServices.getAuthenticatedUser() == nil {
+                    Text("No Anonymous Account")
+                } else {
+                    Text("Sign out")
+                        .styledButton(.plain, action: onSignOutPressed)
+                }
             }
 
             Text("Delete Account")
@@ -74,7 +80,7 @@ struct SettingsView: View {
                 Text("Account Status: \(premiumStatus)")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .styledButton(.plain) {
-                        
+
                     }
 
                 if isPremium {
@@ -150,8 +156,12 @@ extension SettingsView {
 
     private func onSignOutPressed() {
         Task {
-            try authServices.signOut()
-            await dismissScreen()
+            do {
+                try authServices.signOut()
+                await dismissScreen()
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
         }
     }
 
@@ -168,12 +178,28 @@ extension SettingsView {
     }
 
     private func onDeleteAccountPressed() {
-        // Show Alert
-        
+        showAlert = AnyAppAlert(
+            title: "Delete Account?",
+            subtitle: "Are you sure you want to delete your account?",
+            buttons: {
+                AnyView(
+                    Button("Delete", role: .destructive) {
+                        onDeleteAccountConfirmed()
+                    }
+                )
+            }
+        )
+    }
+
+    private func onDeleteAccountConfirmed() {
         Task {
-            try await authServices.deleteAccount()
-            setAnonymousAccountStatus()
-            await dismissScreen()
+            do {
+                try await authServices.deleteAccount()
+                setAnonymousAccountStatus()
+                await dismissScreen()
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
         }
     }
 }

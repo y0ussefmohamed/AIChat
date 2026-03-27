@@ -58,6 +58,17 @@ extension View {
             .cornerRadius(10)
     }
 
+    func showCustomAlert(alert: Binding<AnyAppAlert?>) -> some View {
+        self
+            .alert(alert.wrappedValue?.title ?? "", isPresented: Binding(ifNotNil: alert)) {
+                alert.wrappedValue?.buttons()
+            } message: {
+                if let subtitle = alert.wrappedValue?.subtitle {
+                    Text(subtitle)
+                }
+            }
+    }
+
     @ViewBuilder
     func ifSatisfiedCondition(_ satisfyCondtion: Bool, action: (Self) -> some View) -> some View {
         if satisfyCondtion {
