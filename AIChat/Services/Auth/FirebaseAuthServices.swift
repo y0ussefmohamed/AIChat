@@ -10,12 +10,6 @@ import FirebaseAuth
 import SignInAppleAsync
 import SwiftUI
 
-extension EnvironmentValues {
-    @Entry /// to use `\.authService` as a `Keypath` in the `@Environment`
-    var authServices: FirebaseAuthServices = FirebaseAuthServices()
-    /// this class will be created at the start of the app and will always be in the `@Environment`
-}
-
 enum AuthError: Error, LocalizedError {
     case unknown
     case userNotFound
@@ -28,6 +22,12 @@ enum AuthError: Error, LocalizedError {
             return "The user was not found."
         }
     }
+}
+
+extension EnvironmentValues {
+    @Entry /// to use `\.authService` as a `Keypath` in the `@Environment`
+    var authServices: FirebaseAuthServices = FirebaseAuthServices()
+    /// this class will be created at the start of the app and will always be in the `@Environment`
 }
 
 struct FirebaseAuthServices {
