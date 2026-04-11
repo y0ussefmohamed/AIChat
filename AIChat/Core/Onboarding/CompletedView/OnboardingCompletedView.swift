@@ -10,7 +10,7 @@ import SwiftUI
 struct OnboardingCompletedView: View {
     /// extracts the `AppState` type variable that was passed as an environment(`object`)
     @Environment(AppState.self) private var rootAppState
-    var selectedColor: Color?
+    var selectedColor: Color = .accentColor
 
     @State private var isLoadingToSetupProfile: Bool = false
 
@@ -19,7 +19,7 @@ struct OnboardingCompletedView: View {
             Text("Setup Completed! 🎉")
                 .font(.largeTitle)
                 .fontWeight(.semibold)
-                .foregroundStyle(selectedColor ?? .accent)
+                .foregroundStyle(selectedColor)
 
             Text("We've set up your profile and you're ready to start chatting")
                 .font(.title)

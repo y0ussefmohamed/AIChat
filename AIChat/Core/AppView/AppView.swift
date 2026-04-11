@@ -25,6 +25,14 @@ struct AppView: View {
         .task {
             await checkUserStatus()
         }
+        .onChange(of: appState.showTabBar) { _, showTabBar in
+            /// if user signedOut\deletedAccount then make a new anonymous account
+            if !showTabBar {
+                Task {
+                    await checkUserStatus()
+                }
+            }
+        }
     }
 
     private func checkUserStatus() async {

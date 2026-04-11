@@ -40,6 +40,8 @@ struct LinkProviderView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
+    var onDidSignIn: ((_ isNewUser: Bool) -> Void)?
+    @State private var showAlert: AnyAppAlert?
 
     var body: some View {
         NavigationStack {
@@ -50,7 +52,7 @@ struct LinkProviderView: View {
                 Text(usageOption.ctaButtonTitle)
                     .callToActionButton()
                     .styledButton(.pressable) {
-
+                        signingActionMethod()
                     }
 
                 HStack {
@@ -95,6 +97,7 @@ struct LinkProviderView: View {
                     .font(.footnote)
                 }
             }
+            .showCustomAlert(alert: $showAlert)
             .padding(24)
         }
     }
@@ -117,14 +120,14 @@ struct LinkProviderView: View {
     private var textFields: some View {
         Group {
             VStack(spacing: 16) {
-                CustomTextField(text: $fullName, placeholder: "Full Name", icon: "person")
+                if usageOption == .createAccount {
+                    CustomTextField(text: $fullName, placeholder: "Full Name", icon: "person")
+                }
                 CustomTextField(text: $email, placeholder: "Email", icon: "envelope")
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
 
-                if usageOption == .createAccount {
-                    passwordField
-                }
+                passwordField
             }
         }
     }
@@ -161,9 +164,49 @@ extension LinkProviderView {
             do {
                 let authInfo = try await authServices.signInApple()
                 print("Signed in with Apple: \(String(describing: authInfo.user.email))")
+
+                onDidSignIn?(authInfo.isNewUser)
+                dismiss()
             } catch {
                 print(error)
             }
+        }
+    }
+
+    func signInEmail() {
+        Task {
+            do {
+                let authInfo = try await authServices.signInEmail(email: email, password: password)
+                print("Signed in with Email: \(String(describing: authInfo.user.email))")
+
+                onDidSignIn?(authInfo.isNewUser)
+                dismiss()
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
+        }
+    }
+
+    func createAccountEmail() {
+            Task {
+                do {
+                    let authInfo = try await authServices.createAccountEmail(email: email, password: password)
+                    print("Created account with Email: \(String(describing: authInfo.user.email))")
+
+                    onDidSignIn?(authInfo.isNewUser)
+                    dismiss()
+                } catch {
+                    showAlert = AnyAppAlert(error: error)
+                }
+            }
+        }
+
+    func signingActionMethod() {
+        switch usageOption {
+        case .signIn:
+            signInEmail()
+        case .createAccount:
+            createAccountEmail()
         }
     }
 }

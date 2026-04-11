@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    @Environment(AppState.self) private var rootAppState
     @State private var showSignInView: Bool = false
     @State var imageName: String = Constants.randomImage
 
@@ -26,7 +27,10 @@ struct WelcomeView: View {
                     .foregroundStyle(.accent)
             }
             .sheet(isPresented: $showSignInView) {
-                LinkProviderView(usageOption: .signIn)
+                LinkProviderView(
+                    usageOption: .signIn,
+                    onDidSignIn: handleDidSignIn
+                )
             }
         }
     }
@@ -65,6 +69,13 @@ extension WelcomeView {
                 .styledButton {
                     onSignInPressed()
                 }
+        }
+    }
+
+    /// if this user not first time to signIn the app, then showTabBar directly... no onboarding
+    private func handleDidSignIn(isNewUser: Bool) {
+        if !isNewUser {
+            rootAppState.updateViewState(showTabBar: true)
         }
     }
 
