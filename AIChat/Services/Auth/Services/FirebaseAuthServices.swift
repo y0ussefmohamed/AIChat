@@ -49,7 +49,7 @@ struct FirebaseAuthServices: AuthService {
                 let result = try await user.link(with: credential)
                 return result.asAuthInfo
             } catch {
-                let mappedError = mapFirebaseAuthError(error)
+                let mappedError = mapSignInAuthError(error)
 
                 if mappedError == .emailAlreadyInUse {
                     try? await user.delete()
@@ -79,7 +79,7 @@ struct FirebaseAuthServices: AuthService {
                 return result.asAuthInfo
             }
         } catch {
-            throw mapFirebaseAuthError(error)
+            throw mapCreateAuthError(error)
         }
     }
     
@@ -104,7 +104,8 @@ extension AuthDataResult {
 
 
 extension FirebaseAuthServices {
-    private func mapFirebaseAuthError(_ error: Error) -> EmailAuthError {
+    /// Maps generic Firebase errors to custom Create (Sign Up) errors
+    func mapCreateAuthError(_ error: Error) -> CreateEmailAuthError {
         let nsError = error as NSError
         let authErrorCode = AuthErrorCode(rawValue: nsError.code)
 
@@ -115,6 +116,23 @@ extension FirebaseAuthServices {
             return .invalidEmail
         case .weakPassword:
             return .weakPassword
+        default:
+            return .unknown
+        }
+    }
+
+    /// Maps generic Firebase errors to custom Sign In errors
+    func mapSignInAuthError(_ error: Error) -> SignInEmailAuthError {
+        let nsError = error as NSError
+        let authErrorCode = AuthErrorCode(rawValue: nsError.code)
+
+        switch authErrorCode {
+        case .invalidEmail, .userNotFound:
+            return .invalidEmail
+        case .wrongPassword:
+            return .wrongPassword
+        case .emailAlreadyInUse:
+            return .emailAlreadyInUse
         default:
             return .unknown
         }
