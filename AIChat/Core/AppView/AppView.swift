@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AppView: View {
+    /// put the .environment(\.authService, FirebaseAuthService()) before this View so that it can extract it from the nearest ancestor that have this `Entry`
     @Environment(\.authServices) private var authServices
     @State var appState: AppState = AppState()
 

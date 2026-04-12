@@ -22,4 +22,14 @@ struct UserAuthInfo: Sendable {
         self.creationDate = creationDate
         self.lastSignInDate = lastSignInDate
     }
+
+    static func mock(isAnonymous: Bool = false) -> Self {
+        UserAuthInfo(
+            uid: "user_12345",
+            email: "hello@gemini.ai",
+            isAnonymous: isAnonymous,
+            creationDate: Date().addingTimeInterval(-86400 * 30), // 30 days ago
+            lastSignInDate: Date()
+        )
+    }
 }

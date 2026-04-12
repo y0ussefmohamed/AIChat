@@ -57,7 +57,7 @@ struct SettingsView: View {
                     .styledButton(.plain, action: onCreateAccountPressed)
             } else {
                 if authServices.getAuthenticatedUser() == nil {
-                    Text("No Anonymous Account")
+                    Text("No User Account Exists")
                 } else {
                     Text("Sign out")
                         .styledButton(.plain, action: onSignOutPressed)
@@ -204,7 +204,20 @@ extension SettingsView {
     }
 }
 
-#Preview {
+#Preview("No Auth") {
     SettingsView()
+        .environment(\.authServices, MockAuthService(user: nil))
+        .environment(AppState())
+}
+
+#Preview("Anonymous") {
+    SettingsView()
+        .environment(\.authServices, MockAuthService(user: UserAuthInfo.mock(isAnonymous: true)))
+        .environment(AppState())
+}
+
+#Preview("Not Anonymous") {
+    SettingsView()
+        .environment(\.authServices, MockAuthService(user: UserAuthInfo.mock(isAnonymous: false)))
         .environment(AppState())
 }

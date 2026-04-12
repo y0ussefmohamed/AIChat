@@ -47,13 +47,7 @@ enum EmailAuthError: Error, LocalizedError {
     }
 }
 
-extension EnvironmentValues {
-    @Entry /// to use `\.authService` as a `Keypath` in the `@Environment`
-    var authServices: FirebaseAuthServices = FirebaseAuthServices()
-    /// this class will be created at the start of the app and will always be in the `@Environment`
-}
-
-struct FirebaseAuthServices {
+struct FirebaseAuthServices: AuthService {
     func getAuthenticatedUser() -> UserAuthInfo? {
         if let user = Auth.auth().currentUser {
             return UserAuthInfo(user: user)
