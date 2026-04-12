@@ -10,43 +10,6 @@ import FirebaseAuth
 import SignInAppleAsync
 import SwiftUI
 
-enum AuthError: Error, LocalizedError {
-    case unknown
-    case userNotFound
-
-    var errorDescription: String? {
-        switch self {
-        case .unknown:
-            return "An unknown error occurred."
-        case .userNotFound:
-            return "The user was not found."
-        }
-    }
-}
-
-enum EmailAuthError: Error, LocalizedError {
-    case invalidEmail
-    case wrongPassword
-    case weakPassword
-    case emailAlreadyInUse
-    case unknown
-
-    var errorDescription: String? {
-        switch self {
-        case .invalidEmail:
-            return "Invalid email, please enter a valid email"
-        case .wrongPassword:
-            return "Wrong Password"
-        case .weakPassword:
-            return "Weak Password, enter a password with more than 5 characters"
-        case .emailAlreadyInUse:
-            return "An account with this email already exists. Please sign in instead."
-        case .unknown:
-            return "Unknown Error!"
-        }
-    }
-}
-
 struct FirebaseAuthServices: AuthService {
     func getAuthenticatedUser() -> UserAuthInfo? {
         if let user = Auth.auth().currentUser {
