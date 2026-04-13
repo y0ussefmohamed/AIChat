@@ -16,14 +16,17 @@ struct TextWidthPreferenceKey: PreferenceKey {
 }
 
 struct SettingsView: View {
-    @Environment(\.authServices) private var authServices
+    @Environment(AuthManager.self) private var authManager
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var isPremium: Bool = true
-    @State private var isAnonymousUser: Bool = false
     @State private var versionTextWidth: CGFloat = 0
     @State private var showCreateAccountView: Bool = false
     @State private var showAlert: AnyAppAlert?
+
+    private var isAnonymousUser: Bool {
+        authManager.auth?.isAnonymous ?? false
+    }
 
     var body: some View {
         NavigationStack {
@@ -38,15 +41,10 @@ struct SettingsView: View {
                     .offset(y: -5)
             }
             .showCustomAlert(alert: $showAlert)
-            .sheet(isPresented: $showCreateAccountView, onDismiss: {
-                setAnonymousAccountStatus()
-            }, content: {
+            .sheet(isPresented: $showCreateAccountView) {
                 LinkProviderView(usageOption: .createAccount)
-            })
-            .navigationTitle("Settings")
-            .onAppear {
-                setAnonymousAccountStatus()
             }
+            .navigationTitle("Settings")
         }
     }
 
@@ -56,7 +54,7 @@ struct SettingsView: View {
                 Text("Save & Backup Account")
                     .styledButton(.plain, action: onCreateAccountPressed)
             } else {
-                if authServices.getAuthenticatedUser() == nil {
+                if authManager.auth == nil {
                     Text("No User Account Exists")
                 } else {
                     Text("Sign out")
@@ -105,7 +103,7 @@ struct SettingsView: View {
 
                 Text(Utilities.appVersion ?? "")
                     .foregroundStyle(.secondary)
-                /// this reads the width of the text and sends it the to `@State variable` above
+                    /// this reads the width of the text and sends it the to `@State variable` above
                     .background(
                         GeometryReader { geometry in
                             Color.black.opacity(0.001)
@@ -157,7 +155,7 @@ extension SettingsView {
     private func onSignOutPressed() {
         Task {
             do {
-                try authServices.signOut()
+                try authManager.signOut()
                 await dismissScreen()
             } catch {
                 showAlert = AnyAppAlert(error: error)
@@ -171,10 +169,6 @@ extension SettingsView {
 
     private var premiumStatus: String {
         isPremium ? "Premium" : "Free"
-    }
-
-    func setAnonymousAccountStatus() {
-        isAnonymousUser = authServices.getAuthenticatedUser()?.isAnonymous == true
     }
 
     private func onDeleteAccountPressed() {
@@ -194,8 +188,7 @@ extension SettingsView {
     private func onDeleteAccountConfirmed() {
         Task {
             do {
-                try await authServices.deleteAccount()
-                setAnonymousAccountStatus()
+                try await authManager.deleteAccount()
                 await dismissScreen()
             } catch {
                 showAlert = AnyAppAlert(error: error)
@@ -206,18 +199,18 @@ extension SettingsView {
 
 #Preview("No Auth") {
     SettingsView()
-        .environment(\.authServices, MockAuthService(user: nil))
+        .environment(AuthManager(service: MockAuthService(user: nil)))
         .environment(AppState())
 }
 
 #Preview("Anonymous") {
     SettingsView()
-        .environment(\.authServices, MockAuthService(user: UserAuthInfo.mock(isAnonymous: true)))
+        .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: true))))
         .environment(AppState())
 }
 
 #Preview("Not Anonymous") {
     SettingsView()
-        .environment(\.authServices, MockAuthService(user: UserAuthInfo.mock(isAnonymous: false)))
+        .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: false))))
         .environment(AppState())
 }

@@ -8,13 +8,10 @@
 import Foundation
 import SwiftUI
 
-extension EnvironmentValues {
-    @Entry /// to use `\.authService` as a `Keypath` in the `@Environment`
-    var authServices: AuthService = MockAuthService()
-    /// this class will be created at the start of the app and will always be in the `@Environment`
-}
 
 protocol AuthService: Sendable {
+    func addAuthenticatedUserListener(action: (any NSObjectProtocol) -> Void) -> AsyncStream<UserAuthInfo?>
+
     func getAuthenticatedUser() -> UserAuthInfo?
 
     func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool)

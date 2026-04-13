@@ -8,15 +8,18 @@
 import Foundation
 
 enum AuthError: Error, LocalizedError {
-    case unknown
     case userNotFound
+    case notSignedIn
+    case unknown
 
     var errorDescription: String? {
         switch self {
-        case .unknown:
-            return "An unknown error occurred."
         case .userNotFound:
             return "The user was not found."
+        case .notSignedIn:
+            return "The user is not signed in."
+        case .unknown:
+            return "An unknown error occurred."
         }
     }
 }

@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct AppView: View {
-    /// put the .environment(\.authService, FirebaseAuthService()) before this View so that it can extract it from the nearest ancestor that have this `Entry`
-    @Environment(\.authServices) private var authServices
+    @Environment(AuthManager.self) private var authManager
     @State var appState: AppState = AppState()
 
     var body: some View {
@@ -37,11 +36,11 @@ struct AppView: View {
     }
 
     private func checkUserStatus() async {
-        if let user = authServices.getAuthenticatedUser() {
+        if let user = authManager.auth {
             print("User is already authenticated: \(user.uid)")
         } else {
             do {
-                let result = try await authServices.signInAnonymously()
+                let result = try await authManager.signInAnonymously()
                 print("User is NEW, now authenticated: \(result.user.uid)")
             } catch {
                 print(error)

@@ -32,10 +32,10 @@ enum LinkProviderViewOptions: String {
 }
 
 struct LinkProviderView: View {
-    @Environment(\.authServices) var authServices
+    @Environment(AuthManager.self) var authManager
     @Environment(\.dismiss) var dismiss
 
-    var usageOption: LinkProviderViewOptions
+    @State var usageOption: LinkProviderViewOptions
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
@@ -82,20 +82,25 @@ struct LinkProviderView: View {
 
                 Spacer()
 
-                if usageOption == .createAccount {
-                    HStack(spacing: 4) {
-                        Text("Already have an account?")
-                            .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text(usageOption == .createAccount ? "Already have an account?" : "Don't have an account?")
+                        .foregroundStyle(.secondary)
 
-                        Text("Log In")
-                            .underline()
-                            .fontWeight(.bold)
-                            .styledButton(.plain) {
-                                dismiss()
+                    Text(usageOption == .createAccount ? "Log In" : "Create Account")
+                        .underline()
+                        .fontWeight(.bold)
+                        .styledButton(.plain) {
+                            withAnimation(.default) {
+                                if usageOption == .createAccount {
+                                    usageOption = .signIn
+                                } else {
+                                    usageOption = .createAccount
+                                }
                             }
-                    }
-                    .font(.footnote)
+                        }
                 }
+                .font(.footnote)
+
             }
             .showCustomAlert(alert: $showAlert)
             .padding(24)
@@ -162,7 +167,7 @@ extension LinkProviderView {
     func onSignInApple() {
         Task {
             do {
-                let authInfo = try await authServices.signInApple()
+                let authInfo = try await authManager.signInApple()
                 print("Signed in with Apple: \(String(describing: authInfo.user.email))")
 
                 onDidSignIn?(authInfo.isNewUser)
@@ -176,7 +181,7 @@ extension LinkProviderView {
     func signInEmail() {
         Task {
             do {
-                let authInfo = try await authServices.signInEmail(email: email, password: password)
+                let authInfo = try await authManager.signInEmail(email: email, password: password)
                 print("Signed in with Email: \(String(describing: authInfo.user.email))")
 
                 onDidSignIn?(authInfo.isNewUser)
@@ -190,7 +195,7 @@ extension LinkProviderView {
     func createAccountEmail() {
             Task {
                 do {
-                    let authInfo = try await authServices.createAccountEmail(email: email, password: password)
+                    let authInfo = try await authManager.createAccountEmail(email: email, password: password)
                     print("Created account with Email: \(String(describing: authInfo.user.email))")
 
                     onDidSignIn?(authInfo.isNewUser)

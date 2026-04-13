@@ -21,7 +21,7 @@ struct EnvironmentBuilderView<Content: View>: View {
     @ViewBuilder var content: () -> Content
     var body: some View {
         content()
-            .environment(\.authServices, FirebaseAuthServices())
+            .environment(AuthManager(service: FirebaseAuthServices()))
     }
 }
 
