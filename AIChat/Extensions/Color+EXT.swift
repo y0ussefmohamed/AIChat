@@ -53,25 +53,30 @@ extension Color {
         )
     }
 
-    // Convert Color to hex string
-    func toHex() -> String? {
-        #if os(iOS)
+    // Convert  to hex string
+    func toHex() -> String {
+    #if os(iOS)
         let uiColor = UIColor(self)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
 
-        guard let components = uiColor.cgColor.components else { return nil }
+        // getRed(_:green:blue:alpha:) automatically handles grayscale and RGB conversion
+        if uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+            return String(
+                format: "#%02X%02X%02X",
+                Int(round(red * 255)),
+                Int(round(green * 255)),
+                Int(round(blue * 255))
+            )
+        }
 
-        let r = Float(components[0])
-        let g = Float(components.count >= 3 ? components[1] : components[0])
-        let b = Float(components.count >= 3 ? components[2] : components[0])
-
-        return String(
-            format: "#%02lX%02lX%02lX",
-            lroundf(r * 255),
-            lroundf(g * 255),
-            lroundf(b * 255)
-        )
-        #else
-        return nil
-        #endif
+        // Fallback for edge cases where color conversion fails
+        return "#000000"
+    #else
+        // Fallback for non-iOS platforms
+        return "#000000"
+    #endif
     }
 }

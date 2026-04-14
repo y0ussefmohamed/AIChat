@@ -64,8 +64,12 @@ struct AppView: View {
 
 #Preview("Onboarding") {
     AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(service: MockUserService(user: nil)))
+        .environment(AuthManager(service: MockAuthService(user: nil)))
 }
 
 #Preview("Tabbar") {
     AppView(appState: AppState(showTabBar: true))
+        .environment(UserManager(service: MockUserService(user: .mock)))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
 }

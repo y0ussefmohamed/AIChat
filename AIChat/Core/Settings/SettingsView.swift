@@ -157,6 +157,7 @@ extension SettingsView {
         Task {
             do {
                 try authManager.signOut()
+                userManager.signOut()
                 await dismissScreen()
             } catch {
                 showAlert = AnyAppAlert(error: error)
@@ -189,9 +190,7 @@ extension SettingsView {
     private func onDeleteAccountConfirmed() {
         Task {
             do {
-                if let auth = authManager.auth {
-                    try await userManager.deleteUser(auth: auth)
-                }
+                try await userManager.deleteCurrentUser()
                 try await authManager.deleteAccount()
 
                 await dismissScreen()
@@ -204,18 +203,21 @@ extension SettingsView {
 
 #Preview("No Auth") {
     SettingsView()
+        .environment(UserManager(service: MockUserService(user: nil)))
         .environment(AuthManager(service: MockAuthService(user: nil)))
         .environment(AppState())
 }
 
 #Preview("Anonymous") {
     SettingsView()
+        .environment(UserManager(service: MockUserService(user: .mock)))
         .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: true))))
         .environment(AppState())
 }
 
 #Preview("Not Anonymous") {
     SettingsView()
+        .environment(UserManager(service: MockUserService(user: .mock)))
         .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: false))))
         .environment(AppState())
 }

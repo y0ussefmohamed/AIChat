@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingCompletedView: View {
     /// extracts the `AppState` type variable that was passed as an environment(`object`)
     @Environment(AppState.self) private var rootAppState
+    @Environment(UserManager.self) private var userManager
     var selectedColor: Color = .accentColor
 
     @State private var isLoadingToSetupProfile: Bool = false
@@ -39,9 +40,10 @@ struct OnboardingCompletedView: View {
 // MARK: - Seperate Business Logic out of Views
 extension OnboardingCompletedView {
     private func onFinishButtonPressed() {
+        isLoadingToSetupProfile = true
+
         Task {
-            isLoadingToSetupProfile = true
-            try? await Task.sleep(for: .seconds(3))
+            try await userManager.markOnboardingAsCompleted(profileColorHex: selectedColor.toHex())
             isLoadingToSetupProfile = false
 
             rootAppState.updateViewState(showTabBar: true)
@@ -52,5 +54,6 @@ extension OnboardingCompletedView {
 
 #Preview {
     OnboardingCompletedView()
+        .environment(UserManager(service: MockUserService(user: .mock)))
         .environment(AppState())
 }
