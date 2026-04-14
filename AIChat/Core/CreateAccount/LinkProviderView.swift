@@ -33,6 +33,7 @@ enum LinkProviderViewOptions: String {
 
 struct LinkProviderView: View {
     @Environment(AuthManager.self) var authManager
+    @Environment(UserManager.self) var userManager
     @Environment(\.dismiss) var dismiss
 
     @State var usageOption: LinkProviderViewOptions
@@ -170,6 +171,7 @@ extension LinkProviderView {
                 let authInfo = try await authManager.signInApple()
                 print("Signed in with Apple: \(String(describing: authInfo.user.email))")
 
+                try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
                 onDidSignIn?(authInfo.isNewUser)
                 dismiss()
             } catch {
@@ -184,6 +186,7 @@ extension LinkProviderView {
                 let authInfo = try await authManager.signInEmail(email: email, password: password)
                 print("Signed in with Email: \(String(describing: authInfo.user.email))")
 
+                try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
                 onDidSignIn?(authInfo.isNewUser)
                 dismiss()
             } catch {
@@ -198,6 +201,7 @@ extension LinkProviderView {
                     let authInfo = try await authManager.createAccountEmail(email: email, password: password)
                     print("Created account with Email: \(String(describing: authInfo.user.email))")
 
+                    try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
                     onDidSignIn?(authInfo.isNewUser)
                     dismiss()
                 } catch {

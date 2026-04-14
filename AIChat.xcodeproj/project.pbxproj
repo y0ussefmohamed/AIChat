@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C90C84512F8DB39300C06E8E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C90C84502F8DB39300C06E8E /* FirebaseFirestore */; };
 		C9A7FB4E2F60F17300385A5E /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = C9A7FB4D2F60F17300385A5E /* SwiftfulUtilities */; };
 		C9AF3F352F58C5610041BC26 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = C9AF3F342F58C5610041BC26 /* SDWebImageSwiftUI */; };
 		C9D3B96C2F719779009CE29E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C9D3B96B2F719779009CE29E /* FirebaseAuth */; };
@@ -62,6 +63,7 @@
 				C9D3B97A2F7264F0009CE29E /* SignInAppleAsync in Frameworks */,
 				C9AF3F352F58C5610041BC26 /* SDWebImageSwiftUI in Frameworks */,
 				C9D3B96C2F719779009CE29E /* FirebaseAuth in Frameworks */,
+				C90C84512F8DB39300C06E8E /* FirebaseFirestore in Frameworks */,
 				C9A7FB4E2F60F17300385A5E /* SwiftfulUtilities in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -83,12 +85,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C90C844F2F8DB39300C06E8E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C9652EC62F54F19800AA48CD = {
 			isa = PBXGroup;
 			children = (
 				C9652ED12F54F19900AA48CD /* AIChat */,
 				C9652EDF2F54F19900AA48CD /* AIChatTests */,
 				C9652EE92F54F19900AA48CD /* AIChatUITests */,
+				C90C844F2F8DB39300C06E8E /* Frameworks */,
 				C9652ED02F54F19900AA48CD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -128,6 +138,7 @@
 				C9A7FB4D2F60F17300385A5E /* SwiftfulUtilities */,
 				C9D3B96B2F719779009CE29E /* FirebaseAuth */,
 				C9D3B9792F7264F0009CE29E /* SignInAppleAsync */,
+				C90C84502F8DB39300C06E8E /* FirebaseFirestore */,
 			);
 			productName = AIChat;
 			productReference = C9652ECF2F54F19900AA48CD /* AIChat.app */;
@@ -678,6 +689,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C90C84502F8DB39300C06E8E /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9D3B96A2F719779009CE29E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		C9A7FB4D2F60F17300385A5E /* SwiftfulUtilities */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C9A7FB4C2F60F17300385A5E /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;

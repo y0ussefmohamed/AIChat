@@ -17,6 +17,7 @@ struct TextWidthPreferenceKey: PreferenceKey {
 
 struct SettingsView: View {
     @Environment(AuthManager.self) private var authManager
+    @Environment(UserManager.self) private var userManager
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var isPremium: Bool = true
@@ -188,7 +189,11 @@ extension SettingsView {
     private func onDeleteAccountConfirmed() {
         Task {
             do {
+                if let auth = authManager.auth {
+                    try await userManager.deleteUser(auth: auth)
+                }
                 try await authManager.deleteAccount()
+
                 await dismissScreen()
             } catch {
                 showAlert = AnyAppAlert(error: error)
