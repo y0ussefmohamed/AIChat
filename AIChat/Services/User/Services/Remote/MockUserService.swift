@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockUserService: UserService {
+struct MockUserService: RemoteUserService {
     let currentUser: UserModel?
 
     init(user: UserModel?) {

@@ -54,6 +54,6 @@ extension OnboardingCompletedView {
 
 #Preview {
     OnboardingCompletedView()
-        .environment(UserManager(service: MockUserService(user: .mock)))
+        .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
         .environment(AppState())
 }

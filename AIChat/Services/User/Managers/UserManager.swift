@@ -13,20 +13,23 @@ import SwiftfulUtilities
 @MainActor
 @Observable
 class UserManager {
-    private let service: UserService
+    private let remote: RemoteUserService
+    private let local: LocalUserPersistence
     private(set) var currentUser: UserModel?
 
-    init(service: UserService) {
-        self.service = service
-        self.currentUser = nil
+    init(services: UserServices) {
+        self.remote = services.remote
+        self.local = services.local
+
+        self.currentUser = local.getCurrentUser()
     }
 
     private func addCurrentUserListener(userId: String) {
         Task {
             do {
-                for try await value in service.streamUser(userId: userId) {
+                for try await value in remote.streamUser(userId: userId) {
                     self.currentUser = value
-                    print("USER HAS SOMETHING CHAAAAAAAAAAAAANGED")
+                    self.saveCurrentUserInfoLocally()
                 }
             } catch {
                 print(error)
@@ -38,13 +41,24 @@ class UserManager {
         let creationVersion = isNewUser ? Utilities.appVersion : nil
         let user = UserModel(auth: auth, creationVersion: creationVersion)
 
-        try await service.saveUser(user)
+        try await remote.saveUser(user)
         addCurrentUserListener(userId: auth.uid)
+    }
+
+    private func saveCurrentUserInfoLocally() {
+        Task {
+            do {
+                try local.saveCurrentUser(currentUser)
+                print("SUCCESS: Saved current user info locally")
+            } catch {
+                print("Error to save current user info locally: \(error)")
+            }
+        }
     }
 
     func markOnboardingAsCompleted(profileColorHex: String) async throws {
         let uid = try currentUserId()
-        try await service.markOnboardingAsCompleted(userId: uid, profileColorHex: profileColorHex)
+        try await remote.markOnboardingAsCompleted(userId: uid, profileColorHex: profileColorHex)
     }
 
     func signOut() {
@@ -53,7 +67,7 @@ class UserManager {
 
     func deleteCurrentUser() async throws {
         let uid = try currentUserId()
-        try await service.deleteUser(userId: uid)
+        try await remote.deleteUser(userId: uid)
         signOut()
     }
 

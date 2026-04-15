@@ -11,7 +11,7 @@ import SwiftUI
 import FirebaseFirestore
 import SwiftfulFirestore
 
-struct FirebaseUserService: UserService {
+struct FirebaseUserService: RemoteUserService {
     var collection: CollectionReference = Firestore.firestore().collection("users")
 
     /// Automatically listens to any change in the document with this usedId
