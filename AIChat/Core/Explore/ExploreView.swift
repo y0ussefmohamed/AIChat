@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct ExploreView: View {
-    @State private var featuredAvatars: [Avatar] = Avatar.mocks
-    @State private var categories: [CharacterOption] = CharacterOption.allCases + CharacterOption.allCases
-    @State private var popularAvatars: [Avatar] = Avatar.mocks
+    @Environment(AvatarManager.self) private var avatarManager
+    @State private var featuredAvatars: [Avatar] = []
+    @State private var categories: [CharacterOption] = CharacterOption.allCases
+    @State private var popularAvatars: [Avatar] = []
+    @State private var alert: AnyAppAlert?
 
     @State private var navPathStack: [NavigationPathOption] = []
     var body: some View {
@@ -18,10 +20,16 @@ struct ExploreView: View {
             List {
                 featuredSection
 
-                categoriesSection
-
-                popularSection
+                if popularAvatars.isEmpty {
+                    ProgressView()
+                        .frame(height: 200)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    categoriesSection
+                    popularSection
+                }
             }
+            .showCustomAlert(alert: $alert)
             .navigationTitle("Explore")
             .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
                 switch pathOptionTop {
@@ -31,6 +39,10 @@ struct ExploreView: View {
                     CategoryListView(category: category, categoryImageName: imageName, navPathStack: $navPathStack)
                 }
             }
+            .onFirstAppear {
+                loadFeaturedAvatars()
+                loadPopularAvatars()
+            }
         }
     }
 }
@@ -38,17 +50,24 @@ struct ExploreView: View {
 extension ExploreView {
     private var featuredSection: some View {
         Section {
-            CarouselView(items: featuredAvatars) { avatar in
-                HeroCellView(
-                    imageName: avatar.profileImageName,
-                    title: avatar.name,
-                    subtitle: avatar.characterDescription,
-                )
-                .styledButton {
-                    onAvatarPressed(avatar.avatarId)
+            if featuredAvatars.isEmpty {
+                ProgressView()
+                    .frame(height: 200)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                CarouselView(items: featuredAvatars) { avatar in
+                    HeroCellView(
+                        imageName: avatar.profileImageName,
+                        title: avatar.name,
+                        subtitle: avatar.characterDescription,
+                    )
+                    .styledButton {
+                        onAvatarPressed(avatar.avatarId)
+                    }
                 }
+                .removeListRowFormatting()
             }
-            .removeListRowFormatting()
+
         } header: {
             Text("Featured")
         }
@@ -89,6 +108,7 @@ extension ExploreView {
 
     private var popularSection: some View {
         Section {
+
             ForEach(popularAvatars, id: \.self) { avatar in
                 CustomListCellView(
                     avatarName: avatar.name,
@@ -100,8 +120,29 @@ extension ExploreView {
                 }
                 .removeListRowFormatting()
             }
+
         } header: {
             Text("Popular")
+        }
+    }
+
+    private func loadFeaturedAvatars() {
+        Task {
+            do {
+                featuredAvatars = try await avatarManager.getFeaturedAvatars()
+            } catch {
+                alert = AnyAppAlert(error: error)
+            }
+        }
+    }
+
+    private func loadPopularAvatars() {
+        Task {
+            do {
+                popularAvatars = try await avatarManager.getPopularAvatars()
+            } catch {
+                alert = AnyAppAlert(error: error)
+            }
         }
     }
 
@@ -116,4 +157,5 @@ extension ExploreView {
 
 #Preview {
     ExploreView()
+        .environment(AvatarManager(service: MockAvatarService()))
 }

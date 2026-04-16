@@ -15,7 +15,10 @@ struct HeroCellView: View {
     var body: some View {
         ZStack {
             if let imageName {
-                ImageLoaderView(imageUrlString: imageName)
+                ImageLoaderView(
+                    imageUrlString: imageName,
+                    alignment: .top
+                )
             } else {
                 Rectangle()
                     .fill(.accent)
@@ -50,7 +53,7 @@ struct HeroCellView: View {
             .frame(width: 300, height: 200)
 
         HeroCellView(imageName: nil)
-            .frame(width: 300, height: 400)
+            .frame(height: 400)
 
         HeroCellView(imageName: nil, title: "New Title", subtitle: nil)
             .frame(width: 300, height: 400)

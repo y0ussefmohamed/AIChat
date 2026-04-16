@@ -167,34 +167,30 @@ extension CreateAvatarView {
         isSavingAvatar = true
 
         Task {
+            defer { isSavingAvatar = false }
+
             if avatarName.count < 2 {
-                alert = AnyAppAlert(
-                    title: "Name your avatar",
-                    subtitle: "Please enter a name for your avatar.")
+                alert = AnyAppAlert(title: "Name your avatar", subtitle: "Please enter a name for your avatar.")
+                return
+            }
 
-                isSavingAvatar = false
-            } else {
-                let uid = try authManager.getAuthId()
+            let uid = try authManager.getAuthId()
+            let avatar = Avatar(
+                avatarId: UUID().uuidString,
+                name: avatarName,
+                characterOption: characterOption,
+                characterAction: characterAction,
+                characterLocation: characterLocation,
+                profileImageName: generatedImage.debugDescription,
+                authorId: uid,
+                dateCreated: .now
+            )
 
-                let avatar = Avatar(
-                    avatarId: UUID().uuidString,
-                    name: avatarName,
-                    characterOption: characterOption,
-                    characterAction: characterAction,
-                    characterLocation: characterLocation,
-                    profileImageName: generatedImage.debugDescription,
-                    authorId: uid,
-                    dateCreated: .now
-                )
-
-                do {
-                    try await avatarManager.createAvatar(avatar: avatar, image: generatedImage)
-                } catch {
-                    alert = AnyAppAlert(error: error)
-                }
-
-                isSavingAvatar = false
+            do {
+                try await avatarManager.createAvatar(avatar: avatar, image: generatedImage)
                 dismiss()
+            } catch {
+                alert = AnyAppAlert(error: error)
             }
         }
     }

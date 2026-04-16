@@ -10,9 +10,10 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
+    @Environment(AvatarManager.self) private var avatarManager
     @State private var showSettingsView: Bool = false
     @State private var showCreateAvatarView: Bool = false
-
+    @State private var alert: AnyAppAlert?
     @State private var currentUser: UserModel?
     @State private var myAvatars: [Avatar] = []
     @State private var isLoading: Bool = false
@@ -79,6 +80,7 @@ struct ProfileView: View {
                 ChatView(avatarId: avatarId)
             }
         }
+        .showCustomAlert(alert: $alert)
         .task {
             await loadData()
         }
@@ -143,10 +145,14 @@ extension ProfileView {
         self.currentUser = userManager.currentUser
 
         isLoading = true
-        try? await Task.sleep(for: .seconds(1)) // mocking get request
+        if let userId = currentUser?.userId {
+            do {
+                myAvatars = try await avatarManager.getCurrentUserAvatars(userId: userId)
+            } catch {
+                alert = AnyAppAlert(error: error)
+            }
+        }
         isLoading = false
-
-        self.myAvatars = Avatar.mocks
     }
 
     private func onDeleteAvatar(indexSet: IndexSet) {
@@ -160,5 +166,6 @@ extension ProfileView {
         ProfileView()
             .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
             .environment(AuthManager(service: MockAuthService(user: .mock())))
+            .environment(AvatarManager(service: MockAvatarService()))
     }
 }

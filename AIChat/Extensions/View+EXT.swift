@@ -8,6 +8,10 @@
 import SwiftUI
 
 extension View {
+    func onFirstAppear(perform action: @escaping () -> Void) -> some View {
+        modifier(FirstAppearModifier(action: action))
+    }
+
     func callToActionButton(buttonColor: Color = .accent) -> some View {
         self
             .modifier(CTAButtonViewModifier(buttonColor: buttonColor))

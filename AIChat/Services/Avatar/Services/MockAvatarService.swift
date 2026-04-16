@@ -12,4 +12,20 @@ struct MockAvatarService: AvatarService {
     func createAvatar(avatar: Avatar, image: UIImage) async throws {
         
     }
+
+    func getFeaturedAvatars() async throws -> [Avatar] {
+        Avatar.mocks.shuffled()
+    }
+
+    func getPopularAvatars() async throws -> [Avatar] {
+        Avatar.mocks.shuffled()
+    }
+
+    func getAvatarsByCategory(_ category: CharacterOption) async throws -> [Avatar] {
+        Avatar.mocks.shuffled()
+    }
+
+    func getCurrentUserAvatars(userId: String) async throws -> [Avatar] {
+        Avatar.mocks.shuffled()
+    }
 }
