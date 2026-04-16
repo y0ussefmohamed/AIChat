@@ -11,6 +11,6 @@ import SwiftUI
 struct MockAIService: AIService {
     func generateImage(input: String) async throws -> UIImage {
         try await Task.sleep(for: .seconds(2))
-        return UIImage(systemName: "Star.fill")!
+        return UIImage(systemName: "star.fill")!
     }
 }

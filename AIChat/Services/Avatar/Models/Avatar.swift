@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct Avatar: Hashable {
+struct Avatar: Hashable, Codable {
     let avatarId: String
     let name: String?
     let characterOption: CharacterOption?
     let characterAction: CharacterAction?
     let characterLocation: CharacterLocation?
-    let profileImageName: String?
+    private(set) var profileImageName: String?
     let authorId: String?
     let dateCreated: Date?
 
@@ -21,6 +21,10 @@ struct Avatar: Hashable {
         guard let characterOption = characterOption, let characterAction = characterAction, let characterLocation = characterLocation else { return nil }
 
         return "\(characterOption.prefix) \(characterOption.rawValue) that is \(characterAction.rawValue) in the \( characterLocation.rawValue)."
+    }
+
+    mutating func updateProfileImage(withName name: String) {
+        self.profileImageName = name
     }
 
     init(
@@ -41,6 +45,17 @@ struct Avatar: Hashable {
         self.profileImageName = profileImageName
         self.authorId = authorId
         self.dateCreated = dateCreated
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case avatarId = "avatar_id"
+        case name
+        case characterOption = "character_option"
+        case characterAction = "character_action"
+        case characterLocation = "character_location"
+        case profileImageName = "profile_image_name"
+        case authorId = "author_id"
+        case dateCreated = "date_created"
     }
 
     static var mock: Avatar {

@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct CreateAvatarView: View {
+    @Environment(AuthManager.self) private var authManager
     @Environment(AIManager.self) private var aiManager
+    @Environment(AvatarManager.self) private var avatarManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var avatarName: String = ""
@@ -19,6 +21,7 @@ struct CreateAvatarView: View {
     @State private var isGeneratingImage: Bool?
     @State private var generatedImage: UIImage?
     @State private var isSavingAvatar: Bool = false
+    @State private var alert: AnyAppAlert?
 
     var body: some View {
         NavigationStack {
@@ -37,12 +40,16 @@ struct CreateAvatarView: View {
                 .opacity(avatarName.isEmpty || generatedImage == nil ? 0.6 : 1)
                 .removeListRowFormatting()
             }
+            .onAppear {
+                resetForm()
+            }
             .navigationTitle("Create Avatar")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     backButton
                 }
             }
+            .showCustomAlert(alert: $alert)
         }
     }
 
@@ -124,6 +131,7 @@ struct CreateAvatarView: View {
                                 Image(uiImage: generatedImage)
                                     .resizable()
                                     .scaledToFill()
+                                    .clipShape(Circle())
                             }
                         }
                     )
@@ -155,12 +163,39 @@ extension CreateAvatarView {
     }
 
     private func onSaveButtonPressed() {
-        Task { @MainActor in
-            isSavingAvatar = true
-            try? await Task.sleep(for: .seconds(1))
-            isSavingAvatar = false
-            resetForm()
-            dismiss()
+        guard let generatedImage else { return }
+        isSavingAvatar = true
+
+        Task {
+            if avatarName.count < 2 {
+                alert = AnyAppAlert(
+                    title: "Name your avatar",
+                    subtitle: "Please enter a name for your avatar.")
+
+                isSavingAvatar = false
+            } else {
+                let uid = try authManager.getAuthId()
+
+                let avatar = Avatar(
+                    avatarId: UUID().uuidString,
+                    name: avatarName,
+                    characterOption: characterOption,
+                    characterAction: characterAction,
+                    characterLocation: characterLocation,
+                    profileImageName: generatedImage.debugDescription,
+                    authorId: uid,
+                    dateCreated: .now
+                )
+
+                do {
+                    try await avatarManager.createAvatar(avatar: avatar, image: generatedImage)
+                } catch {
+                    alert = AnyAppAlert(error: error)
+                }
+
+                isSavingAvatar = false
+                dismiss()
+            }
         }
     }
 
@@ -176,6 +211,8 @@ extension CreateAvatarView {
 #Preview {
     NavigationStack {
         CreateAvatarView()
+            .environment(AuthManager(service: MockAuthService(user: .mock())))
             .environment(AIManager(service: MockAIService()))
+            .environment(AvatarManager(service: MockAvatarService()))
     }
 }

@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		C90C84512F8DB39300C06E8E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C90C84502F8DB39300C06E8E /* FirebaseFirestore */; };
 		C90C84542F8E9DCA00C06E8E /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C90C84532F8E9DCA00C06E8E /* SwiftfulFirestore */; };
-		C95CA7A12F90069800C34B6F /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = C95CA7A02F90069800C34B6F /* FirebaseAILogic */; };
 		C95CA7A42F90084B00C34B6F /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = C95CA7A32F90084B00C34B6F /* GoogleGenerativeAI */; };
+		C95CA7BE2F90653700C34B6F /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = C95CA7BD2F90653700C34B6F /* FirebaseStorage */; };
 		C9A7FB4E2F60F17300385A5E /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = C9A7FB4D2F60F17300385A5E /* SwiftfulUtilities */; };
 		C9AF3F352F58C5610041BC26 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = C9AF3F342F58C5610041BC26 /* SDWebImageSwiftUI */; };
 		C9D3B96C2F719779009CE29E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C9D3B96B2F719779009CE29E /* FirebaseAuth */; };
@@ -65,9 +65,9 @@
 			files = (
 				C9D3B97A2F7264F0009CE29E /* SignInAppleAsync in Frameworks */,
 				C9AF3F352F58C5610041BC26 /* SDWebImageSwiftUI in Frameworks */,
+				C95CA7BE2F90653700C34B6F /* FirebaseStorage in Frameworks */,
 				C90C84542F8E9DCA00C06E8E /* SwiftfulFirestore in Frameworks */,
 				C95CA7A42F90084B00C34B6F /* GoogleGenerativeAI in Frameworks */,
-				C95CA7A12F90069800C34B6F /* FirebaseAILogic in Frameworks */,
 				C9D3B96C2F719779009CE29E /* FirebaseAuth in Frameworks */,
 				C90C84512F8DB39300C06E8E /* FirebaseFirestore in Frameworks */,
 				C9A7FB4E2F60F17300385A5E /* SwiftfulUtilities in Frameworks */,
@@ -146,8 +146,8 @@
 				C9D3B9792F7264F0009CE29E /* SignInAppleAsync */,
 				C90C84502F8DB39300C06E8E /* FirebaseFirestore */,
 				C90C84532F8E9DCA00C06E8E /* SwiftfulFirestore */,
-				C95CA7A02F90069800C34B6F /* FirebaseAILogic */,
 				C95CA7A32F90084B00C34B6F /* GoogleGenerativeAI */,
+				C95CA7BD2F90653700C34B6F /* FirebaseStorage */,
 			);
 			productName = AIChat;
 			productReference = C9652ECF2F54F19900AA48CD /* AIChat.app */;
@@ -726,15 +726,15 @@
 			package = C90C84522F8E9DCA00C06E8E /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */;
 			productName = SwiftfulFirestore;
 		};
-		C95CA7A02F90069800C34B6F /* FirebaseAILogic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C9D3B96A2F719779009CE29E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAILogic;
-		};
 		C95CA7A32F90084B00C34B6F /* GoogleGenerativeAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C95CA7A22F90084B00C34B6F /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
 			productName = GoogleGenerativeAI;
+		};
+		C95CA7BD2F90653700C34B6F /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9D3B96A2F719779009CE29E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 		C9A7FB4D2F60F17300385A5E /* SwiftfulUtilities */ = {
 			isa = XCSwiftPackageProductDependency;

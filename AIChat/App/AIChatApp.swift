@@ -24,6 +24,7 @@ struct EnvironmentBuilderView<Content: View>: View {
             .environment(AuthManager(service: FirebaseAuthServices()))
             .environment(UserManager(services: ProductionUserServicesContainer()))
             .environment(AIManager(service: PollinationsAIService()))
+            .environment(AvatarManager(service: FirebaseAvatarService()))
     }
 }
 
