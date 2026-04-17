@@ -157,5 +157,5 @@ extension ExploreView {
 
 #Preview {
     ExploreView()
-        .environment(AvatarManager(service: MockAvatarService()))
+        .environment(AvatarManager(services: MockAvatarServices()))
 }

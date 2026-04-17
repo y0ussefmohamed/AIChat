@@ -209,6 +209,6 @@ extension CreateAvatarView {
         CreateAvatarView()
             .environment(AuthManager(service: MockAuthService(user: .mock())))
             .environment(AIManager(service: MockAIService()))
-            .environment(AvatarManager(service: MockAvatarService()))
+            .environment(AvatarManager(services: MockAvatarServices()))
     }
 }

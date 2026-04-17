@@ -14,8 +14,9 @@ import SwiftUI
 /// This means we need to make a `ViewBuilder` in order to fetch those Models with the avatarId and chatId to get our desired data, and we can't do this here because we can't make .task{} in each item in the for loop, we don't want to load the view unless we have the data to show
 
 struct ChatsView: View {
+    @Environment(AvatarManager.self) private var avatarManager
     @State private var chats: [Chat] = Chat.mocks
-    @State private var recentAvatars: [Avatar] = Avatar.mocks
+    @State private var recentAvatars: [Avatar] = []
 
     @State private var navPathStack: [String] = []
     var body: some View {
@@ -32,6 +33,9 @@ struct ChatsView: View {
                 }
             }
             .navigationTitle("Chats")
+            .task {
+                await loadRecentsAvatars()
+            }
             .navigationDestination(for: String.self) { avatarId in
                 ChatView(avatarId: avatarId)
             }
@@ -110,8 +114,17 @@ struct ChatsView: View {
     private func onRecentsAvatarTap(avatarId: String) {
         navPathStack.append(avatarId)
     }
+
+    private func loadRecentsAvatars() async {
+        do {
+            recentAvatars = try avatarManager.getRecentAvatars()
+        } catch {
+            print(error)
+        }
+    }
 }
 
 #Preview {
     ChatsView()
+        .environment(AvatarManager(services: MockAvatarServices()))
 }

@@ -8,15 +8,16 @@
 import SwiftUI
 
 struct ChatView: View {
-    var avatarId: String = Avatar.mock.avatarId /// to fetch avatar onAppear {}
-
+    @Environment(AvatarManager.self) private var avatarManager
     @State private var chatMessages: [ChatMessage] = ChatMessage.mocks
-    @State private var avatar: Avatar? = .mock
+    @State private var avatar: Avatar?
     @State private var currentUser: UserModel? = .mock
     @State private var messageTextField: String = ""
     @State private var showConfirmationDialog: Bool = false
     @State private var scrollPositionId: String?
     @State private var showProfileModal: Bool = false
+
+    var avatarId: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,6 +26,9 @@ struct ChatView: View {
             scrollViewSection
 
             textFieldSection
+        }
+        .onAppear {
+            loadAvatar()
         }
         .navigationTitle(avatar?.name ?? "Unknown")
         .navigationBarTitleDisplayMode(.inline)
@@ -114,7 +118,7 @@ struct ChatView: View {
         ProfileModalView(
             imageName: avatar.profileImageName,
             title: avatar.name,
-            subtitle: avatar.characterOption?.rawValue,
+            subtitle: avatar.characterDescription,
             onXMarkPressed: self.onXMarkPressed
         )
     }
@@ -140,6 +144,21 @@ extension ChatView {
         messageTextField = ""
     }
 
+    private func loadAvatar() {
+        guard let avatarId else { return }
+
+        Task {
+            do {
+                let avatar = try await avatarManager.getAvatar(id: avatarId)
+                self.avatar = avatar
+                
+                try avatarManager.addRecentAvatar(avatar)
+            } catch {
+                print(error)
+            }
+        }
+    }
+
     private func onEllipsisButtonPressed() {
         showConfirmationDialog.toggle()
     }
@@ -155,6 +174,7 @@ extension ChatView {
 
 #Preview {
     NavigationStack {
-        ChatView()
+        ChatView(avatarId: "anyID")
+            .environment(AvatarManager(services: MockAvatarServices()))
     }
 }

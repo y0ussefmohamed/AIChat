@@ -10,7 +10,7 @@ import SwiftUI
 import FirebaseFirestore
 import SwiftfulFirestore
 
-struct FirebaseAvatarService: AvatarService {
+struct FirebaseAvatarService: RemoteAvatarService {
     var collection: CollectionReference = Firestore.firestore().collection("avatars")
 
     func createAvatar(avatar: Avatar, image: UIImage) async throws {
@@ -21,6 +21,10 @@ struct FirebaseAvatarService: AvatarService {
         avatar.updateProfileImage(withName: url.absoluteString) /// avatarProfileImageName is now the url of the stored UIImage
 
         try collection.document(avatar.avatarId).setData(from: avatar, merge: true)
+    }
+
+    func getAvatar(id: String) async throws -> Avatar {
+        try await collection.getDocument(id: id)
     }
 
     func getFeaturedAvatars() async throws -> [Avatar] {

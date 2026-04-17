@@ -84,5 +84,5 @@ struct CategoryListView: View {
 
 #Preview {
     CategoryListView(navPathStack: .constant([]))
-        .environment(AvatarManager(service: MockAvatarService()))
+        .environment(AvatarManager(services: MockAvatarServices()))
 }

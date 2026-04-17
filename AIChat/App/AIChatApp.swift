@@ -9,22 +9,13 @@ import SwiftUI
 import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-    FirebaseApp.configure()
+    lazy var dependencies = Dependencies()
 
-    return true
-  }
-}
-
-struct EnvironmentBuilderView<Content: View>: View {
-    @ViewBuilder var content: () -> Content
-    var body: some View {
-        content()
-            .environment(AuthManager(service: FirebaseAuthServices()))
-            .environment(UserManager(services: ProductionUserServicesContainer()))
-            .environment(AIManager(service: PollinationsAIService()))
-            .environment(AvatarManager(service: FirebaseAvatarService()))
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        FirebaseApp.configure()
+        _ = dependencies
+        return true
     }
 }
 
@@ -34,9 +25,25 @@ struct AIChatApp: App {
 
     var body: some Scene {
         WindowGroup {
-            EnvironmentBuilderView {
-                AppView()
-            }
+            AppView()
+                .environment(delegate.dependencies.authManager)
+                .environment(delegate.dependencies.userManager)
+                .environment(delegate.dependencies.aiManager)
+                .environment(delegate.dependencies.avatarManager)
         }
+    }
+}
+
+struct Dependencies {
+    let authManager: AuthManager
+    let userManager: UserManager
+    let aiManager: AIManager
+    let avatarManager: AvatarManager
+
+    init() {
+        self.authManager = AuthManager(service: FirebaseAuthServices())
+        self.userManager = UserManager(services: ProductionUserServicesContainer())
+        self.aiManager = AIManager(service: PollinationsAIService())
+        self.avatarManager = AvatarManager(services: ProductionAvatarServices())
     }
 }

@@ -166,6 +166,6 @@ extension ProfileView {
         ProfileView()
             .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
             .environment(AuthManager(service: MockAuthService(user: .mock())))
-            .environment(AvatarManager(service: MockAvatarService()))
+            .environment(AvatarManager(services: MockAvatarServices()))
     }
 }

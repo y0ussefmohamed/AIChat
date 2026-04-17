@@ -8,9 +8,13 @@
 import Foundation
 import SwiftUI
 
-struct MockAvatarService: AvatarService {
+struct MockAvatarService: RemoteAvatarService {
     func createAvatar(avatar: Avatar, image: UIImage) async throws {
         
+    }
+
+    func getAvatar(id: String) async throws -> Avatar {
+        .mock
     }
 
     func getFeaturedAvatars() async throws -> [Avatar] {
