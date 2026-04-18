@@ -27,6 +27,13 @@ struct FirebaseAvatarService: RemoteAvatarService {
         try await collection.getDocument(id: id)
     }
 
+    func deleteAvatar(id: String) async throws {
+        let path = "avatars/\(id)"
+        try await FirebaseImageUploadService().deleteImage(path: path)
+        
+        try await collection.deleteDocument(id: id)
+    }
+
     func getFeaturedAvatars() async throws -> [Avatar] {
         let avatars: [Avatar] = try await collection.limit(to: 50).getAllDocuments()
         return avatars.choose(5)
@@ -56,5 +63,20 @@ struct FirebaseAvatarService: RemoteAvatarService {
 
     func incrementAvatarClickCount(avatarId: String) async throws {
         try await collection.document(avatarId).updateData([Avatar.CodingKeys.clickCount.rawValue: FieldValue.increment(Int64(1))])
+    }
+
+    func removeAuthorIdFromTheDeletedUserAvatars(userId: String) async throws {
+        let avatars = try await self.getCurrentUserAvatars(userId: userId)
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for avatar in avatars {
+                group.addTask {
+                    try await collection.document(avatar.avatarId).updateData([
+                        Avatar.CodingKeys.authorId.rawValue: NSNull()
+                    ])
+                }
+            }
+            try await group.waitForAll()
+        }
     }
 }

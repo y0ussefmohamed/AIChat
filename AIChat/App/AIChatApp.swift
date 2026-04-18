@@ -63,4 +63,3 @@ extension View {
             .environment(AppState())
     }
 }
-

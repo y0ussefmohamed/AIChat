@@ -18,6 +18,7 @@ struct TextWidthPreferenceKey: PreferenceKey {
 struct SettingsView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
+    @Environment(AvatarManager.self) private var avatarManager
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var isPremium: Bool = true
@@ -190,6 +191,9 @@ extension SettingsView {
     private func onDeleteAccountConfirmed() {
         Task {
             do {
+                let uid = try authManager.getAuthId()
+                
+                try await avatarManager.removeAuthorIdFromTheDeletedUserAvatars(userId: uid)
                 try await userManager.deleteCurrentUser()
                 try await authManager.deleteAccount()
 
@@ -205,19 +209,19 @@ extension SettingsView {
     SettingsView()
         .environment(UserManager(services: MockUserServicesContainer(user: nil)))
         .environment(AuthManager(service: MockAuthService(user: nil)))
-        .environment(AppState())
+        .previewEnvironment()
 }
 
 #Preview("Anonymous") {
     SettingsView()
         .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
         .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: true))))
-        .environment(AppState())
+        .previewEnvironment()
 }
 
 #Preview("Not Anonymous") {
     SettingsView()
         .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
         .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: false))))
-        .environment(AppState())
+        .previewEnvironment()
 }

@@ -38,6 +38,10 @@ class AvatarManager {
         try await remote.getAvatar(id: id)
     }
 
+    func deleteAvatar(id: String) async throws {
+        try await remote.deleteAvatar(id: id)
+    }
+
     func getFeaturedAvatars() async throws -> [Avatar] {
         try await remote.getFeaturedAvatars()
     }
@@ -52,5 +56,9 @@ class AvatarManager {
 
     func getCurrentUserAvatars(userId: String) async throws -> [Avatar] {
         try await remote.getCurrentUserAvatars(userId: userId)
+    }
+
+    func removeAuthorIdFromTheDeletedUserAvatars(userId: String) async throws {
+        try await remote.removeAuthorIdFromTheDeletedUserAvatars(userId: userId)
     }
 }

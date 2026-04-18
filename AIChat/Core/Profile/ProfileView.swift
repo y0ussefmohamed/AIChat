@@ -15,7 +15,7 @@ struct ProfileView: View {
     @State private var showCreateAvatarView: Bool = false
     @State private var alert: AnyAppAlert?
     @State private var currentUser: UserModel?
-    @State private var myAvatars: [Avatar] = []
+    @State private var currentUserAvatars: [Avatar] = []
     @State private var isLoading: Bool = false
 
     @State private var navPathStack: [String] = []
@@ -31,7 +31,7 @@ struct ProfileView: View {
                 .removeListRowFormatting()
 
                 Section {
-                    if myAvatars.isEmpty {
+                    if currentUserAvatars.isEmpty {
                         if isLoading {
                             ProgressView()
                                 .removeListRowFormatting()
@@ -43,7 +43,7 @@ struct ProfileView: View {
                                 .frame(maxWidth: .infinity)
                         }
                     } else {
-                        ForEach(myAvatars, id: \.self) { avatar in
+                        ForEach(currentUserAvatars, id: \.self) { avatar in
                             CustomListCellView(
                                 avatarName: avatar.name,
                                 avatarDescription: nil,
@@ -152,7 +152,7 @@ extension ProfileView {
         isLoading = true
         if let userId = currentUser?.userId {
             do {
-                myAvatars = try await avatarManager.getCurrentUserAvatars(userId: userId)
+                currentUserAvatars = try await avatarManager.getCurrentUserAvatars(userId: userId)
             } catch {
                 alert = AnyAppAlert(error: error)
             }
@@ -162,7 +162,17 @@ extension ProfileView {
 
     private func onDeleteAvatar(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
-        myAvatars.remove(atOffsets: IndexSet(integer: index))
+        let avatarToDelete = currentUserAvatars[index]
+        currentUserAvatars.remove(atOffsets: IndexSet(integer: index))
+
+        print("Avatar Named \(String(describing: avatarToDelete.name)) with this id: \(avatarToDelete.avatarId) will be DELETED!" )
+        Task {
+            do {
+                try await avatarManager.deleteAvatar(id: avatarToDelete.avatarId)
+            } catch {
+                alert = AnyAppAlert(error: error)
+            }
+        }
     }
 }
 

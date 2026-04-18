@@ -12,6 +12,7 @@ import SwiftUI
 
 protocol ImageUploadDataService: Sendable {
     func uploadImage(image: UIImage, path: String) async throws -> URL
+    func deleteImage(path: String) async throws
 }
 
 struct FirebaseImageUploadService: ImageUploadDataService {
@@ -47,5 +48,9 @@ struct FirebaseImageUploadService: ImageUploadDataService {
         }
 
         return url
+    }
+
+    func deleteImage(path: String) async throws {
+        try await Self.imageReference(for: path).delete()
     }
 }
