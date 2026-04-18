@@ -34,6 +34,7 @@ struct AIChatApp: App {
     }
 }
 
+@MainActor
 struct Dependencies {
     let authManager: AuthManager
     let userManager: UserManager
@@ -47,3 +48,19 @@ struct Dependencies {
         self.avatarManager = AvatarManager(services: ProductionAvatarServices())
     }
 }
+
+extension View {
+    func previewEnvironment(
+        isSignedIn: Bool = true,
+        remoteAvatarService: RemoteAvatarService = MockAvatarService(),
+        localAvatarPersistence: LocalAvatarPersistence = MockLocalAvatarPersistence()
+    ) -> some View {
+        self
+            .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
+            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
+            .environment(AvatarManager(services: MockAvatarServices(remote: remoteAvatarService, local: localAvatarPersistence)))
+            .environment(AIManager(service: MockAIService()))
+            .environment(AppState())
+    }
+}
+

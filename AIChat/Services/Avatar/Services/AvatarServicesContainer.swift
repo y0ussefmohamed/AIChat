@@ -18,6 +18,11 @@ struct ProductionAvatarServices: AvatarServicesContainer {
 }
 
 struct MockAvatarServices: AvatarServicesContainer {
-    let remote: RemoteAvatarService = MockAvatarService()
-    let local: LocalAvatarPersistence = MockLocalAvatarPersistence()
+    let remote: RemoteAvatarService
+    let local: LocalAvatarPersistence
+
+    init(remote: RemoteAvatarService = MockAvatarService(), local: LocalAvatarPersistence = MockLocalAvatarPersistence()) {
+        self.remote = remote
+        self.local = local
+    }
 }

@@ -42,17 +42,27 @@ struct CategoryListView: View {
                     .removeListRowFormatting()
                 }
             } else {
-                ForEach(avatars, id: \.self) { avatar in
-                    CustomListCellView(
-                        avatarName: avatar.name,
-                        avatarDescription: avatar.characterDescription,
-                        imageName: avatar.profileImageName
-                    )
-                    .styledButton(.highlighted) {
-                        onRowTap(avatar.avatarId)
+                if !avatars.isEmpty {
+                    ForEach(avatars, id: \.self) { avatar in
+                        CustomListCellView(
+                            avatarName: avatar.name,
+                            avatarDescription: avatar.characterDescription,
+                            imageName: avatar.profileImageName
+                        )
+                        .styledButton(.highlighted) {
+                            onRowTap(avatar.avatarId)
+                        }
+                        .removeListRowFormatting()
                     }
-                    .removeListRowFormatting()
+                } else {
+                    ContentUnavailableView(
+                        "No \(category?.pluralRawValue.capitalized ?? "Avatars") Found",
+                        systemImage: "person.fill.xmark",
+                        description: Text("There are no avatars in this category yet. Check back later!")
+                    )
+                    .listRowSeparator(.hidden)
                 }
+
             }
         }
         .onAppear {
@@ -82,7 +92,12 @@ struct CategoryListView: View {
     }
 }
 
-#Preview {
-    CategoryListView(navPathStack: .constant([]))
-        .environment(AvatarManager(services: MockAvatarServices()))
+#Preview("Has Data") {
+    CategoryListView(category: .man, navPathStack: .constant([]))
+        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 2))))
+}
+
+#Preview("No Data") {
+    CategoryListView(category: .woman, navPathStack: .constant([]))
+        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 1))))
 }

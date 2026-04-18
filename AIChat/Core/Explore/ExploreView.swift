@@ -13,20 +13,45 @@ struct ExploreView: View {
     @State private var categories: [CharacterOption] = CharacterOption.allCases
     @State private var popularAvatars: [Avatar] = []
     @State private var alert: AnyAppAlert?
+    @State private var featuredDidLoad: Bool = false
+    @State private var popularDidLoad: Bool = false
 
     @State private var navPathStack: [NavigationPathOption] = []
     var body: some View {
         NavigationStack(path: $navPathStack) {
             List {
-                featuredSection
-
-                if popularAvatars.isEmpty {
-                    ProgressView()
-                        .frame(height: 200)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                if !featuredDidLoad {
+                    loadingIndicator
                 } else {
-                    categoriesSection
-                    popularSection
+                    if !featuredAvatars.isEmpty {
+                        featuredSection
+                    } else {
+                        ContentUnavailableView(
+                            "No Featured Avatars",
+                            systemImage: "sparkles.slash",
+                            description: Text("There are no featured avatars at the moment.")
+                        )
+                        .frame(height: 200)
+                        .removeListRowFormatting()
+                    }
+                }
+
+
+                if !popularDidLoad {
+                    loadingIndicator
+                } else {
+                    if !popularAvatars.isEmpty {
+                        categoriesSection
+                        popularSection
+                    } else {
+                        ContentUnavailableView(
+                                "No Popular Avatars Available",
+                                systemImage: "person.fill.xmark",
+                                description: Text("There are no popular avatars at the moment. Check back later!")
+                            )
+                            .frame(height: 200)
+                            .removeListRowFormatting()
+                    }
                 }
             }
             .showCustomAlert(alert: $alert)
@@ -48,29 +73,41 @@ struct ExploreView: View {
 }
 
 extension ExploreView {
+    private var loadingIndicator: some View {
+        ProgressView()
+            .frame(height: 200)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .removeListRowFormatting()
+    }
     private var featuredSection: some View {
         Section {
-            if featuredAvatars.isEmpty {
-                ProgressView()
-                    .frame(height: 200)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                CarouselView(items: featuredAvatars) { avatar in
-                    HeroCellView(
-                        imageName: avatar.profileImageName,
-                        title: avatar.name,
-                        subtitle: avatar.characterDescription,
-                    )
-                    .styledButton {
-                        onAvatarPressed(avatar.avatarId)
-                    }
+            CarouselView(items: featuredAvatars) { avatar in
+                HeroCellView(
+                    imageName: avatar.profileImageName,
+                    title: avatar.name,
+                    subtitle: avatar.characterDescription,
+                )
+                .styledButton {
+                    onAvatarPressed(avatar.avatarId)
                 }
-                .removeListRowFormatting()
             }
-
+            .removeListRowFormatting()
         } header: {
             Text("Featured")
         }
+    }
+
+    private func retryButton(action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text("Try Again")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(Color.accentColor, in: Capsule())
+        }
+        .padding(.bottom, 8)
     }
 
     private var categoriesSection: some View {
@@ -127,9 +164,11 @@ extension ExploreView {
     }
 
     private func loadFeaturedAvatars() {
+        featuredDidLoad = false
         Task {
             do {
                 featuredAvatars = try await avatarManager.getFeaturedAvatars()
+                featuredDidLoad = true
             } catch {
                 alert = AnyAppAlert(error: error)
             }
@@ -137,9 +176,11 @@ extension ExploreView {
     }
 
     private func loadPopularAvatars() {
+        popularDidLoad = false
         Task {
             do {
                 popularAvatars = try await avatarManager.getPopularAvatars()
+                popularDidLoad = true
             } catch {
                 alert = AnyAppAlert(error: error)
             }
@@ -155,7 +196,18 @@ extension ExploreView {
     }
 }
 
-#Preview {
+#Preview("Has Data") {
     ExploreView()
         .environment(AvatarManager(services: MockAvatarServices()))
+}
+
+#Preview("No Data") {
+    ExploreView()
+        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 3))))
+}
+
+
+#Preview("Slow Loading") {
+    ExploreView()
+        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 4))))
 }

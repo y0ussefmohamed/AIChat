@@ -169,8 +169,6 @@ extension ProfileView {
 #Preview {
     NavigationStack {
         ProfileView()
-            .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
-            .environment(AuthManager(service: MockAuthService(user: .mock())))
-            .environment(AvatarManager(services: MockAvatarServices()))
+            .previewEnvironment()
     }
 }

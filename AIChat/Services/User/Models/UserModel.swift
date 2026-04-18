@@ -69,7 +69,7 @@ struct UserModel: Codable {
     }
 
     static var mock: Self {
-        mocks[0]
+        mocks[1]
     }
 
     static var mocks: [UserModel] {
