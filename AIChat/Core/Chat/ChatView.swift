@@ -152,7 +152,7 @@ extension ChatView {
                 let avatar = try await avatarManager.getAvatar(id: avatarId)
                 self.avatar = avatar
                 
-                try avatarManager.addRecentAvatar(avatar)
+                try await avatarManager.addRecentAvatar(avatar)
             } catch {
                 print(error)
             }

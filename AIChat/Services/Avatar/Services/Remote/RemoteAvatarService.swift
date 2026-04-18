@@ -15,4 +15,5 @@ protocol RemoteAvatarService {
     func getPopularAvatars() async throws -> [Avatar]
     func getAvatarsByCategory(_ category: CharacterOption) async throws -> [Avatar]
     func getCurrentUserAvatars(userId: String) async throws -> [Avatar]
+    func incrementAvatarClickCount(avatarId: String) async throws
 }

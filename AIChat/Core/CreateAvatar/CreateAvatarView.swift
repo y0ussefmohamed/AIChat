@@ -183,7 +183,8 @@ extension CreateAvatarView {
                 characterLocation: characterLocation,
                 profileImageName: generatedImage.debugDescription,
                 authorId: uid,
-                dateCreated: .now
+                dateCreated: .now,
+                clickCount: 0
             )
 
             do {

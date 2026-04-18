@@ -78,7 +78,7 @@ extension ExploreView {
             ScrollView(.horizontal) {
                 HStack(spacing: 12) {
                     ForEach(categories, id: \.self) { category in
-                        let imageName = popularAvatars.first(
+                        let imageName = popularAvatars.last(
                             where: {
                                 $0.characterOption == category
                             })?.profileImageName
