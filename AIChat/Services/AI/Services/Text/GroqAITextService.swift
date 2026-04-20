@@ -8,7 +8,7 @@
 import Foundation
 
 struct GroqAITextService: AITextService {
-    private let apiKey: String = ""
+    private let apiKey: String = Secrets.groqAPIKey
     private let model: String = "llama-3.3-70b-versatile"
     private let baseURL = "https://api.groq.com/openai/v1/chat/completions"
 
