@@ -42,7 +42,7 @@ class UserManager {
         let user = UserModel(auth: auth, creationVersion: creationVersion)
 
         try await remote.saveUser(user)
-        addCurrentUserListener(userId: auth.uid)
+        addCurrentUserListener(userId: auth.uid) /// this changes `self.currentUser`
     }
 
     private func saveCurrentUserInfoLocally() {
