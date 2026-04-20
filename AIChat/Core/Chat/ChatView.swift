@@ -8,14 +8,17 @@
 import SwiftUI
 
 struct ChatView: View {
+    @Environment(AIManager.self) private var aiManager
     @Environment(AvatarManager.self) private var avatarManager
     @State private var chatMessages: [ChatMessage] = ChatMessage.mocks
     @State private var avatar: Avatar?
-    @State private var currentUser: UserModel? = .mock
+    @State private var currentUser: UserModel? = UserModel.mocks[0]
     @State private var messageTextField: String = ""
     @State private var showConfirmationDialog: Bool = false
     @State private var scrollPositionId: String?
     @State private var showProfileModal: Bool = false
+    @State private var isAvatarTyping: Bool = false
+    @State private var alert: AnyAppAlert?
 
     var avatarId: String?
 
@@ -27,8 +30,8 @@ struct ChatView: View {
 
             textFieldSection
         }
-        .onAppear {
-            loadAvatar()
+        .task {
+            await loadAvatar()
         }
         .navigationTitle(avatar?.name ?? "Unknown")
         .navigationBarTitleDisplayMode(.inline)
@@ -40,6 +43,7 @@ struct ChatView: View {
                     .styledButton(action: onEllipsisButtonPressed)
             }
         }
+        .showCustomAlert(alert: $alert)
         .showModal(
             isPresented: $showProfileModal,
             content: {
@@ -71,9 +75,13 @@ struct ChatView: View {
                         isAvatar: message.authorId != currentUser?.userId,
                         imageName: avatar?.profileImageName,
                         message: message,
-                        onImagePressed: self.onImagePressed
+                        onImagePressed: self.onImagePressed,
                     )
                     .id(message.id)
+                }
+
+                if isAvatarTyping {
+                    typingIndicatorView
                 }
             }
             .padding([.horizontal, .top], 8)
@@ -82,6 +90,7 @@ struct ChatView: View {
         .safeAreaPadding(.bottom, 20)
         .scrollPosition(id: $scrollPositionId, anchor: .center) /// When scrollPositionId is set to any message.id then it will scroll to it
         .animation(.default, value: chatMessages.count)
+        .animation(.default, value: isAvatarTyping)
     }
 
     private var textFieldSection: some View {
@@ -114,6 +123,26 @@ struct ChatView: View {
             .background(Color(uiColor: .secondarySystemBackground))
     }
 
+    private var typingIndicatorView: some View {
+        HStack {
+            ZStack {
+                if let imageName = avatar?.profileImageName, !imageName.isEmpty {
+                    ImageLoaderView(imageUrlString: imageName)
+                } else {
+                    Rectangle().fill(.gray.opacity(0.7))
+                }
+            }
+            .clipShape(Circle())
+            .frame(width: 45, height: 45)
+
+            TypingIndicatorView()
+                .scaleEffect(0.8)
+            Spacer()
+        }
+        .padding(.trailing, 75)
+        .id("typingIndicator")
+    }
+
     private func profileModal(avatar: Avatar) -> some View {
         ProfileModalView(
             imageName: avatar.profileImageName,
@@ -141,21 +170,68 @@ extension ChatView {
         chatMessages.append(newMessage)
         scrollPositionId = newMessage.id
 
+        avatarsResponse()
         messageTextField = ""
     }
 
-    private func loadAvatar() {
+    private func loadAvatar() async {
         guard let avatarId else { return }
 
+        do {
+            let avatar = try await avatarManager.getAvatar(id: avatarId)
+            self.avatar = avatar
+
+            try await avatarManager.addRecentAvatar(avatar)
+        } catch {
+            print(error)
+        }
+
+    }
+
+    private func avatarsResponse() {
+        guard let currentUser else { return }
+
         Task {
+            isAvatarTyping = true
+            scrollPositionId = "typingIndicator"
+
+            try? await Task.sleep(for: .seconds(1.25))
             do {
-                let avatar = try await avatarManager.getAvatar(id: avatarId)
-                self.avatar = avatar
-                
-                try await avatarManager.addRecentAvatar(avatar)
+                if let avatarDescription = avatar?.characterDescription {
+
+                    let conversationContext = chatMessages.dropLast().map { msg in
+                        let sender = msg.authorId == currentUser.userId ? "User" : "You"
+                        return "\(sender): \(msg.content ?? "")"
+                    }.joined(separator: "\n")
+
+                    let content = try await aiManager.generateText(input: """
+                    Your name is \(avatar?.name ?? "unknown, you can come up with a name")
+                    You are \(avatarDescription).
+
+                    Recent conversation:
+                    \(conversationContext)
+
+                    User just said: "\(chatMessages.last?.content ?? "")"
+
+                    Reply as this character. Keep it brief (1-2 sentences max). Be natural and conversational.
+                    """)
+
+                    let avatarResponse = ChatMessage(
+                        id: UUID().uuidString,
+                        chatId: "1",
+                        authorId: avatar?.avatarId ?? "av1",
+                        content: content,
+                        seenByIds: nil,
+                        dateCreated: Date()
+                    )
+                    chatMessages.append(avatarResponse)
+                    scrollPositionId = avatarResponse.id
+                }
             } catch {
-                print(error)
+                alert = AnyAppAlert(error: error)
             }
+
+            isAvatarTyping = false
         }
     }
 
@@ -172,9 +248,20 @@ extension ChatView {
     }
 }
 
-#Preview {
-    NavigationStack {
-        ChatView(avatarId: "anyID")
-            .environment(AvatarManager(services: MockAvatarServices()))
+private struct PreviewView: View {
+    var body: some View {
+        NavigationStack {
+            ChatView(avatarId: "av1")
+                .onAppear {
+                    // This will trigger loadAvatar to fetch the mock
+                }
+        }
     }
+}
+
+
+#Preview {
+    PreviewView()
+        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 0))))
+        .previewEnvironment()
 }

@@ -1,5 +1,5 @@
 //
-//  PollinationsAIService.swift
+//  PollinationsAIImageService.swift
 //  AIChat
 //
 //  Created by Youssef Mohamed on 15/04/2026.
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct PollinationsAIService: AIService {
+struct PollinationsAIImageService: AIImageService {
     func generateImage(input: String) async throws -> UIImage {
         let prompt = "\(input), hyperrealistic, photorealistic, 8K, DSLR, sharp focus, studio lighting, highly detailed"
         let safePrompt = prompt.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "avatar"

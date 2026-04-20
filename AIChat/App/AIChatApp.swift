@@ -44,7 +44,7 @@ struct Dependencies {
     init() {
         self.authManager = AuthManager(service: FirebaseAuthServices())
         self.userManager = UserManager(services: ProductionUserServicesContainer())
-        self.aiManager = AIManager(service: PollinationsAIService())
+        self.aiManager = AIManager(aiServices: ProductionAIServices())
         self.avatarManager = AvatarManager(services: ProductionAvatarServices())
     }
 }
@@ -59,7 +59,7 @@ extension View {
             .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
             .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
             .environment(AvatarManager(services: MockAvatarServices(remote: remoteAvatarService, local: localAvatarPersistence)))
-            .environment(AIManager(service: MockAIService()))
+            .environment(AIManager(aiServices: MockAIServices()))
             .environment(AppState())
     }
 }

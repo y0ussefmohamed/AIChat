@@ -209,7 +209,7 @@ extension CreateAvatarView {
     NavigationStack {
         CreateAvatarView()
             .environment(AuthManager(service: MockAuthService(user: .mock())))
-            .environment(AIManager(service: MockAIService()))
+            .environment(AIManager(aiServices: MockAIServices()))
             .environment(AvatarManager(services: MockAvatarServices()))
     }
 }

@@ -9,17 +9,22 @@ import Foundation
 import SwiftUI
 import Combine
 
-
 @MainActor
 @Observable
 class AIManager {
-    private let service: AIService
+    private let imageService: AIImageService
+    private let textService: AITextService
 
-    init(service: AIService) {
-        self.service = service
+    init(aiServices: AIServicesContainer) {
+        self.imageService = aiServices.imageService
+        self.textService = aiServices.textService
     }
 
     func generateImage(input: String) async throws -> UIImage {
-        try await service.generateImage(input: input)
+        try await imageService.generateImage(input: input)
+    }
+
+    func generateText(input: String) async throws -> String {
+        try await textService.generateText(input: input)
     }
 }
