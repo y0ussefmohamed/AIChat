@@ -13,6 +13,7 @@ struct ChatBubbleView: View {
     var avatarImageName: String?
     var text: String = "Hey, How are You?"
     var onImagePressed: (() -> Void)?
+    var bubbleColor: Color = .blue
 
     var body: some View {
         VStack {
@@ -37,7 +38,7 @@ struct ChatBubbleView: View {
                 }
             } else {
                 Text(text)
-                    .chatBubbleModifier(textUIColor: .systemBackground, backgroundColor: .accent)
+                    .chatBubbleModifier(textUIColor: .systemBackground, backgroundColor: bubbleColor)
             }
         }
         .frame(maxWidth: .infinity, alignment: isAvatar ? .leading : .trailing)
@@ -54,4 +55,5 @@ struct ChatBubbleView: View {
         }
         .padding()
     }
+    .previewEnvironment()
 }

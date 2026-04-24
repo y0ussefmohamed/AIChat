@@ -13,6 +13,7 @@ struct ChatBubbleViewBuilder: View {
     var imageName: String?
     var message: ChatMessage = .mock
     var onImagePressed: (() -> Void)?
+    var bubbleColor: Color = .purple
 
     var body: some View {
         ZStack {
@@ -20,7 +21,8 @@ struct ChatBubbleViewBuilder: View {
                 isAvatar: isAvatar,
                 avatarImageName: imageName,
                 text: message.content ?? "",
-                onImagePressed: onImagePressed
+                onImagePressed: onImagePressed,
+                bubbleColor: bubbleColor
             )
             .padding(.leading, isAvatar ? 0 : 75) /// if the currentUser typed a very long message it doesn't go in the avatar's section in the UI
             .padding(.trailing, isAvatar ? 75 : 0) /// same for the avatars' message

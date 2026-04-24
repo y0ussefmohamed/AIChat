@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ChatMessage: Identifiable {
+struct ChatMessage: Identifiable, Codable {
     let id: String
     let chatId: String
     let authorId: String?
@@ -27,6 +27,28 @@ struct ChatMessage: Identifiable {
     func isSeenBy(userId: String) -> Bool {
         guard let seenByIds else { return false }
         return seenByIds.contains(userId)
+    }
+
+    static func newMessageFromUser(chatId: String, userId: String, message: String) -> Self {
+        .init(
+            id: UUID().uuidString,
+            chatId: chatId,
+            authorId: userId,
+            content: message,
+            seenByIds: [userId],
+            dateCreated: .now
+        )
+    }
+
+    static func newMessageFromAvatar(chatId: String, avatarId: String, userId: String, message: String) -> Self {
+        .init(
+            id: UUID().uuidString,
+            chatId: chatId,
+            authorId: avatarId,
+            content: message,
+            seenByIds: [userId],
+            dateCreated: .now
+        )
     }
 
     static var mock: ChatMessage {

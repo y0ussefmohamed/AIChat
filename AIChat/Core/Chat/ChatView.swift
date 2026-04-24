@@ -8,11 +8,15 @@
 import SwiftUI
 
 struct ChatView: View {
+    @Environment(UserManager.self) private var userManager
+    @Environment(ChatManager.self) private var chatManager
+    @Environment(AuthManager.self) private var authManager
     @Environment(AIManager.self) private var aiManager
     @Environment(AvatarManager.self) private var avatarManager
+    @State private var chat: Chat?
     @State private var chatMessages: [ChatMessage] = ChatMessage.mocks
     @State private var avatar: Avatar?
-    @State private var currentUser: UserModel? = UserModel.mocks[0]
+    @State private var currentUser: UserModel?
     @State private var messageTextField: String = ""
     @State private var showConfirmationDialog: Bool = false
     @State private var scrollPositionId: String?
@@ -29,9 +33,6 @@ struct ChatView: View {
             scrollViewSection
 
             textFieldSection
-        }
-        .task {
-            await loadAvatar()
         }
         .navigationTitle(avatar?.name ?? "Unknown")
         .navigationBarTitleDisplayMode(.inline)
@@ -52,6 +53,12 @@ struct ChatView: View {
                 }
             },
             transition: .slide)
+        .task {
+            await loadAvatar()
+        }
+        .onAppear {
+            loadCurrentUser()
+        }
     }
 
     private var confirmationDialogSheet: some View {
@@ -70,14 +77,17 @@ struct ChatView: View {
         ScrollView {
             LazyVStack(spacing: 24) {
                 ForEach(chatMessages) { message in
-                    ChatBubbleViewBuilder(
-                        /// if messageAuthor not the user then it is the avatar
-                        isAvatar: message.authorId != currentUser?.userId,
-                        imageName: avatar?.profileImageName,
-                        message: message,
-                        onImagePressed: self.onImagePressed,
-                    )
-                    .id(message.id)
+                    if let uid = try? authManager.getAuthId() {
+                        ChatBubbleViewBuilder(
+                            /// if messageAuthor not the user then it is the avatar
+                            isAvatar: message.authorId != uid,
+                            imageName: avatar?.profileImageName,
+                            message: message,
+                            onImagePressed: self.onImagePressed,
+                            bubbleColor: currentUser?.profileColor ?? .accent
+                        )
+                        .id(message.id)
+                    }
                 }
 
                 if isAvatarTyping {
@@ -155,23 +165,37 @@ struct ChatView: View {
 
 extension ChatView {
     private func onSendMessagePressed() {
-        guard let currentUser else { return }
         guard !messageTextField.isEmpty else { return }
 
-        let newMessage = ChatMessage(
-            id: UUID().uuidString,
-            chatId: "1",
-            authorId: currentUser.userId,
-            content: messageTextField,
-            seenByIds: nil,
-            dateCreated: Date()
-        )
+        Task {
+            do {
+                let uid = try authManager.getAuthId()
+                if chat == nil {
+                    let newChat = Chat.newChat(userId: uid, avatarId: avatarId ?? "")
+                    try await chatManager.createNewChat(chat: newChat)
 
-        chatMessages.append(newMessage)
-        scrollPositionId = newMessage.id
+                    self.chat = newChat
+                }
 
-        avatarsResponse()
-        messageTextField = ""
+                let newMessage = ChatMessage.newMessageFromUser(
+                    chatId: UUID().uuidString,
+                    userId: uid,
+                    message: messageTextField
+                )
+
+                chatMessages.append(newMessage)
+                scrollPositionId = newMessage.id
+
+                messageTextField = ""
+                avatarsResponse()
+            } catch {
+                alert = .init(error: error)
+            }
+        }
+    }
+
+    private func loadCurrentUser() {
+        self.currentUser = userManager.currentUser
     }
 
     private func loadAvatar() async {
@@ -213,16 +237,15 @@ extension ChatView {
 
                     User just said: "\(chatMessages.last?.content ?? "")"
 
-                    Reply as this character. Keep it brief (1-2 sentences max). Be natural and conversational.
+                    Reply as this character. Keep it brief. Be natural and conversational.
                     """)
 
-                    let avatarResponse = ChatMessage(
-                        id: UUID().uuidString,
-                        chatId: "1",
-                        authorId: avatar?.avatarId ?? "av1",
-                        content: content,
-                        seenByIds: nil,
-                        dateCreated: Date()
+                    let uid = try authManager.getAuthId()
+                    let avatarResponse = ChatMessage.newMessageFromAvatar(
+                        chatId: chat?.id ?? "",
+                        avatarId: avatarId ?? "",
+                        userId: uid,
+                        message: content
                     )
                     chatMessages.append(avatarResponse)
                     scrollPositionId = avatarResponse.id
@@ -263,5 +286,6 @@ private struct PreviewView: View {
 #Preview {
     PreviewView()
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 0))))
+        .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
         .previewEnvironment()
 }

@@ -88,16 +88,15 @@ struct ProfileView: View {
             Task {
                 await loadData()
             }
-        }) {
+        }, content: {
             SettingsView()
-        }
+        })
         .fullScreenCover(isPresented: $showCreateAvatarView, onDismiss: {
             Task {
                 await loadData()
             }
         }, content: {
             CreateAvatarView()
-
         })
     }
 

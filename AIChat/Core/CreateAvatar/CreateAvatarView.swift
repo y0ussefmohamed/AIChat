@@ -175,16 +175,12 @@ extension CreateAvatarView {
             }
 
             let uid = try authManager.getAuthId()
-            let avatar = Avatar(
-                avatarId: UUID().uuidString,
+            let avatar = Avatar.newAvatar(
                 name: avatarName,
-                characterOption: characterOption,
-                characterAction: characterAction,
-                characterLocation: characterLocation,
-                profileImageName: generatedImage.debugDescription,
-                authorId: uid,
-                dateCreated: .now,
-                clickCount: 0
+                option: characterOption,
+                action: characterAction,
+                location: characterLocation,
+                authorId: uid
             )
 
             do {
