@@ -46,7 +46,10 @@ struct ChatView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 if isLoading {
-                    ProgressView()
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.25))
+                        .frame(width: 100, height: 16)
+                        .shimmering()
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -84,25 +87,64 @@ struct ChatView: View {
 
     private var loadingView: some View {
         VStack(spacing: 0) {
-            ScrollView {
+            VStack {
+                Spacer()
+
                 VStack(spacing: 20) {
-                    Circle()
-                        .fill(Color.gray.opacity(0.15))
-                        .frame(width: 90, height: 90)
-                        .padding(.top, 80)
+                    // Avatar bubble (left)
+                    skeletonAvatarBubble(width: 220, height: 44)
 
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.gray.opacity(0.15))
-                        .frame(width: 120, height: 16)
+                    // User bubble (right)
+                    skeletonUserBubble(width: 180, height: 40)
 
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.gray.opacity(0.1))
-                        .frame(width: 200, height: 12)
+                    // Avatar bubble (left) — longer
+                    skeletonAvatarBubble(width: 250, height: 64)
+
+                    // User bubble (right) — shorter
+                    skeletonUserBubble(width: 140, height: 40)
+
+                    // Avatar bubble (left)
+                    skeletonAvatarBubble(width: 200, height: 48)
                 }
-                .frame(maxWidth: .infinity)
+                .padding([.horizontal, .top], 8)
+                .shimmering()
             }
+            .padding(.bottom, 20)
+            // Text field placeholder
+            RoundedRectangle(cornerRadius: 100)
+                .fill(Color.gray.opacity(0.15))
+                .frame(height: 52)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 100)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color(uiColor: .secondarySystemBackground))
+        }
+    }
 
-            Spacer()
+    private func skeletonAvatarBubble(width: CGFloat, height: CGFloat) -> some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            Circle()
+                .fill(Color.gray.opacity(0.25))
+                .frame(width: 36, height: 36)
+
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.gray.opacity(0.25))
+                .frame(width: width, height: height)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.trailing, 40)
+    }
+
+    private func skeletonUserBubble(width: CGFloat, height: CGFloat) -> some View {
+        HStack {
+            Spacer(minLength: 60)
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: width, height: height)
         }
     }
 
