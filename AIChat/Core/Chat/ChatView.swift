@@ -13,6 +13,7 @@ struct ChatView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(AIManager.self) private var aiManager
     @Environment(AvatarManager.self) private var avatarManager
+    @Environment(\.dismiss) private var dismiss
     @State private var chat: Chat?
     @State private var chatMessages: [ChatMessage] = []
     @State private var avatar: Avatar?
@@ -155,7 +156,7 @@ struct ChatView: View {
                 Button("Report User/Chat", role: .destructive) { }
 
                 Button("Delete Chat", role: .destructive) {
-                    chatMessages.removeAll()
+                    onDeleteChatPressed()
                 }
             }
     }
@@ -460,6 +461,19 @@ extension ChatView {
 
     private func onImagePressed() {
         showProfileModal = true
+    }
+
+    private func onDeleteChatPressed() {
+        guard let chat else { return }
+
+        Task {
+            do {
+                try await chatManager.deleteChat(chatId: chat.id)
+                dismiss()
+            } catch {
+                print(error)
+            }
+        }
     }
 }
 

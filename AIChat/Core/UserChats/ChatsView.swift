@@ -169,7 +169,7 @@ struct ChatsView: View {
                         await streamLastMessageForCell(chatId: chat.id, onUpdate: onUpdate)
                     }
                 )
-                .styledButton(.pressable) {
+                .styledButton {
                     onRowTap(for: chat)
                 }
                 .removeListRowFormatting()

@@ -16,10 +16,11 @@ struct TextWidthPreferenceKey: PreferenceKey {
 }
 
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(AvatarManager.self) private var avatarManager
-    @Environment(AppState.self) private var appState
+    @Environment(ChatManager.self) private var chatManager
     @Environment(\.dismiss) private var dismiss
     @State private var isPremium: Bool = true
     @State private var versionTextWidth: CGFloat = 0
@@ -192,10 +193,13 @@ extension SettingsView {
         Task {
             do {
                 let uid = try authManager.getAuthId()
-                
-                try await avatarManager.removeAuthorIdFromTheDeletedUserAvatars(userId: uid)
-                try await userManager.deleteCurrentUser()
-                try await authManager.deleteAccount()
+
+                async let removeAvatars = avatarManager.removeAuthorIdFromTheDeletedUserAvatars(userId: uid)
+                async let deleteUser = userManager.deleteCurrentUser()
+                async let deleteAuth = authManager.deleteAccount()
+                async let deleteChats = chatManager.deleteAllChats(userId: uid)
+
+                _ = try await (removeAvatars, deleteUser, deleteAuth, deleteChats)
 
                 await dismissScreen()
             } catch {

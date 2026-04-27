@@ -52,4 +52,25 @@ struct FirebaseChatService: ChatService {
     func loadUsersChats(userId: String) async throws -> [Chat] {
         try await chatCollection.whereField(Chat.CodingKeys.userId.rawValue, isEqualTo: userId).getAllDocuments()
     }
+
+    func deleteChat(chatId: String) async throws {
+        async let deleteChat: () =  chatCollection.deleteDocument(id: chatId)
+        async let deleteMessages: () = messagesCollection(chatId: chatId).deleteAllDocuments()
+
+        let (_, _) = await (try deleteChat, try deleteMessages)
+    }
+
+    func deleteAllChatsForUser(userId: String) async throws {
+        let allChats = try await self.loadUsersChats(userId: userId)
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for chat in allChats {
+                group.addTask {
+                    try await self.deleteChat(chatId: chat.id)
+                }
+            }
+
+            try await group.waitForAll()
+        }
+    }
 }
