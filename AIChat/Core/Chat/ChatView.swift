@@ -23,6 +23,7 @@ struct ChatView: View {
     @State private var showProfileModal: Bool = false
     @State private var isAvatarTyping: Bool = false
     @State private var alert: AnyAppAlert?
+    @State private var isLoading: Bool = true
 
     @State private var isUserInThisScreen: Bool = false
 
@@ -32,13 +33,22 @@ struct ChatView: View {
         VStack(spacing: 0) {
             confirmationDialogSheet
 
-            scrollViewSection
+            if isLoading {
+                loadingView
+            } else {
+                scrollViewSection
 
-            textFieldSection
+                textFieldSection
+            }
         }
-        .navigationTitle(avatar?.name ?? "Unknown")
+        .navigationTitle(isLoading ? "" : (avatar?.name ?? ""))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                if isLoading {
+                    ProgressView()
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Image(systemName: "ellipsis")
                     .foregroundStyle(.accent)
@@ -69,6 +79,30 @@ struct ChatView: View {
         }
         .onDisappear {
             isUserInThisScreen = false
+        }
+    }
+
+    private var loadingView: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Circle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 90, height: 90)
+                        .padding(.top, 80)
+
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 120, height: 16)
+
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 200, height: 12)
+                }
+                .frame(maxWidth: .infinity)
+            }
+
+            Spacer()
         }
     }
 
@@ -246,7 +280,7 @@ extension ChatView {
                 if chat == nil {
                     let newChat = Chat.newChat(userId: uid, avatarId: avatarId ?? "")
                     try await chatManager.createNewChat(chat: newChat)
-                    
+
                     self.chat = newChat
 
                     Task {
@@ -261,7 +295,6 @@ extension ChatView {
                 )
                 messageTextField = ""
 
-                chatMessages.append(newMessage)
                 scrollPositionId = newMessage.id
 
                 try await chatManager.addChatMessage(message: newMessage)
@@ -330,7 +363,6 @@ extension ChatView {
                         message: content,
                         seenByIds: isUserInThisScreen ? [uid] : []
                     )
-                    chatMessages.append(avatarResponse)
 
                     try await chatManager.addChatMessage(message: avatarResponse)
                 }
@@ -346,6 +378,7 @@ extension ChatView {
             guard let avatarId else { return }
 
             self.chat = try await chatManager.loadChat(userId: uid, avatarId: avatarId)
+            isLoading = false
         } catch {
             alert = AnyAppAlert(error: error)
         }
@@ -374,7 +407,6 @@ extension ChatView {
             print(error)
         }
     }
-
 
     private func onEllipsisButtonPressed() {
         showConfirmationDialog.toggle()

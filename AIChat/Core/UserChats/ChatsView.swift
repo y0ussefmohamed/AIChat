@@ -19,14 +19,17 @@ struct ChatsView: View {
     @Environment(AvatarManager.self) private var avatarManager
     @State private var chats: [Chat] = []
     @State private var recentAvatars: [Avatar] = []
+    @State private var isLoading: Bool = true
 
     @Binding var selectedTab: AppTap
     @State private var navPathStack: [String] = []
-    
+
     var body: some View {
         NavigationStack(path: $navPathStack) {
             List {
-                if chats.isEmpty {
+                if isLoading {
+                    loadingView
+                } else if chats.isEmpty {
                     emptyChatsView
                 } else {
                     if !recentAvatars.isEmpty {
@@ -40,11 +43,47 @@ struct ChatsView: View {
             .task {
                 await loadChats()
                 await loadRecentsAvatars()
+                isLoading = false
             }
             .navigationDestination(for: String.self) { avatarId in
                 ChatView(avatarId: avatarId)
             }
         }
+    }
+
+    private var loadingView: some View {
+        Group {
+            Section {
+                ScrollView(.horizontal) {
+                    LazyHStack(spacing: 8) {
+                        ForEach(0..<5, id: \.self) { _ in
+                            RecentsCellView(imageName: "placeholder", name: "Loading")
+                        }
+                    }
+                    .padding(.top, 10)
+                }
+                .frame(height: 120)
+                .scrollIndicators(.hidden)
+                .removeListRowFormatting()
+            } header: {
+                Text("Recents")
+            }
+
+            Section {
+                ForEach(0..<5, id: \.self) { _ in
+                    ChatRowCellViewBuilder(
+                        currentUserId: nil,
+                        getAvatar: { Avatar.mock },
+                        streamLastMessage: { _ in }
+                    )
+                    .removeListRowFormatting()
+                }
+            } header: {
+                Text("Chats")
+            }
+        }
+        .redacted(reason: .placeholder)
+        .disabled(true)
     }
 
     private var emptyChatsView: some View {
@@ -192,5 +231,14 @@ struct ChatsView: View {
 
 #Preview {
     ChatsView(selectedTab: .constant(.chats))
+        .environment(ChatManager(service: MockChatService()))
+        .environment(
+            AvatarManager(
+                services: MockAvatarServices(
+                    remote: MockAvatarService(avatars: Avatar.mocks, delay: 2),
+                    local: MockLocalAvatarPersistence()
+                )
+            )
+        )
         .previewEnvironment()
 }
