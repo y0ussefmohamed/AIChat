@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-enum AppTap {
-      case explore
-      case chats
-      case profile
-}
-
 struct TabBarView: View {
     @State private var selectedTab: AppTap = .explore
 

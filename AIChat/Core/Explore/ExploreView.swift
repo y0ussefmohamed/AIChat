@@ -21,7 +21,7 @@ struct ExploreView: View {
         NavigationStack(path: $navPathStack) {
             List {
                 if !featuredDidLoad {
-                    loadingIndicator
+                    featuredLoadingView
                 } else {
                     if !featuredAvatars.isEmpty {
                         featuredSection
@@ -36,9 +36,9 @@ struct ExploreView: View {
                     }
                 }
 
-
                 if !popularDidLoad {
-                    loadingIndicator
+                    categoriesLoadingView
+                    popularLoadingView
                 } else {
                     if !popularAvatars.isEmpty {
                         categoriesSection
@@ -73,12 +73,92 @@ struct ExploreView: View {
 }
 
 extension ExploreView {
-    private var loadingIndicator: some View {
-        ProgressView()
-            .frame(height: 200)
-            .frame(maxWidth: .infinity, alignment: .center)
+    private var featuredLoadingView: some View {
+        Section {
+            ZStack(alignment: .bottomLeading) {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.gray.opacity(0.25))
+                    .frame(height: 200)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.35))
+                        .frame(width: 140, height: 16)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.35))
+                        .frame(width: 220, height: 12)
+                }
+                .padding(16)
+            }
+            .padding(.horizontal)
+            .shimmering()
             .removeListRowFormatting()
+        } header: {
+            Text("Featured")
+        }
     }
+
+    private var categoriesLoadingView: some View {
+        Section {
+            ScrollView(.horizontal) {
+                HStack(spacing: 12) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        ZStack(alignment: .bottomLeading) {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.25))
+                                .frame(width: 140, height: 150)
+
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.35))
+                                .frame(width: 80, height: 12)
+                                .padding(12)
+                        }
+                        .shimmering()
+                    }
+                }
+                .frame(height: 150)
+            }
+            .scrollIndicators(.never)
+            .removeListRowFormatting()
+        } header: {
+            Text("Categories")
+        }
+    }
+
+    private var popularLoadingView: some View {
+        Section {
+            ForEach(0..<5, id: \.self) { _ in
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(Color.gray.opacity(0.25))
+                        .frame(width: 60, height: 60)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.25))
+                            .frame(width: 140, height: 14)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.25))
+                            .frame(height: 12)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.25))
+                            .frame(maxWidth: 200)
+                            .frame(height: 12)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 8)
+                .shimmering()
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("Popular")
+        }
+    }
+
     private var featuredSection: some View {
         Section {
             CarouselView(items: featuredAvatars) { avatar in

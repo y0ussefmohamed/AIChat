@@ -91,4 +91,8 @@ extension View {
                 }
             )
     }
+
+    func shimmering() -> some View {
+        modifier(ShimmerModifier())
+    }
 }
