@@ -24,6 +24,19 @@ struct ChatMessage: Identifiable, Codable {
         self.dateCreated = dateCreated
     }
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case chatId = "chat_id"
+        case authorId = "author_id"
+        case content
+        case seenByIds = "seen_by_ids"
+        case dateCreated = "date_created"
+    }
+
+    var dateCreatedCalculated: Date {
+        dateCreated ?? .distantPast
+    }
+
     func isSeenBy(userId: String) -> Bool {
         guard let seenByIds else { return false }
         return seenByIds.contains(userId)
@@ -40,13 +53,13 @@ struct ChatMessage: Identifiable, Codable {
         )
     }
 
-    static func newMessageFromAvatar(chatId: String, avatarId: String, userId: String, message: String) -> Self {
+    static func newMessageFromAvatar(chatId: String, avatarId: String, message: String, seenByIds: [String] = []) -> Self {
         .init(
             id: UUID().uuidString,
             chatId: chatId,
             authorId: avatarId,
             content: message,
-            seenByIds: [userId],
+            seenByIds: seenByIds,
             dateCreated: .now
         )
     }

@@ -14,7 +14,7 @@ struct ChatView: View {
     @Environment(AIManager.self) private var aiManager
     @Environment(AvatarManager.self) private var avatarManager
     @State private var chat: Chat?
-    @State private var chatMessages: [ChatMessage] = ChatMessage.mocks
+    @State private var chatMessages: [ChatMessage] = []
     @State private var avatar: Avatar?
     @State private var currentUser: UserModel?
     @State private var messageTextField: String = ""
@@ -23,6 +23,8 @@ struct ChatView: View {
     @State private var showProfileModal: Bool = false
     @State private var isAvatarTyping: Bool = false
     @State private var alert: AnyAppAlert?
+
+    @State private var isUserInThisScreen: Bool = false
 
     var avatarId: String?
 
@@ -56,8 +58,17 @@ struct ChatView: View {
         .task {
             await loadAvatar()
         }
+        .task {
+            await loadChat()
+            await listenForChatMessages()
+            await lastMessageSeen()
+        }
         .onAppear {
+            isUserInThisScreen = true
             loadCurrentUser()
+        }
+        .onDisappear {
+            isUserInThisScreen = false
         }
     }
 
@@ -74,33 +85,91 @@ struct ChatView: View {
     }
 
     private var scrollViewSection: some View {
-        ScrollView {
-            LazyVStack(spacing: 24) {
-                ForEach(chatMessages) { message in
-                    if let uid = try? authManager.getAuthId() {
-                        ChatBubbleViewBuilder(
-                            /// if messageAuthor not the user then it is the avatar
-                            isAvatar: message.authorId != uid,
-                            imageName: avatar?.profileImageName,
-                            message: message,
-                            onImagePressed: self.onImagePressed,
-                            bubbleColor: currentUser?.profileColor ?? .accent
-                        )
-                        .id(message.id)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 24) {
+                    if chatMessages.isEmpty {
+                        emptyChatView
+                    } else {
+                        ForEach(chatMessages) { message in
+                            if let uid = try? authManager.getAuthId() {
+                                ChatBubbleViewBuilder(
+                                    isAvatar: message.authorId != uid,
+                                    imageName: avatar?.profileImageName,
+                                    message: message,
+                                    onImagePressed: self.onImagePressed,
+                                    bubbleColor: currentUser?.profileColor ?? .accent
+                                )
+                                .id(message.id)
+                            }
+                        }
+
+                        if isAvatarTyping {
+                            typingIndicatorView
+                        }
                     }
                 }
-
-                if isAvatarTyping {
-                    typingIndicatorView
+                .padding([.horizontal, .top], 8)
+            }
+            .defaultScrollAnchor(.bottom)
+            .safeAreaPadding(.bottom, 20)
+            .animation(.default, value: chatMessages.count)
+            .animation(.default, value: isAvatarTyping)
+            .onChange(of: scrollPositionId) { _, newId in
+                guard let newId else { return }
+                withAnimation {
+                    proxy.scrollTo(newId, anchor: .bottom)
                 }
             }
-            .padding([.horizontal, .top], 8)
         }
-        .defaultScrollAnchor(.bottom)
-        .safeAreaPadding(.bottom, 20)
-        .scrollPosition(id: $scrollPositionId, anchor: .center) /// When scrollPositionId is set to any message.id then it will scroll to it
-        .animation(.default, value: chatMessages.count)
-        .animation(.default, value: isAvatarTyping)
+    }
+
+    private var emptyChatView: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                if let imageName = avatar?.profileImageName, !imageName.isEmpty {
+                    ImageLoaderView(imageUrlString: imageName)
+                } else {
+                    Circle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .foregroundStyle(.gray)
+                                .font(.system(size: 36))
+                        )
+                }
+            }
+            .styledButton {
+                showProfileModal.toggle()
+            }
+            .frame(width: 90, height: 90)
+            .clipShape(Circle())
+
+            VStack(spacing: 6) {
+                Text(avatar?.name ?? "Unknown")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+
+                Text(avatar?.characterDescription ?? "")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+
+            Text("Start a conversation!")
+                .font(.footnote)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.accentColor, in: Capsule())
+                .styledButton(.pressable) {
+                    onSendMessagePressed(chatStarter: "Hello \(avatar?.name ?? "")!")
+                }
+        }
+        .padding(.horizontal, 32)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 80)
     }
 
     private var textFieldSection: some View {
@@ -109,7 +178,7 @@ struct ChatView: View {
             .autocorrectionDisabled(true)
             .padding()
             .padding(.trailing, 40)
-            .background( /// not overlay because overlay will be on top of the text
+            .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 100)
                         .fill(Color(uiColor: .systemBackground))
@@ -125,7 +194,7 @@ struct ChatView: View {
                     .foregroundStyle(.accent)
                     .padding(.horizontal, 4)
                     .tappableBackground()
-                    .styledButton(.plain, action: onSendMessagePressed)
+                    .styledButton(.plain, action: { onSendMessagePressed() })
                     .disabled(messageTextField.isEmpty)
             }
             .padding(.horizontal)
@@ -164,7 +233,11 @@ struct ChatView: View {
 }
 
 extension ChatView {
-    private func onSendMessagePressed() {
+    private func onSendMessagePressed(chatStarter: String? = nil) {
+        if let chatStarter {
+            messageTextField = chatStarter
+        }
+
         guard !messageTextField.isEmpty else { return }
 
         Task {
@@ -173,20 +246,26 @@ extension ChatView {
                 if chat == nil {
                     let newChat = Chat.newChat(userId: uid, avatarId: avatarId ?? "")
                     try await chatManager.createNewChat(chat: newChat)
-
+                    
                     self.chat = newChat
+
+                    Task {
+                        await listenForChatMessages()
+                    }
                 }
 
                 let newMessage = ChatMessage.newMessageFromUser(
-                    chatId: UUID().uuidString,
+                    chatId: chat?.id ?? UUID().uuidString,
                     userId: uid,
                     message: messageTextField
                 )
+                messageTextField = ""
 
                 chatMessages.append(newMessage)
                 scrollPositionId = newMessage.id
 
-                messageTextField = ""
+                try await chatManager.addChatMessage(message: newMessage)
+
                 avatarsResponse()
             } catch {
                 alert = .init(error: error)
@@ -209,7 +288,6 @@ extension ChatView {
         } catch {
             print(error)
         }
-
     }
 
     private func avatarsResponse() {
@@ -218,6 +296,11 @@ extension ChatView {
         Task {
             isAvatarTyping = true
             scrollPositionId = "typingIndicator"
+
+            defer {
+                isAvatarTyping = false
+                scrollPositionId = chatMessages.last?.id
+            }
 
             try? await Task.sleep(for: .seconds(1.25))
             do {
@@ -244,19 +327,54 @@ extension ChatView {
                     let avatarResponse = ChatMessage.newMessageFromAvatar(
                         chatId: chat?.id ?? "",
                         avatarId: avatarId ?? "",
-                        userId: uid,
-                        message: content
+                        message: content,
+                        seenByIds: isUserInThisScreen ? [uid] : []
                     )
                     chatMessages.append(avatarResponse)
-                    scrollPositionId = avatarResponse.id
+
+                    try await chatManager.addChatMessage(message: avatarResponse)
                 }
             } catch {
                 alert = AnyAppAlert(error: error)
             }
-
-            isAvatarTyping = false
         }
     }
+
+    private func loadChat() async {
+        do {
+            let uid = try authManager.getAuthId()
+            guard let avatarId else { return }
+
+            self.chat = try await chatManager.loadChat(userId: uid, avatarId: avatarId)
+        } catch {
+            alert = AnyAppAlert(error: error)
+        }
+    }
+
+    private func listenForChatMessages() async {
+        do {
+            guard let chat else { return }
+            let chatId = chat.id
+
+            for try await value in chatManager.streamChatChanges(chatId: chatId) {
+                chatMessages = value.sorted(by: { $0.dateCreatedCalculated < $1.dateCreatedCalculated })
+                scrollPositionId = chatMessages.last?.id
+            }
+        } catch {
+            print("Failed to listen for chat changes: \(error)")
+        }
+    }
+
+    private func lastMessageSeen() async {
+        guard let lastMessage = chatMessages.last, let uid = userManager.currentUser?.userId, let chatId = chat?.id else { return }
+
+        do {
+            try await chatManager.userHasSeenMessage(messageId: lastMessage.id, chatId: chatId, userId: uid)
+        } catch {
+            print(error)
+        }
+    }
+
 
     private func onEllipsisButtonPressed() {
         showConfirmationDialog.toggle()

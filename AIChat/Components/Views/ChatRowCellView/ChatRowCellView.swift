@@ -37,13 +37,17 @@ struct ChatRowCellView: View {
                     Text(subheadline)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .frame(maxWidth: 225, alignment: .leading)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             if isNewMessage {
-                Text("NEW")
-                    .badgeButtonModifier()
+                Circle()
+                    .fill(.accent)
+                    .frame(width: 8, height: 8)
+                    .padding(.trailing, 20)
             }
         }
         .padding(.vertical, 12)

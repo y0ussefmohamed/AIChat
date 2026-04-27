@@ -10,17 +10,18 @@ import SwiftUI
 /// What problem does this solve?
 /// When we do a loop on chats, each chat has some details we want to fetch those details to build the UI, but we can't use .task{} for each item in the loop and if we put those items that we want to fetch in the Model struct itself so we don't have to fetch, it won't be a scalable/generic solution
 
-/// This is a wrapper over the `ChatRowCellView` in order to fetch data asynchronsly, related to where this view is used
+/// This is a wrapper over the `ChatRowCellView` in order to fetch data asynchronously, related to where this view is used
 struct ChatRowCellViewBuilder: View {
 
     var currentUserId: String? = ""
-    var chat: Chat = .mock
 
     @State private var avatar: Avatar?
     @State private var lastChatMessage: ChatMessage?
 
     var getAvatar: () async -> Avatar?
-    var getLastChatMessage: () async -> ChatMessage?
+
+    /// The closure receives an `onUpdate` callback that it calls every time the stream emits a new value
+    var streamLastMessage: (@escaping @MainActor (ChatMessage?) -> Void) async -> Void
 
     @State private var didLoadAvatar: Bool = false
     @State private var didLoadChatMessage: Bool = false
@@ -29,7 +30,7 @@ struct ChatRowCellViewBuilder: View {
         didLoadAvatar && didLoadChatMessage ? false : true
     }
 
-    private var hasNewChat: Bool {
+    private var noNewMessage: Bool {
         guard let lastChatMessage, let currentUserId else { return false }
 
         return lastChatMessage.isSeenBy(userId: currentUserId)
@@ -57,7 +58,7 @@ struct ChatRowCellViewBuilder: View {
             imageName: avatar?.profileImageName,
             headline: headline,
             subheadline: subheadline,
-            isNewMessage: isLoading ? false : hasNewChat
+            isNewMessage: isLoading ? false : !noNewMessage
         )
         .redacted(reason: isLoading ? .placeholder : [])
         .task {
@@ -65,8 +66,12 @@ struct ChatRowCellViewBuilder: View {
             didLoadAvatar = true
         }
         .task {
-            lastChatMessage = await getLastChatMessage()
-            didLoadChatMessage = true
+            /// Continuously observe the stream — every time a new message arrives
+            /// or the seen status changes, the callback fires and updates the state
+            await streamLastMessage { message in
+                lastChatMessage = message
+                didLoadChatMessage = true
+            }
         }
     }
 
@@ -74,24 +79,24 @@ struct ChatRowCellViewBuilder: View {
 
 #Preview {
     VStack {
-        ChatRowCellViewBuilder(chat: .mock, getAvatar: {
+        ChatRowCellViewBuilder(getAvatar: {
             try? await Task.sleep(for: .seconds(5))
             return .mock
-        }, getLastChatMessage: {
+        }, streamLastMessage: { onUpdate in
             try? await Task.sleep(for: .seconds(0.25))
-            return .mock
+            onUpdate(.mock)
         })
 
-        ChatRowCellViewBuilder(chat: .mock, getAvatar: {
+        ChatRowCellViewBuilder(getAvatar: {
             return .mock
-        }, getLastChatMessage: {
-            return .mock
+        }, streamLastMessage: { onUpdate in
+            onUpdate(.mock)
         })
 
-        ChatRowCellViewBuilder(chat: .mock, getAvatar: {
+        ChatRowCellViewBuilder(getAvatar: {
             return nil
-        }, getLastChatMessage: {
-            return nil
+        }, streamLastMessage: { onUpdate in
+            onUpdate(nil)
         })
     }
 }

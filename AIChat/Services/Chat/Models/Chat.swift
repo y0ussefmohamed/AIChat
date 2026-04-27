@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import IdentifiableByString
 
-struct Chat: Identifiable, Codable {
+struct Chat: Identifiable, Codable, StringIdentifiable {
     let id: String
     let userId: String
     let avatarId: String
@@ -22,9 +23,13 @@ struct Chat: Identifiable, Codable {
         case dateModified = "date_modified"
     }
 
+    static func chatId(userId: String, avatarId: String) -> String {
+        "\(userId)_\(avatarId)"
+    }
+
     static func newChat(userId: String, avatarId: String) -> Self {
         .init(
-            id: "\(userId)_\(avatarId)",
+            id: chatId(userId: userId, avatarId: avatarId),
             userId: userId,
             avatarId: avatarId,
             dateCreated: .now,
