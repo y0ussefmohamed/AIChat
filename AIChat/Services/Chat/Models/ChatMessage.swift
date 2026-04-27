@@ -42,25 +42,25 @@ struct ChatMessage: Identifiable, Codable {
         return seenByIds.contains(userId)
     }
 
-    static func newMessageFromUser(chatId: String, userId: String, message: String) -> Self {
+    static func newMessageFromUser(chatId: String, userId: String, message: String, dateCreated: Date? = .now) -> Self {
         .init(
             id: UUID().uuidString,
             chatId: chatId,
             authorId: userId,
             content: message,
             seenByIds: [userId],
-            dateCreated: .now
+            dateCreated: dateCreated
         )
     }
 
-    static func newMessageFromAvatar(chatId: String, avatarId: String, message: String, seenByIds: [String] = []) -> Self {
+    static func newMessageFromAvatar(chatId: String, avatarId: String, message: String, seenByIds: [String] = [], dateCreated: Date? = .now) -> Self {
         .init(
             id: UUID().uuidString,
             chatId: chatId,
             authorId: avatarId,
             content: message,
             seenByIds: seenByIds,
-            dateCreated: .now
+            dateCreated: dateCreated
         )
     }
 
@@ -103,6 +103,56 @@ struct ChatMessage: Identifiable, Codable {
                 content: "Almost! Just the last module left.",
                 seenByIds: ["user_3", "user_4"],
                 dateCreated: now.addingTimeInterval(hours: -1, minutes: -10)
+            )
+        ]
+    }
+
+    static func previewLongConversation(
+        chatId: String = Chat.mock.id,
+        userId: String = UserModel.mock.userId,
+        avatarId: String = Avatar.mock.avatarId
+    ) -> [ChatMessage] {
+        [
+            .newMessageFromAvatar(
+                chatId: chatId,
+                avatarId: avatarId,
+                message: "Hey, what are you working on today?",
+                seenByIds: [userId]
+            ),
+            .newMessageFromUser(
+                chatId: chatId,
+                userId: userId,
+                message: "I am improving the chat screen previews."
+            ),
+            .newMessageFromAvatar(
+                chatId: chatId,
+                avatarId: avatarId,
+                message: "Nice. Are you testing empty, loading, and long conversations?"
+            ),
+            .newMessageFromUser(
+                chatId: chatId,
+                userId: userId,
+                message: "Yes, I want one preview with more than six messages."
+            ),
+            .newMessageFromAvatar(
+                chatId: chatId,
+                avatarId: avatarId,
+                message: "That is useful because it shows scrolling, spacing, timestamps, and bubble alignment."
+            ),
+            .newMessageFromUser(
+                chatId: chatId,
+                userId: userId,
+                message: "Exactly. I also want to see how long text wraps inside the bubble."
+            ),
+            .newMessageFromAvatar(
+                chatId: chatId,
+                avatarId: avatarId,
+                message: "Then add a slightly longer message to make sure the design still feels clean on smaller screens."
+            ),
+            .newMessageFromUser(
+                chatId: chatId,
+                userId: userId,
+                message: "Perfect. This preview should help me polish the UI faster."
             )
         ]
     }

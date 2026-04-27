@@ -92,19 +92,14 @@ struct ChatView: View {
                 Spacer()
 
                 VStack(spacing: 20) {
-                    // Avatar bubble (left)
                     skeletonAvatarBubble(width: 220, height: 44)
 
-                    // User bubble (right)
                     skeletonUserBubble(width: 180, height: 40)
 
-                    // Avatar bubble (left) — longer
                     skeletonAvatarBubble(width: 250, height: 64)
 
-                    // User bubble (right) — shorter
                     skeletonUserBubble(width: 140, height: 40)
 
-                    // Avatar bubble (left)
                     skeletonAvatarBubble(width: 200, height: 48)
                 }
                 .padding([.horizontal, .top], 8)
@@ -168,8 +163,12 @@ struct ChatView: View {
                     if chatMessages.isEmpty {
                         emptyChatView
                     } else {
-                        ForEach(chatMessages) { message in
+                        ForEach(Array(chatMessages.enumerated()), id: \.element.id) { index, message in
                             if let uid = try? authManager.getAuthId() {
+                                if shouldShowTimestamp(for: message, at: index) {
+                                    timestampView(date: message.dateCreatedCalculated)
+                                }
+
                                 ChatBubbleViewBuilder(
                                     isAvatar: message.authorId != uid,
                                     imageName: avatar?.profileImageName,
@@ -199,6 +198,18 @@ struct ChatView: View {
                 }
             }
         }
+    }
+
+    private func timestampView(date: Date) -> some View {
+        Group {
+            Text(date.formatted(date: .abbreviated, time: .omitted))
+            +
+            Text(" • ")
+            +
+            Text(Date.now.formatted(date: .omitted, time: .shortened))
+        }
+        .foregroundStyle(.secondary)
+        .font(.callout)
     }
 
     private var emptyChatView: some View {
@@ -451,6 +462,18 @@ extension ChatView {
         }
     }
 
+    private func shouldShowTimestamp(for message: ChatMessage, at index: Int) -> Bool {
+        guard index > 0 else { return true }
+
+        let currentMsgDate = message.dateCreatedCalculated
+        let prevMsgDate = chatMessages[index - 1].dateCreatedCalculated
+
+        let isDifferentDay = !Calendar.current.isDate(currentMsgDate, inSameDayAs: prevMsgDate)
+        let isMoreThan30Minutes = currentMsgDate.timeIntervalSince(prevMsgDate) >= 30 * 60
+
+        return isDifferentDay || isMoreThan30Minutes
+    }
+
     private func onEllipsisButtonPressed() {
         showConfirmationDialog.toggle()
     }
@@ -477,21 +500,173 @@ extension ChatView {
     }
 }
 
-private struct PreviewView: View {
-    var body: some View {
-        NavigationStack {
-            ChatView(avatarId: "av1")
-                .onAppear {
-                    // This will trigger loadAvatar to fetch the mock
-                }
-        }
+#Preview("Chat - Default") {
+    NavigationStack {
+        ChatView(avatarId: Avatar.mock.avatarId)
     }
+    .environment(
+        ChatManager(
+            service: MockChatService(
+                chat: .mock,
+                messages: ChatMessage.mocks
+            )
+        )
+    )
+    .environment(
+        AvatarManager(
+            services: MockAvatarServices(
+                remote: MockAvatarService(delay: 0)
+            )
+        )
+    )
+    .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
+    .previewEnvironment()
 }
 
+#Preview("Chat - Dark Mode") {
+    NavigationStack {
+        ChatView(avatarId: Avatar.mock.avatarId)
+    }
+    .environment(
+        ChatManager(
+            service: MockChatService(
+                chat: .mock,
+                messages: ChatMessage.mocks
+            )
+        )
+    )
+    .environment(
+        AvatarManager(
+            services: MockAvatarServices(
+                remote: MockAvatarService(delay: 0)
+            )
+        )
+    )
+    .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
+    .previewEnvironment()
+    .preferredColorScheme(.dark)
+}
 
-#Preview {
-    PreviewView()
-        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 0))))
-        .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
-        .previewEnvironment()
+#Preview("Chat - Large Text") {
+    NavigationStack {
+        ChatView(avatarId: Avatar.mock.avatarId)
+    }
+    .environment(
+        ChatManager(
+            service: MockChatService(
+                chat: .mock,
+                messages: ChatMessage.mocks
+            )
+        )
+    )
+    .environment(
+        AvatarManager(
+            services: MockAvatarServices(
+                remote: MockAvatarService(delay: 0)
+            )
+        )
+    )
+    .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
+    .environment(\.dynamicTypeSize, .accessibility2)
+    .previewEnvironment()
+}
+
+#Preview("Chat - Loading State") {
+    NavigationStack {
+        ChatView(avatarId: Avatar.mock.avatarId)
+    }
+    .environment(
+        ChatManager(
+            service: MockChatService(
+                delay: 2,
+                chat: .mock,
+                messages: ChatMessage.mocks
+            )
+        )
+    )
+    .environment(
+        AvatarManager(
+            services: MockAvatarServices(
+                remote: MockAvatarService(delay: 2)
+            )
+        )
+    )
+    .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
+    .previewEnvironment()
+}
+
+#Preview("Chat - Long Conversation") {
+    let messages: [ChatMessage] = [
+        .newMessageFromAvatar(
+            chatId: Chat.mock.id,
+            avatarId: Avatar.mock.avatarId,
+            message: "Hey, what are you working on today?",
+            seenByIds: [UserModel.mock.userId],
+            dateCreated: .distantPast
+        ),
+        .newMessageFromUser(
+            chatId: Chat.mock.id,
+            userId: UserModel.mock.userId,
+            message: "I am improving the chat screen previews.",
+            dateCreated: .now.addingTimeInterval(minutes: -50)
+        ),
+        .newMessageFromAvatar(
+            chatId: Chat.mock.id,
+            avatarId: Avatar.mock.avatarId,
+            message: "Nice. Are you testing empty, loading, and long conversations?",
+            seenByIds: [UserModel.mock.userId],
+            dateCreated: .now.addingTimeInterval(minutes: -30)
+        ),
+        .newMessageFromUser(
+            chatId: Chat.mock.id,
+            userId: UserModel.mock.userId,
+            message: "Yes, I want one preview with more than six messages.",
+            dateCreated: .now.addingTimeInterval(minutes: -30)
+        ),
+        .newMessageFromAvatar(
+            chatId: Chat.mock.id,
+            avatarId: Avatar.mock.avatarId,
+            message: "That is useful because it shows scrolling, spacing, timestamps, and bubble alignment.",
+            seenByIds: [UserModel.mock.userId],
+            dateCreated: .now.addingTimeInterval(minutes: -30)
+        ),
+        .newMessageFromUser(
+            chatId: Chat.mock.id,
+            userId: UserModel.mock.userId,
+            message: "Exactly. I also want to see how long text wraps inside the bubble.",
+            dateCreated: .now.addingTimeInterval(minutes: -30)
+        ),
+        .newMessageFromAvatar(
+            chatId: Chat.mock.id,
+            avatarId: Avatar.mock.avatarId,
+            message: "Then add a slightly longer message to make sure the design still feels clean on smaller screens.",
+            seenByIds: [UserModel.mock.userId]
+        ),
+        .newMessageFromUser(
+            chatId: Chat.mock.id,
+            userId: UserModel.mock.userId,
+            message: "Perfect. This preview should help me polish the UI faster."
+        )
+    ]
+
+    NavigationStack {
+        ChatView(avatarId: Avatar.mock.avatarId)
+    }
+    .environment(
+        ChatManager(
+            service: MockChatService(
+                chat: .mock,
+                messages: messages
+            )
+        )
+    )
+    .environment(
+        AvatarManager(
+            services: MockAvatarServices(
+                remote: MockAvatarService(delay: 0)
+            )
+        )
+    )
+    .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
+    .previewEnvironment()
 }
