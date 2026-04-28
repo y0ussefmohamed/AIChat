@@ -391,6 +391,7 @@ extension ChatView {
 
             try? await Task.sleep(for: .seconds(1.25))
             do {
+                let date = Date()
                 if let avatarDescription = avatar?.characterDescription {
 
                     let conversationContext = chatMessages.dropLast().map { msg in
@@ -406,6 +407,8 @@ extension ChatView {
                     \(conversationContext)
 
                     User just said: "\(chatMessages.last?.content ?? "")"
+                    
+                    Time is now \(date.formatted(date: .abbreviated, time: .omitted)) • \(Date.now.formatted(date: .omitted, time: .shortened))
 
                     Reply as this character. Keep it brief. Be natural and conversational.
                     """)
