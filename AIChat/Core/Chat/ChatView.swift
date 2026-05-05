@@ -410,7 +410,7 @@ extension ChatView {
                     
                     Time is now \(date.formatted(date: .abbreviated, time: .omitted)) • \(Date.now.formatted(date: .omitted, time: .shortened))
 
-                    Reply as this character. Keep it brief. Be natural and conversational.
+                    Reply as this character. Keep it brief. Be natural and co nversational.
                     """)
 
                     let uid = try authManager.getAuthId()

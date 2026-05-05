@@ -24,6 +24,14 @@ class UserManager {
         self.currentUser = local.getCurrentUser()
     }
 
+    func logIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
+        let creationVersion = isNewUser ? Utilities.appVersion : nil
+        let user = UserModel(auth: auth, creationVersion: creationVersion)
+
+        try await remote.saveUser(user)
+        addCurrentUserListener(userId: auth.uid) /// this changes `self.currentUser`
+    }
+
     private func addCurrentUserListener(userId: String) {
         Task {
             do {
@@ -35,14 +43,6 @@ class UserManager {
                 print(error)
             }
         }
-    }
-
-    func logIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
-        let creationVersion = isNewUser ? Utilities.appVersion : nil
-        let user = UserModel(auth: auth, creationVersion: creationVersion)
-
-        try await remote.saveUser(user)
-        addCurrentUserListener(userId: auth.uid) /// this changes `self.currentUser`
     }
 
     private func saveCurrentUserInfoLocally() {
