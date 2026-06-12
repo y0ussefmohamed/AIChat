@@ -138,6 +138,17 @@ struct SettingsView: View {
         Section {
 
         } header: {
+            VStack(alignment: .leading) {
+                Text("Developed by ") +
+                Text("Youssef Mohamed")
+                    .fontWeight(.medium)
+                    .foregroundStyle(.accent)
+
+                Text("For ") +
+                Text(userManager.currentUser?.email ?? "Unknown 👀")
+                    .fontWeight(.medium)
+                    .foregroundStyle(.accent)
+            }
             Text("Developed by ") +
             Text("Youssef Mohamed")
                 .fontWeight(.medium)
