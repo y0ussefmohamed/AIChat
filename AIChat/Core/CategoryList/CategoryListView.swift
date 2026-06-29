@@ -14,7 +14,6 @@ struct CategoryListView: View {
     @State private var avatars: [Avatar] = []
     @State private var alert: AnyAppAlert?
 
-    // 1. Add a loading state flag
     @State private var isLoading: Bool = true
 
     /// We did this because:

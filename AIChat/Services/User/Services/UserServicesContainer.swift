@@ -8,12 +8,12 @@
 import Foundation
 
 /// Used when a `Manager Class` needs two services to `Inject init`
-protocol UserServices {
+protocol UserServicesContainer {
     var remote: RemoteUserService { get }
     var local: LocalUserPersistence { get }
 }
 
-struct MockUserServicesContainer: UserServices {
+struct MockUserServicesContainer: UserServicesContainer {
     let remote: RemoteUserService
     let local: LocalUserPersistence
 
@@ -25,7 +25,7 @@ struct MockUserServicesContainer: UserServices {
 }
 
 
-struct ProductionUserServicesContainer: UserServices {
+struct ProductionUserServicesContainer: UserServicesContainer {
     let remote: RemoteUserService = FirebaseUserService()
     let local: LocalUserPersistence = FileManagerUserPersistence()
 }

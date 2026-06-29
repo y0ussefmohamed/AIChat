@@ -17,7 +17,7 @@ class UserManager {
     private let local: LocalUserPersistence
     private(set) var currentUser: UserModel?
 
-    init(services: UserServices) {
+    init(services: UserServicesContainer) {
         self.remote = services.remote
         self.local = services.local
 
