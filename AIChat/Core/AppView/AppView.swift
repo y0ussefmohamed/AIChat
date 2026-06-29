@@ -27,7 +27,7 @@ struct AppView: View {
             await checkUserStatus()
         }
         .onChange(of: appState.showTabBar) { _, showTabBar in
-            /// if user signedOut\deletedAccount then make a new anonymous account
+            /// if user signedOut\deletedAccount then create a new anonymous account
             if !showTabBar {
                 Task {
                     await checkUserStatus()
@@ -64,13 +64,11 @@ struct AppView: View {
 
 #Preview("Tabbar") {
     AppView(appState: AppState(showTabBar: true))
-        .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
-        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
 }
 
 
 #Preview("Onboarding") {
     AppView(appState: AppState(showTabBar: false))
-        .environment(UserManager(services: MockUserServicesContainer(user: nil)))
-        .environment(AuthManager(service: MockAuthService(user: nil)))
+        .previewEnvironment()
 }

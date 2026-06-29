@@ -102,4 +102,5 @@ extension WelcomeView {
 #Preview {
     WelcomeView()
         .environment(AppState())
+        .previewEnvironment()
 }
