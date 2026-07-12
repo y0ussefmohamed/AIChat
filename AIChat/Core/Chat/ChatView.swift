@@ -206,7 +206,7 @@ struct ChatView: View {
             +
             Text(" • ")
             +
-            Text(Date.now.formatted(date: .omitted, time: .shortened))
+            Text(date.formatted(date: .omitted, time: .shortened))
         }
         .foregroundStyle(.secondary)
         .font(.callout)
