@@ -222,8 +222,9 @@ extension LinkProviderView {
 
 #Preview("Create Account") {
     LinkProviderView(usageOption: .createAccount)
+        .previewEnvironment(isSignedIn: false)
 }
 
 #Preview("Sign In") {
-    LinkProviderView(usageOption: .signIn)
+    LinkProviderView(usageOption: .signIn)        .previewEnvironment(isSignedIn: true)
 }

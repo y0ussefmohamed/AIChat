@@ -155,18 +155,21 @@ struct ChatsView: View {
     }
 
     private var chatsSection: some View {
-        Section {
-            ForEach(chats) { chat in
-                /// use a `ViewBuilder` wrapper when the view of the for loop depends on its items (the `chat` item in our case)
-                let uid = userManager.currentUser?.userId
+        let currentUserId = userManager.currentUser?.userId
 
+        return Section {
+            ForEach(chats) { chat in
+                /// use a ViewBuilder wrapper when the view of the for loop depends on its items (the chat item in our case)
                 ChatRowCellViewBuilder(
-                    currentUserId: uid,
+                    currentUserId: currentUserId,
                     getAvatar: {
                         await getAvatarForCell(chat.avatarId)
                     },
                     streamLastMessage: { onUpdate in
-                        await streamLastMessageForCell(chatId: chat.id, onUpdate: onUpdate)
+                        await streamLastMessageForCell(
+                            chatId: chat.id,
+                            onUpdate: onUpdate
+                        )
                     }
                 )
                 .styledButton {

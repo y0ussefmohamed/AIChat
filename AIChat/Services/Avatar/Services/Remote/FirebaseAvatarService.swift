@@ -17,10 +17,10 @@ struct FirebaseAvatarService: RemoteAvatarService {
         let path = "avatars/\(avatar.avatarId)"
         let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
 
-        var avatar = avatar
-        avatar.updateProfileImage(withName: url.absoluteString) /// avatarProfileImageName is now the url of the stored UIImage
+        var avatarToSave = avatar
+        avatarToSave.updateProfileImage(withName: url.absoluteString) /// avatarProfileImageName is now the url of the stored UIImage
 
-        try collection.document(avatar.avatarId).setData(from: avatar, merge: true)
+        try collection.document(avatarToSave.avatarId).setData(from: avatarToSave, merge: true)
     }
 
     func getAvatar(id: String) async throws -> Avatar {

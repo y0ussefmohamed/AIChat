@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// What problem does this solve?
-/// When we do a loop on chats, each chat has some details we want to fetch those details to build the UI, but we can't use .task{} for each item in the loop and if we put those items that we want to fetch in the Model struct itself so we don't have to fetch, it won't be a scalable/generic solution
+/// When we do a loop on chats, each chat has some details we want to fetch those details to build the UI, but we can't use `.task{}` for each item in the loop and if we put those items that we want to fetch in the Model struct itself so we don't have to fetch, it won't be a scalable/generic solution
 
 /// This is a wrapper over the `ChatRowCellView` in order to fetch data asynchronously, related to where this view is used
 struct ChatRowCellViewBuilder: View {
@@ -77,7 +77,7 @@ struct ChatRowCellViewBuilder: View {
 
 }
 
-#Preview {
+#Preview("3 Chat Row Cells") {
     VStack {
         ChatRowCellViewBuilder(getAvatar: {
             try? await Task.sleep(for: .seconds(5))
