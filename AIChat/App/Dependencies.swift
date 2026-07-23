@@ -7,6 +7,10 @@
 import Foundation
 import SwiftUI
 
+enum BuildConfiguration {
+    case mock(isSignedIn: Bool), dev, production
+}
+
 @MainActor
 struct Dependencies {
     let authManager: AuthManager
@@ -15,12 +19,27 @@ struct Dependencies {
     let avatarManager: AvatarManager
     let chatManager: ChatManager
 
-    init() {
-        authManager = AuthManager(service: FirebaseAuthServices())
-        userManager = UserManager(services: ProductionUserServicesContainer())
-        aiManager = AIManager(aiServices: ProductionAIServices())
-        avatarManager = AvatarManager(services: ProductionAvatarServices())
-        chatManager = ChatManager(service: FirebaseChatService())
+    init(buildConfig: BuildConfiguration) {
+        switch buildConfig {
+        case .mock(isSignedIn: let isSignedIn):
+            authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
+            userManager = UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil))
+            aiManager = AIManager(aiServices: MockAIServices())
+            avatarManager = AvatarManager(services: MockAvatarServices())
+            chatManager = ChatManager(service: MockChatService())
+        case .dev:
+            authManager = AuthManager(service: FirebaseAuthServices())
+            userManager = UserManager(services: ProductionUserServicesContainer())
+            aiManager = AIManager(aiServices: ProductionAIServices())
+            avatarManager = AvatarManager(services: ProductionAvatarServices())
+            chatManager = ChatManager(service: FirebaseChatService())
+        case .production:
+            authManager = AuthManager(service: FirebaseAuthServices())
+            userManager = UserManager(services: ProductionUserServicesContainer())
+            aiManager = AIManager(aiServices: ProductionAIServices())
+            avatarManager = AvatarManager(services: ProductionAvatarServices())
+            chatManager = ChatManager(service: FirebaseChatService())
+        }
     }
 }
 

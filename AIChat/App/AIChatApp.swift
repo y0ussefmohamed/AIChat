@@ -9,12 +9,21 @@ import SwiftUI
 import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    lazy var dependencies = Dependencies()
+    var dependencies: Dependencies!
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        #if !MOCK
         FirebaseApp.configure()
-        _ = dependencies
+        #endif
+
+        #if MOCK
+        dependencies = Dependencies(buildConfig: .mock(isSignedIn: true))
+        #elseif DEV
+        dependencies = Dependencies(buildConfig: .dev)
+        #else
+        dependencies = Dependencies(buildConfig: .production)
+        #endif
         return true
     }
 }
