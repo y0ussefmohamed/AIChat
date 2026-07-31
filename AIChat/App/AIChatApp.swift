@@ -13,17 +13,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        #if !MOCK
-        FirebaseApp.configure()
-        #endif
+
+        let config: BuildConfiguration
 
         #if MOCK
-        dependencies = Dependencies(buildConfig: .mock(isSignedIn: true))
+        config = .mock(isSignedIn: true)
         #elseif DEV
-        dependencies = Dependencies(buildConfig: .dev)
+        config = .dev
         #else
-        dependencies = Dependencies(buildConfig: .production)
+        config = .production
         #endif
+
+        config.configure()
+        dependencies = Dependencies(buildConfig: config)
         return true
     }
 }

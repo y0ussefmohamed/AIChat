@@ -5,10 +5,28 @@
 //  Created by Youssef Mohamed on 29/06/2026.
 //
 import Foundation
+import Firebase
 import SwiftUI
 
 enum BuildConfiguration {
     case mock(isSignedIn: Bool), dev, production
+
+    func configure() {
+        switch self {
+            case .mock(let isSignedIn):
+            // Doesn't need a configuration
+
+            case .dev:
+            let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
+            let options = FirebaseOptions(contentsOfFile: plist)!
+            FirebaseApp.configure(options: options)
+            
+            case .production:
+            let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
+            let options = FirebaseOptions(contentsOfFile: plist)!
+            FirebaseApp.configure(options: options)
+        }
+    }
 }
 
 @MainActor
