@@ -10,6 +10,7 @@ import SwiftUI
 struct AppView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
+    @Environment(LogManager.self) private var logManager
     @State var appState: AppState = AppState()
 
     var body: some View {
@@ -25,6 +26,11 @@ struct AppView: View {
         .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
         .task {
             await checkUserStatus()
+        }
+        .onAppear {
+            for event in EventExample.allCases {
+                logManager.trackEvent(event: event)
+            }
         }
         .onChange(of: appState.showTabBar) { _, showTabBar in
             /// if user signedOut\deletedAccount then create a new anonymous account
