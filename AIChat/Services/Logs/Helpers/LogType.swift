@@ -9,7 +9,7 @@ import Foundation
 import OSLog
 
 /// almost same as `OSLogType` but with an emoji
-enum LogType {
+enum LogType { /// we made this do decouple the `OSLog` library from being imported everytime we need to use `OSLogType` in
     case info
     case analytic
     case warning
