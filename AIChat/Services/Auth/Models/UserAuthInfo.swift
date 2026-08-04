@@ -42,7 +42,7 @@ struct UserAuthInfo: Sendable, Codable {
     }
 
     var eventParameters: [String: Any] {
-        let dict : [String: Any?] = [
+        let dict: [String: Any?] = [
             "uauth_\(CodingKeys.uid.rawValue)": uid,
             "uauth_\(CodingKeys.email.rawValue)": email,
             "uauth_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
