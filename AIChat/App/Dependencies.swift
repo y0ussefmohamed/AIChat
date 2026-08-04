@@ -13,15 +13,15 @@ enum BuildConfiguration {
 
     func configure() {
         switch self {
-            case .mock(let isSignedIn):
-            // Doesn't need a configuration
+        case .mock:
+            break // Doesn't need a configuration
 
-            case .dev:
+        case .dev:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
             FirebaseApp.configure(options: options)
             
-            case .production:
+        case .production:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
             FirebaseApp.configure(options: options)

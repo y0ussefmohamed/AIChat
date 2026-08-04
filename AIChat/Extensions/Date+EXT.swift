@@ -18,4 +18,13 @@ extension Date {
         return self.addingTimeInterval(TimeInterval(totalSeconds))
     }
 
+    func yearMonthDayString() -> String {
+        return self.formatted(
+            Date.FormatStyle()
+                .year()
+                .month(.twoDigits)
+                .day(.twoDigits)
+                .locale(Locale(identifier: "en_SE"))
+        )
+    }
 }

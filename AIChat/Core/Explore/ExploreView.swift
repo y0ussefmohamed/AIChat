@@ -16,6 +16,16 @@ struct ExploreView: View {
     @State private var featuredDidLoad: Bool = false
     @State private var popularDidLoad: Bool = false
 
+    private var showDevSettingsViews: Bool {
+        #if DEV || MOCK
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    @State private var showDevSettings: Bool = false
+
     @State private var navPathStack: [NavigationPathOption] = []
     var body: some View {
         NavigationStack(path: $navPathStack) {
@@ -56,6 +66,16 @@ struct ExploreView: View {
             }
             .showCustomAlert(alert: $alert)
             .navigationTitle("Explore")
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarLeading) {
+                    if showDevSettingsViews {
+                        devSettingsButton
+                    }
+                }
+            })
+            .sheet(isPresented: $showDevSettings) {
+                DevSettingsView()
+            }
             .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
                 switch pathOptionTop {
                 case .chat(let avatarId):
@@ -273,6 +293,18 @@ extension ExploreView {
 
     private func onCategoryPressed(_ category: CharacterOption, _ imageName: String) {
         navPathStack.append(.category(category, imageName))
+    }
+
+    private var devSettingsButton: some View {
+        Text("DEV")
+            .foregroundStyle(.blue)
+            .styledButton(.plain) {
+                onDevSettingsPressed()
+            }
+    }
+
+    private func onDevSettingsPressed() {
+        showDevSettings.toggle()
     }
 }
 

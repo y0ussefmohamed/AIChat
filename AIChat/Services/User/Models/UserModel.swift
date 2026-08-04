@@ -30,6 +30,21 @@ struct UserModel: Codable {
         case profileColorHex = "profile_color_hex"
     }
 
+    var eventParameters: [String: Any] {
+        let dict: [String: Any?] = [
+            "user_\(CodingKeys.userId.rawValue)": userId,
+            "user_\(CodingKeys.email.rawValue)": email,
+            "user_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
+            "user_\(CodingKeys.creationDate.rawValue)": creationDate?.yearMonthDayString,
+            "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
+            "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate?.yearMonthDayString,
+            "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
+            "user_\(CodingKeys.profileColorHex.rawValue)": profileColorHex
+        ]
+
+        return dict.compactMapValues { $0 }
+    }
+
     init(
         userId: String,
         email: String? = nil,
@@ -65,7 +80,7 @@ struct UserModel: Codable {
     var profileColor: Color {
         guard let profileColorHex else { return .accent }
 
-        return Color(hex: profileColorHex)
+        return Color(hex: profileColorHex)!
     }
 
     static var mock: Self {
