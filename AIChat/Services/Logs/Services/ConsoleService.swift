@@ -36,11 +36,11 @@ struct ConsoleService: LogService {
         logger.log(.info, string)
     }
 
-    func addUserProperties(properties: [String: Any]) {
+    func addUserProperties(properties: [String: Any], isHighPriority: Bool) {
         if !printParams { return }
 
         var string = """
-                     Log User Properties
+                     Log User Properties (isHighPriority: \(isHighPriority))
                      """
 
         let sortedKeys = properties.keys.sorted()

@@ -13,6 +13,7 @@
 		C95CA7BE2F90653700C34B6F /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = C95CA7BD2F90653700C34B6F /* FirebaseStorage */; };
 		C9A7FB4E2F60F17300385A5E /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = C9A7FB4D2F60F17300385A5E /* SwiftfulUtilities */; };
 		C9AF3F352F58C5610041BC26 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = C9AF3F342F58C5610041BC26 /* SDWebImageSwiftUI */; };
+		C9C02B7D3029E69F00EDBAD1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C9C02B7C3029E69F00EDBAD1 /* FirebaseAnalytics */; };
 		C9D3B96C2F719779009CE29E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C9D3B96B2F719779009CE29E /* FirebaseAuth */; };
 		C9D3B97A2F7264F0009CE29E /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = C9D3B9792F7264F0009CE29E /* SignInAppleAsync */; };
 /* End PBXBuildFile section */
@@ -40,9 +41,22 @@
 		C9652EE62F54F19900AA48CD /* AIChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AIChatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C9C02B7F3029EA7000EDBAD1 /* Exceptions for "AIChat" folder in "AIChat" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C9652ECE2F54F19900AA48CD /* AIChat */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C9652ED12F54F19900AA48CD /* AIChat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C9C02B7F3029EA7000EDBAD1 /* Exceptions for "AIChat" folder in "AIChat" target */,
+			);
 			path = AIChat;
 			sourceTree = "<group>";
 		};
@@ -71,6 +85,7 @@
 				C9D3B96C2F719779009CE29E /* FirebaseAuth in Frameworks */,
 				C90C84512F8DB39300C06E8E /* FirebaseFirestore in Frameworks */,
 				C9A7FB4E2F60F17300385A5E /* SwiftfulUtilities in Frameworks */,
+				C9C02B7D3029E69F00EDBAD1 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,6 +163,7 @@
 				C90C84532F8E9DCA00C06E8E /* SwiftfulFirestore */,
 				C95CA7A32F90084B00C34B6F /* GoogleGenerativeAI */,
 				C95CA7BD2F90653700C34B6F /* FirebaseStorage */,
+				C9C02B7C3029E69F00EDBAD1 /* FirebaseAnalytics */,
 			);
 			productName = AIChat;
 			productReference = C9652ECF2F54F19900AA48CD /* AIChat.app */;
@@ -472,6 +488,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AIChat/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Chat Dev";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -513,6 +530,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AIChat/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Chat Dev";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -704,6 +722,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AIChat/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Chat Dev";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -902,6 +921,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C9AF3F332F58C5610041BC26 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
 			productName = SDWebImageSwiftUI;
+		};
+		C9C02B7C3029E69F00EDBAD1 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9D3B96A2F719779009CE29E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 		C9D3B96B2F719779009CE29E /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

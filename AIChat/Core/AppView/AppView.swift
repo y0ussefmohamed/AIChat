@@ -28,9 +28,18 @@ struct AppView: View {
             await checkUserStatus()
         }
         .onAppear {
-            for event in EventExample.allCases {
+            let eventsExample: [EventExample] = EventExample.allCases
+            for event in eventsExample {
                 logManager.trackEvent(event: event)
             }
+
+            logManager.trackEvent(
+                event: AnyLoggableEvent(
+                        eventName: "Joe",
+                        parameters: ["testYALLA": "testValue"])
+            )
+
+            logManager.trackEvent(eventName: "XD")
         }
         .onChange(of: appState.showTabBar) { _, showTabBar in
             /// if user signedOut\deletedAccount then create a new anonymous account

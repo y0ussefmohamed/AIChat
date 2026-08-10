@@ -73,16 +73,10 @@ extension DevSettingsView {
                         .fill(color)
                         .frame(width: 24, height: 24)
                 } else {
-                    Text(value)
+                    if let conv = String.convertToString(item.value) {
+                        Text(conv)
+                    }
                 }
-            } else if let value = item.value as? Int {
-                Text("\(value)")
-            } else if let value = item.value as? Bool {
-                Text(value.description)
-            } else if let value = item.value as? Double {
-                Text("\(value)")
-            } else if let value = item.value as? Date {
-                Text(value.yearMonthDayString())
             }
         }
     }

@@ -53,14 +53,18 @@ struct Dependencies {
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
-            logManager = LogManager(services: [ConsoleService(printParams: true)])
+            logManager = LogManager(services: [
+                ConsoleService(printParams: true), FirebaseAnalyticsService()
+            ])
         case .production:
             authManager = AuthManager(service: FirebaseAuthServices())
             userManager = UserManager(services: ProductionUserServicesContainer())
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
-            logManager = LogManager(services: [])
+            logManager = LogManager(services: [
+                FirebaseAnalyticsService()
+            ])
         }
     }
 }
