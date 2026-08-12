@@ -37,11 +37,11 @@ extension String {
             .replaceSpacesWithUnderscores()
     }
 
-    private func clipped(to length: Int) -> String {
+    func clipped(to length: Int) -> String {
         return String(prefix(length))
     }
 
-    private func replaceSpacesWithUnderscores() -> String {
+    func replaceSpacesWithUnderscores() -> String {
         self.replacingOccurrences(of: " ", with: "_")
     }
 }

@@ -54,7 +54,7 @@ struct Dependencies {
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
             logManager = LogManager(services: [
-                ConsoleService(printParams: true), FirebaseAnalyticsService()
+                ConsoleService(printParams: true), FirebaseAnalyticsService(), MixpanelService(token: Keys.mixpanelKey, loggingEnabled: true)
             ])
         case .production:
             authManager = AuthManager(service: FirebaseAuthServices())
