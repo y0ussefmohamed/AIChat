@@ -53,9 +53,14 @@ struct Dependencies {
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
-            logManager = LogManager(services: [
-                ConsoleService(printParams: true), FirebaseAnalyticsService(), MixpanelService(token: Keys.mixpanelKey, loggingEnabled: true)
-            ])
+            logManager = LogManager(
+                services: [
+                    ConsoleService(printParams: true),
+                    FirebaseAnalyticsService(),
+                    MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: true),
+                    FirebaseCrashlyticsService()
+                ]
+            )
         case .production:
             authManager = AuthManager(service: FirebaseAuthServices())
             userManager = UserManager(services: ProductionUserServicesContainer())
@@ -63,7 +68,9 @@ struct Dependencies {
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
             logManager = LogManager(services: [
-                FirebaseAnalyticsService()
+                FirebaseAnalyticsService(),
+                MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: false),
+                FirebaseCrashlyticsService()
             ])
         }
     }

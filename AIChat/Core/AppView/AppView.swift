@@ -28,6 +28,7 @@ struct AppView: View {
             await checkUserStatus()
         }
         .onAppear {
+            /// using `enum` type
             let eventsExample: [EventExample] = EventExample.allCases
             for event in eventsExample {
                 logManager.trackEvent(event: event)

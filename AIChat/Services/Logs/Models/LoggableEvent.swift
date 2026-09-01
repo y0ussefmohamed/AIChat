@@ -31,7 +31,7 @@ struct AnyLoggableEvent: LoggableEvent {
 // MARK: - BEFORE DOING THE STRUCT ABOVE
 /// this has to be created before doing the struct
 enum EventExample: LoggableEvent, CaseIterable {
-    case alpha, beta
+    case alpha, beta, gamma
 
     var type: LogType {
         switch self {
@@ -39,6 +39,8 @@ enum EventExample: LoggableEvent, CaseIterable {
             return .severe
         case .beta:
             return .warning
+        case .gamma:
+            return .analytic
         }
     }
 
@@ -48,6 +50,8 @@ enum EventExample: LoggableEvent, CaseIterable {
             return "ALPHA EVENT"
         case .beta:
             return "BETA EVENT"
+        case .gamma:
+            return "GAMMA EVENT"
         }
     }
 
@@ -57,6 +61,8 @@ enum EventExample: LoggableEvent, CaseIterable {
             ["keyALPHA": "valueALPHA"]
         case .beta:
             ["keyBETA": "valueBETA"]
+        case .gamma:
+            ["keyGAMMA": "valueGAMMA"]
         }
     }
 }

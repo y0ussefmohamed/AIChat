@@ -11,4 +11,5 @@ enum Secrets {
     }
 
     static var groqAPIKey: String { value(for: "GROQ_API_KEY") }
+    static var mixpanelToken: String { value(for: "MIXPANEL_TOKEN") }
 }
