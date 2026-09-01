@@ -35,6 +35,8 @@ struct FirebaseCrashlyticsService: LogService {
     }
     
     func trackEvent(event: any LoggableEvent) {
+        guard event.type != .info else { return }
+
         switch event.type {
         case .info, .analytic:
             break

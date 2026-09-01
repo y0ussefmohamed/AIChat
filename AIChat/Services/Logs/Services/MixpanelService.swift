@@ -59,7 +59,6 @@ struct MixpanelService: LogService {
         }
 
         instance.track(event: event.eventName, properties: eventProperties.isEmpty ? nil : eventProperties)
-
     }
     
     func trackScreenEvent(event: any LoggableEvent) {

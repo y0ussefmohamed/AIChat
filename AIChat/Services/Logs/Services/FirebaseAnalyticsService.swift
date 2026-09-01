@@ -38,6 +38,8 @@ struct FirebaseAnalyticsService: LogService {
     }
     
     func trackEvent(event: any LoggableEvent) {
+        guard event.type != .info else { return }
+
         var params = event.parameters ?? [:]
 
         /// convert other types of `value` into a string
@@ -52,7 +54,6 @@ struct FirebaseAnalyticsService: LogService {
                 }
             }
         }
-
 
         /// fix key/value length limits
         for (key, value) in params {

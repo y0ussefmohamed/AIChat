@@ -95,4 +95,9 @@ extension View {
     func shimmering() -> some View {
         modifier(ShimmerModifier())
     }
+
+    func screenAppearAnalytics(viewName: String) -> some View {
+        self
+            .modifier(AppearAnalyticsViewModifier(viewName: viewName))
+    }
 }

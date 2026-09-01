@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CategoryListView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(AvatarManager.self) private var avatarManager
     var category: CharacterOption?
     var categoryImageName: String = Constants.randomImage
@@ -67,26 +68,73 @@ struct CategoryListView: View {
         .onAppear {
             loadCategoryAvatars()
         }
+        .screenAppearAnalytics(viewName: "CategoryList")
         .showCustomAlert(alert: $alert)
         .ignoresSafeArea()
         .listStyle(.plain)
+    }
+
+    enum CategoryListEvent: LoggableEvent {
+        case loadAvatarStart, loadAvatarSuccess, loadAvatarFail(error: Error)
+        case avatarPressed(avatar: Avatar)
+
+        var eventName: String {
+            switch self {
+            case .loadAvatarStart:
+                return "CategoryListView_LoadAvatarStart"
+            case .loadAvatarSuccess:
+                return "CategoryListView_LoadAvatarSuccess"
+            case .loadAvatarFail:
+                return "CategoryListView_LoadAvatarFail"
+            case .avatarPressed:
+                return "CategoryListView_Avatar_Pressed"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .loadAvatarFail(error: let error):
+                return error.asEventParameter
+            case .avatarPressed(avatar: let avatar):
+                return avatar.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .loadAvatarFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
     }
 
     private func loadCategoryAvatars() {
         Task {
             defer { isLoading = false }
 
+            logManager.trackEvent(event: CategoryListEvent.loadAvatarStart)
             do {
                 if let category {
                     avatars = try await avatarManager.getAvatarsByCategory(category)
                 }
+                logManager.trackEvent(event: CategoryListEvent.loadAvatarSuccess)
             } catch {
+                logManager.trackEvent(event: CategoryListEvent.loadAvatarFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
     }
 
     private func onRowTap(_ avatarId: String) {
+        guard let avatar = avatars.first(where: { $0.avatarId == avatarId }) else {
+            return
+        }
+
+        logManager.trackEvent(event: CategoryListEvent.avatarPressed(avatar: avatar))
         navPathStack.append(.chat(avatarId))
     }
 }

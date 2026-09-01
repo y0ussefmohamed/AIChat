@@ -26,6 +26,22 @@ struct Avatar: Hashable, Codable, StringIdentifiable {
         return "\(characterOption.prefix) \(characterOption.rawValue) that is \(characterAction.rawValue) in the \( characterLocation.rawValue)."
     }
 
+    var asEventParameter: [String: Any] {
+        let dict:  [String: Any?] = [
+            "avatar_\(CodingKeys.avatarId.rawValue)": avatarId,
+            "avatar_\(CodingKeys.name.rawValue)": name,
+            "avatar_\(CodingKeys.characterOption.rawValue)": characterOption?.rawValue,
+            "avatar_\(CodingKeys.characterAction.rawValue)": characterAction?.rawValue,
+            "avatar_\(CodingKeys.characterLocation.rawValue)": characterLocation?.rawValue,
+            "avatar_\(CodingKeys.profileImageName.rawValue)": profileImageName,
+            "avatar_\(CodingKeys.authorId.rawValue)": authorId,
+            "avatar_\(CodingKeys.dateCreated.rawValue)": dateCreated,
+            "avatar_\(CodingKeys.clickCount.rawValue)": clickCount
+        ]
+
+        return dict.compactMapValues({$0})
+    }
+
     mutating func updateProfileImage(withName name: String) {
         self.profileImageName = name
     }

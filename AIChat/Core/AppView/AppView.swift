@@ -24,23 +24,9 @@ struct AppView: View {
         })
         /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
         .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
+        .screenAppearAnalytics(viewName: "AppView")
         .task {
             await checkUserStatus()
-        }
-        .onAppear {
-            /// using `enum` type
-            let eventsExample: [EventExample] = EventExample.allCases
-            for event in eventsExample {
-                logManager.trackEvent(event: event)
-            }
-
-            logManager.trackEvent(
-                event: AnyLoggableEvent(
-                        eventName: "Joe",
-                        parameters: ["testYALLA": "testValue"])
-            )
-
-            logManager.trackEvent(eventName: "XD")
         }
         .onChange(of: appState.showTabBar) { _, showTabBar in
             /// if user signedOut\deletedAccount then create a new anonymous account
@@ -52,25 +38,69 @@ struct AppView: View {
         }
     }
 
+    enum AppViewEvent: LoggableEvent {
+        case existingAuthStart, existingAuthSuccess, existingAuthFail(error: Error)
+        case anonymousAuthStart, anonymousAuthSuccess, anonymousAuthFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .existingAuthStart:
+                return "AppView_ExistingAuthStart"
+            case .existingAuthSuccess:
+                return "AppView_ExistingAuthSuccess"
+            case .existingAuthFail:
+                return "AppView_ExistingAuthFail"
+            case .anonymousAuthStart:
+                return "AppView_AnonymousAuthStart"
+            case .anonymousAuthSuccess:
+                return "AppView_AnonymousAuthSuccess"
+            case .anonymousAuthFail:
+                return "AppView_AnonymousAuthFail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .existingAuthFail(error: let error):
+                return error.asEventParameter
+            case .anonymousAuthFail(error: let error):
+                return error.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .existingAuthFail, .anonymousAuthFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
+    }
+
     private func checkUserStatus() async {
         if let user = authManager.auth {
-            print("User is already authenticated: \(user.uid)")
+            logManager.trackEvent(event: AppViewEvent.existingAuthStart)
             do {
                 try await userManager.logIn(auth: user, isNewUser: false)
+                logManager.trackEvent(event: AppViewEvent.existingAuthSuccess)
             } catch {
-                print(error)
+                logManager.trackEvent(event: AppViewEvent.existingAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(2.5))
                 await checkUserStatus()
             }
 
         } else {
+            logManager.trackEvent(event: AppViewEvent.anonymousAuthStart)
             do {
                 let result = try await authManager.signInAnonymously()
                 try await userManager.logIn(auth: result.user, isNewUser: result.isNewUser)
 
-                print("User is NEW, now authenticated: \(result.user.uid)")
+                logManager.trackEvent(event: AppViewEvent.anonymousAuthSuccess)
             } catch {
-                print(error)
+                logManager.trackEvent(event: AppViewEvent.anonymousAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(2.5))
                 await checkUserStatus()
             }

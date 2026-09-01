@@ -288,9 +288,6 @@ extension ExploreView {
     }
 
     private func onAvatarPressed(_ avatarId: String) {
-        var nilStr: String? = nil
-        let forceCrash: String = nilStr!
-
         navPathStack.append(.chat(avatarId))
     }
 
