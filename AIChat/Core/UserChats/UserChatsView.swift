@@ -1,5 +1,5 @@
 //
-//  ChatsView.swift
+//  UserChatsView.swift
 //  AIChat
 //
 //  Created by Youssef Mohamed on 04/03/2026.
@@ -13,7 +13,8 @@ import SwiftUI
 
 /// This means we need to make a `ViewBuilder` in order to fetch those Models with the avatarId and chatId to get our desired data, and we can't do this here because we can't make .task{} in each item in the for loop, we don't want to load the view unless we have the data to show
 
-struct ChatsView: View {
+struct UserChatsView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(UserManager.self) private var userManager
     @Environment(ChatManager.self) private var chatManager
     @Environment(AvatarManager.self) private var avatarManager
@@ -39,6 +40,7 @@ struct ChatsView: View {
                     chatsSection
                 }
             }
+            .screenAppearAnalytics(viewName: "UserChatsView")
             .navigationTitle("Chats")
             .task {
                 await loadChats()
@@ -110,7 +112,6 @@ struct ChatsView: View {
                         .multilineTextAlignment(.center)
                 }
 
-
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                     Text("Explore Avatars")
@@ -121,6 +122,7 @@ struct ChatsView: View {
                 .padding(.vertical, 12)
                 .background(Color.accentColor, in: Capsule())
                 .styledButton {
+                    logManager.trackEvent(event: UserChatsViewEvent.exploreAvatarsPressed)
                     selectedTab = .explore
                 }
                 .padding(.top, 4)
@@ -183,20 +185,26 @@ struct ChatsView: View {
     }
 
     private func loadRecentsAvatars() async {
+        logManager.trackEvent(event: UserChatsViewEvent.loadRecentsStart)
         do {
             recentAvatars = try avatarManager.getRecentAvatars()
+            logManager.trackEvent(event: UserChatsViewEvent.loadRecentsSuccess(count: recentAvatars.count))
         } catch {
+            logManager.trackEvent(event: UserChatsViewEvent.loadRecentsFail(error: error))
             print(error)
         }
     }
 
     private func loadChats() async {
+        logManager.trackEvent(event: UserChatsViewEvent.loadChatsStart)
         do {
             if let uid = userManager.currentUser?.userId {
                 chats = try await chatManager.loadChats(userId: uid)
                 chats.sort(by: { $0.dateModified > $1.dateModified })
+                logManager.trackEvent(event: UserChatsViewEvent.loadChatsSuccess(count: chats.count))
             }
         } catch {
+            logManager.trackEvent(event: UserChatsViewEvent.loadChatsFail(error: error))
             print(error)
         }
     }
@@ -205,6 +213,7 @@ struct ChatsView: View {
         do {
             return try await avatarManager.getAvatar(id: avatarId)
         } catch {
+            logManager.trackEvent(event: UserChatsViewEvent.loadCellAvatarFail(error: error))
             print(error)
         }
         return nil
@@ -219,21 +228,98 @@ struct ChatsView: View {
                 onUpdate(messages.last)
             }
         } catch {
+            logManager.trackEvent(event: UserChatsViewEvent.streamLastMessageFail(error: error))
             print(error)
         }
     }
 
     private func onRowTap(for chat: Chat) {
+        logManager.trackEvent(event: UserChatsViewEvent.chatRowPressed(chat: chat))
         navPathStack.append(chat.avatarId)
     }
 
     private func onRecentsAvatarTap(avatarId: String) {
+        logManager.trackEvent(event: UserChatsViewEvent.recentAvatarPressed(avatarId: avatarId))
         navPathStack.append(avatarId)
     }
 }
 
+extension UserChatsView {
+    enum UserChatsViewEvent: LoggableEvent {
+        case loadChatsStart, loadChatsSuccess(count: Int), loadChatsFail(error: Error)
+        case loadRecentsStart, loadRecentsSuccess(count: Int), loadRecentsFail(error: Error)
+        case chatRowPressed(chat: Chat)
+        case recentAvatarPressed(avatarId: String)
+        case exploreAvatarsPressed
+        case loadCellAvatarFail(error: Error)
+        case streamLastMessageFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .loadChatsStart:
+                return "UserChatsView_LoadChats_Start"
+            case .loadChatsSuccess:
+                return "UserChatsView_LoadChats_Success"
+            case .loadChatsFail:
+                return "UserChatsView_LoadChats_Fail"
+            case .loadRecentsStart:
+                return "UserChatsView_LoadRecents_Start"
+            case .loadRecentsSuccess:
+                return "UserChatsView_LoadRecents_Success"
+            case .loadRecentsFail:
+                return "UserChatsView_LoadRecents_Fail"
+            case .chatRowPressed:
+                return "UserChatsView_ChatRow_Pressed"
+            case .recentAvatarPressed:
+                return "UserChatsView_RecentAvatar_Pressed"
+            case .exploreAvatarsPressed:
+                return "UserChatsView_ExploreAvatars_Pressed"
+            case .loadCellAvatarFail:
+                return "UserChatsView_LoadCellAvatar_Fail"
+            case .streamLastMessageFail:
+                return "UserChatsView_StreamLastMessage_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .loadChatsFail(error: let error),
+                 .loadRecentsFail(error: let error),
+                 .loadCellAvatarFail(error: let error),
+                 .streamLastMessageFail(error: let error):
+                return error.asEventParameter
+
+            case .loadChatsSuccess(count: let count):
+                return count.asEventParameter(key: "chats_count")
+
+            case .loadRecentsSuccess(count: let count):
+                return count.asEventParameter(key: "recents_count")
+
+            case .chatRowPressed(chat: let chat):
+                return chat.asEventParameter
+
+            case .recentAvatarPressed(avatarId: let avatarId):
+                return avatarId.asEventParamter(key: "avatar_id")
+
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .loadChatsFail, .loadRecentsFail, .loadCellAvatarFail, .streamLastMessageFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
+    }
+}
+
 #Preview {
-    ChatsView(selectedTab: .constant(.chats))
+    UserChatsView(selectedTab: .constant(.chats))
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(ChatManager(service: MockChatService()))
         .environment(
             AvatarManager(

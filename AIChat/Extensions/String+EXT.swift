@@ -49,4 +49,8 @@ extension String {
         let unicodeScalars = self.unicodeScalars.map { $0.value }
         return unicodeScalars.reduce(5381) { ($0 << 5) &+ $0 &+ Int($1) }
     }
+
+    func asEventParamter(key: String) -> [String: Any] {
+        [key: self]
+    }
 }

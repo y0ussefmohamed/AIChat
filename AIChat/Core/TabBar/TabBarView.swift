@@ -18,7 +18,7 @@ struct TabBarView: View {
                 }
                 .tag(AppTap.explore)
 
-            ChatsView(selectedTab: $selectedTab)
+            UserChatsView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Chats", systemImage: "message")
                 }
