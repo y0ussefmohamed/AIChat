@@ -11,9 +11,17 @@ import SwiftfulFirestore
 
 struct FirebaseChatService: ChatService {
     private var chatCollection: CollectionReference = Firestore.firestore().collection("chats")
+    private var reportsCollection: CollectionReference = Firestore.firestore().collection("reports")
 
     private func messagesCollection(chatId: String) -> CollectionReference {
         chatCollection.document(chatId).collection("messages")
+    }
+
+    func reportChat(chatId: String?, userId: String) async throws {
+        guard let chatId, chatId.isEmpty else { return }
+        
+        let report = ChatReport(chatId: chatId, userId: userId)
+        try reportsCollection.document(report.id).setData(from: report)
     }
 
     func streamChatMessages(chatId: String) -> AsyncThrowingStream<[ChatMessage], Error> {

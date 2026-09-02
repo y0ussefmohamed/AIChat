@@ -37,6 +37,18 @@ struct Chat: Identifiable, Codable, StringIdentifiable {
         )
     }
 
+    var asEventParameter: [String: Any] {
+        let dict: [String: Any?] = [
+            "chat_\(CodingKeys.id.rawValue)" : id,
+            "chat_\(CodingKeys.userId.rawValue)" : userId,
+            "chat_\(CodingKeys.avatarId.rawValue)" : avatarId,
+            "chat_\(CodingKeys.dateCreated.rawValue)" : dateCreated.timeIntervalSince1970,
+            "chat_\(CodingKeys.dateModified.rawValue)" : dateModified.timeIntervalSince1970,
+        ]
+
+        return dict.compactMapValues({$0})
+    }
+
     static var mock: Chat {
         mocks[0]
     }

@@ -33,6 +33,19 @@ struct ChatMessage: Identifiable, Codable {
         case dateCreated = "date_created"
     }
 
+    var asEventParameter: [String: Any] {
+        let dict: [String: Any?] = [
+            "chatMessage_\(CodingKeys.id.rawValue)" : id,
+            "chatMessage_\(CodingKeys.chatId.rawValue)" : chatId,
+            "chatMessage_\(CodingKeys.authorId.rawValue)" : authorId,
+            "chatMessage_\(CodingKeys.content.rawValue)" : content,
+            "chatMessage_\(CodingKeys.seenByIds.rawValue)" : seenByIds,
+            "chatMessage_\(CodingKeys.dateCreated.rawValue)" : dateCreated
+        ]
+
+        return dict.compactMapValues({$0})
+    }
+
     var dateCreatedCalculated: Date {
         dateCreated ?? .distantPast
     }

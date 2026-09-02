@@ -8,7 +8,6 @@
 import Foundation
 
 final class MockChatService: ChatService {
-
     private let delay: TimeInterval
     private var chat: Chat?
     private var chats: [Chat]
@@ -94,4 +93,6 @@ final class MockChatService: ChatService {
         guard delay > 0 else { return }
         try? await Task.sleep(for: .seconds(delay))
     }
+
+    func reportChat(chatId: String?, userId: String) async throws { }
 }

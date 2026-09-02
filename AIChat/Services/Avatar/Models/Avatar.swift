@@ -27,7 +27,7 @@ struct Avatar: Hashable, Codable, StringIdentifiable {
     }
 
     var asEventParameter: [String: Any] {
-        let dict:  [String: Any?] = [
+        let dict: [String: Any?] = [
             "avatar_\(CodingKeys.avatarId.rawValue)": avatarId,
             "avatar_\(CodingKeys.name.rawValue)": name,
             "avatar_\(CodingKeys.characterOption.rawValue)": characterOption?.rawValue,

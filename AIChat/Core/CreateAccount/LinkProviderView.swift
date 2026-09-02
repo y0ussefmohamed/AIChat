@@ -196,19 +196,19 @@ extension LinkProviderView {
     }
 
     func createAccountEmail() {
-            Task {
-                do {
-                    let authInfo = try await authManager.createAccountEmail(email: email, password: password)
-                    print("Created account with Email: \(String(describing: authInfo.user.email))")
+        Task {
+            do {
+                let authInfo = try await authManager.createAccountEmail(email: email, password: password)
+                print("Created account with Email: \(String(describing: authInfo.user.email))")
 
-                    try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
-                    onDidSignIn?(authInfo.isNewUser)
-                    dismiss()
-                } catch {
-                    showAlert = AnyAppAlert(error: error)
-                }
+                try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
+                onDidSignIn?(authInfo.isNewUser)
+                dismiss()
+            } catch {
+                showAlert = AnyAppAlert(error: error)
             }
         }
+    }
 
     func signingActionMethod() {
         switch usageOption {

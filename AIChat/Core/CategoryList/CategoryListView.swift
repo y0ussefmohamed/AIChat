@@ -81,11 +81,11 @@ struct CategoryListView: View {
         var eventName: String {
             switch self {
             case .loadAvatarStart:
-                return "CategoryListView_LoadAvatarStart"
+                return "CategoryListView_LoadAvatar_Start"
             case .loadAvatarSuccess:
-                return "CategoryListView_LoadAvatarSuccess"
+                return "CategoryListView_LoadAvatar_Success"
             case .loadAvatarFail:
-                return "CategoryListView_LoadAvatarFail"
+                return "CategoryListView_LoadAvatar_Fail"
             case .avatarPressed:
                 return "CategoryListView_Avatar_Pressed"
             }

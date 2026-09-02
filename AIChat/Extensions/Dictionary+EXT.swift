@@ -25,3 +25,18 @@ extension Dictionary where Key == String {
         }
     }
 }
+
+extension Dictionary {
+    mutating func merge(_ other: [Key: Value]?, ifConflictTakeExisting: Bool = true) {
+        guard let other else { return }
+        self.merge(other) { existing, new in
+            ifConflictTakeExisting ? existing : new
+        }
+    }
+
+    func merged(_ other: [Key: Value]?, ifConflictTakeExisting: Bool = true) -> [Key: Value] {
+        var copy = self
+        copy.merge(other, ifConflictTakeExisting: ifConflictTakeExisting)
+        return copy
+    }
+}

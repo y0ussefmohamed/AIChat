@@ -27,13 +27,13 @@ struct AnyAppAlert: Sendable { /// `Sendable` is used here to move the alert fro
     var subtitle: String?
     var buttons: @Sendable () -> AnyView /// `Refrence Type` is not safe so we should use @Sendable
 
+    init(error: Error) {
+        self.init(title: "Error", subtitle: error.localizedDescription, buttons: nil)
+    }
+
     init(title: String, subtitle: String? = nil, buttons: (@Sendable () -> AnyView)? = nil) {
         self.title = title
         self.subtitle = subtitle
         self.buttons = buttons ?? { AnyView(Button("OK") {}) }
-    }
-
-    init(error: Error) {
-        self.init(title: "Error", subtitle: error.localizedDescription, buttons: nil)
     }
 }

@@ -45,17 +45,17 @@ struct AppView: View {
         var eventName: String {
             switch self {
             case .existingAuthStart:
-                return "AppView_ExistingAuthStart"
+                return "AppView_ExistingAuth_Start"
             case .existingAuthSuccess:
-                return "AppView_ExistingAuthSuccess"
+                return "AppView_ExistingAuth_Success"
             case .existingAuthFail:
-                return "AppView_ExistingAuthFail"
+                return "AppView_ExistingAuth_Fail"
             case .anonymousAuthStart:
-                return "AppView_AnonymousAuthStart"
+                return "AppView_AnonymousAuth_Start"
             case .anonymousAuthSuccess:
-                return "AppView_AnonymousAuthSuccess"
+                return "AppView_AnonymousAuth_Success"
             case .anonymousAuthFail:
-                return "AppView_AnonymousAuthFail"
+                return "AppView_AnonymousAuth_Fail"
             }
         }
 
