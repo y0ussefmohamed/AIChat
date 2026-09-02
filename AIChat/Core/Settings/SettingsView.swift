@@ -230,6 +230,7 @@ extension SettingsView {
                 async let deleteChats = chatManager.deleteAllChats(userId: uid)
 
                 _ = try await (removeAvatars, deleteUser, deleteAuth, deleteChats)
+                logManager.deleteUserProfile()
 
                 logManager.trackEvent(event: SettingsViewEvent.deleteAccountSuccess)
                 await dismissScreen()

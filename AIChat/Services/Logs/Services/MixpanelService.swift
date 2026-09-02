@@ -43,7 +43,6 @@ struct MixpanelService: LogService {
     
     func deleteUserProfile() {
         instance.people.deleteUser()
-
     }
     
     func trackEvent(event: any LoggableEvent) {
