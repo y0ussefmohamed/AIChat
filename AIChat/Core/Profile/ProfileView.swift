@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(AvatarManager.self) private var avatarManager
@@ -70,6 +71,7 @@ struct ProfileView: View {
                     .padding(.horizontal, 8)
                 }
             }
+            .screenAppearAnalytics(viewName: "ProfileView")
             .navigationTitle("Profile")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -135,6 +137,7 @@ struct ProfileView: View {
     }
 
     private func onAvatarPressed(_ avatar: Avatar) {
+        logManager.trackEvent(event: ProfileViewEvent.avatarPressed(avatar: avatar))
         navPathStack.append(avatar.avatarId)
     }
 }
@@ -142,10 +145,12 @@ struct ProfileView: View {
 // MARK: - Seperate Business Logic out of Views
 extension ProfileView {
     private func onSettingsButtonPressed() {
+        logManager.trackEvent(event: ProfileViewEvent.settingsButtonPressed)
         showSettingsView = true
     }
 
     private func onNewAvatarButtonPressed() {
+        logManager.trackEvent(event: ProfileViewEvent.newAvatarButtonPressed)
         showCreateAvatarView = true
     }
 
@@ -154,9 +159,12 @@ extension ProfileView {
 
         isLoading = true
         if let userId = currentUser?.userId {
+            logManager.trackEvent(event: ProfileViewEvent.loadAvatarsStart)
             do {
                 currentUserAvatars = try await avatarManager.getCurrentUserAvatars(userId: userId)
+                logManager.trackEvent(event: ProfileViewEvent.loadAvatarsSuccess(count: currentUserAvatars.count))
             } catch {
+                logManager.trackEvent(event: ProfileViewEvent.loadAvatarsFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
@@ -168,12 +176,73 @@ extension ProfileView {
         let avatarToDelete = currentUserAvatars[index]
         currentUserAvatars.remove(atOffsets: IndexSet(integer: index))
 
-        print("Avatar Named \(String(describing: avatarToDelete.name)) with this id: \(avatarToDelete.avatarId) will be DELETED!" )
+        logManager.trackEvent(event: ProfileViewEvent.deleteAvatarStart(avatar: avatarToDelete))
+
         Task {
             do {
                 try await avatarManager.deleteAvatar(id: avatarToDelete.avatarId)
+                logManager.trackEvent(event: ProfileViewEvent.deleteAvatarSuccess(avatar: avatarToDelete))
             } catch {
+                logManager.trackEvent(event: ProfileViewEvent.deleteAvatarFail(error: error))
                 alert = AnyAppAlert(error: error)
+            }
+        }
+    }
+}
+
+extension ProfileView {
+    enum ProfileViewEvent: LoggableEvent {
+        case loadAvatarsStart, loadAvatarsSuccess(count: Int), loadAvatarsFail(error: Error)
+        case settingsButtonPressed
+        case newAvatarButtonPressed
+        case avatarPressed(avatar: Avatar)
+        case deleteAvatarStart(avatar: Avatar), deleteAvatarSuccess(avatar: Avatar), deleteAvatarFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .loadAvatarsStart:
+                return "ProfileView_LoadAvatars_Start"
+            case .loadAvatarsSuccess:
+                return "ProfileView_LoadAvatars_Success"
+            case .loadAvatarsFail:
+                return "ProfileView_LoadAvatars_Fail"
+            case .settingsButtonPressed:
+                return "ProfileView_Settings_Pressed"
+            case .newAvatarButtonPressed:
+                return "ProfileView_NewAvatar_Pressed"
+            case .avatarPressed:
+                return "ProfileView_Avatar_Pressed"
+            case .deleteAvatarStart:
+                return "ProfileView_DeleteAvatar_Start"
+            case .deleteAvatarSuccess:
+                return "ProfileView_DeleteAvatar_Success"
+            case .deleteAvatarFail:
+                return "ProfileView_DeleteAvatar_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .loadAvatarsSuccess(count: let count):
+                return count.asEventParameter(key: "avatar_count")
+            case .loadAvatarsFail(error: let error),
+                 .deleteAvatarFail(error: let error):
+                return error.asEventParameter
+            case .avatarPressed(avatar: let avatar),
+                 .deleteAvatarStart(avatar: let avatar),
+                 .deleteAvatarSuccess(avatar: let avatar):
+                return avatar.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .loadAvatarsFail, .deleteAvatarFail:
+                return .severe
+            default:
+                return .analytic
             }
         }
     }
@@ -182,6 +251,7 @@ extension ProfileView {
 #Preview {
     NavigationStack {
         ProfileView()
+            .environment(LogManager(services: [ConsoleService()]))
             .previewEnvironment()
     }
 }

@@ -14,6 +14,10 @@ enum CharacterOption: String, CaseIterable, Hashable, Codable {
         return .man
     }
 
+    var asEventParameter: [String: Any] {
+        ["character_option": self.rawValue]
+    }
+
     var pluralRawValue: String {
         switch self {
         case .man:
@@ -41,6 +45,10 @@ enum CharacterAction: String, CaseIterable, Hashable, Codable {
     static var `default`: Self {
         return .sitting
     }
+
+    var asEventParameter: [String: Any] {
+        ["character_action": self.rawValue]
+    }
 }
 
 enum CharacterLocation: String, CaseIterable, Hashable, Codable {
@@ -48,5 +56,9 @@ enum CharacterLocation: String, CaseIterable, Hashable, Codable {
 
     static var `default`: Self {
         return .desert
+    }
+
+    var asEventParameter: [String: Any] {
+        ["character_location": self.rawValue]
     }
 }

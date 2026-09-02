@@ -186,7 +186,6 @@ extension LinkProviderView {
             } catch {
                 logManager.trackEvent(event: LinkProviderViewEvent.signInAppleFail(error: error))
                 showAlert = AnyAppAlert(error: error)
-                print(error)
             }
         }
     }

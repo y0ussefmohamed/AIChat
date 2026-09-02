@@ -8,68 +8,51 @@
 import SwiftUI
 
 struct ExploreView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(AvatarManager.self) private var avatarManager
     @State private var featuredAvatars: [Avatar] = []
     @State private var categories: [CharacterOption] = CharacterOption.allCases
     @State private var popularAvatars: [Avatar] = []
-    @State private var alert: AnyAppAlert?
-    @State private var featuredDidLoad: Bool = false
-    @State private var popularDidLoad: Bool = false
-
-    private var showDevSettingsViews: Bool {
-        #if DEV || MOCK
-        return true
-        #else
-        return false
-        #endif
-    }
-
-    @State private var showDevSettings: Bool = false
 
     @State private var navPathStack: [NavigationPathOption] = []
+    @State private var featuredDidLoad: Bool = false
+    @State private var popularDidLoad: Bool = false
+    @State private var showDevSettings: Bool = false
+    @State private var alert: AnyAppAlert?
+
     var body: some View {
         NavigationStack(path: $navPathStack) {
             List {
-                if !featuredDidLoad {
-                    featuredLoadingView
+                if featuredDidLoad {
+                    featuredSection
                 } else {
-                    if !featuredAvatars.isEmpty {
-                        featuredSection
-                    } else {
-                        ContentUnavailableView(
-                            "No Featured Avatars",
-                            systemImage: "sparkles.slash",
-                            description: Text("There are no featured avatars at the moment.")
-                        )
-                        .frame(height: 200)
-                        .removeListRowFormatting()
-                    }
+                    featuredLoadingView
                 }
 
-                if !popularDidLoad {
-                    categoriesLoadingView
-                    popularLoadingView
+                if popularDidLoad {
+                    categoriesSection
                 } else {
-                    if !popularAvatars.isEmpty {
-                        categoriesSection
-                        popularSection
-                    } else {
-                        ContentUnavailableView(
-                                "No Popular Avatars Available",
-                                systemImage: "person.fill.xmark",
-                                description: Text("There are no popular avatars at the moment. Check back later!")
-                            )
-                            .frame(height: 200)
-                            .removeListRowFormatting()
-                    }
+                    categoriesLoadingView
+                }
+
+                if popularDidLoad {
+                    popularSection
+                } else {
+                    popularLoadingView
                 }
             }
-            .showCustomAlert(alert: $alert)
+            .screenAppearAnalytics(viewName: "ExploreView")
             .navigationTitle("Explore")
             .toolbar(content: {
                 ToolbarItem(placement: .topBarLeading) {
-                    if showDevSettingsViews {
-                        devSettingsButton
+                    #if DEBUG
+                    devSettingsButton
+                    #endif
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !popularDidLoad || !featuredDidLoad {
+                        ProgressView()
                     }
                 }
             })
@@ -265,11 +248,15 @@ extension ExploreView {
 
     private func loadFeaturedAvatars() {
         featuredDidLoad = false
+        logManager.trackEvent(event: ExploreViewEvent.loadFeaturedStart)
+
         Task {
             do {
                 featuredAvatars = try await avatarManager.getFeaturedAvatars()
                 featuredDidLoad = true
+                logManager.trackEvent(event: ExploreViewEvent.loadFeaturedSuccess(count: featuredAvatars.count))
             } catch {
+                logManager.trackEvent(event: ExploreViewEvent.loadFeaturedFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
@@ -277,21 +264,27 @@ extension ExploreView {
 
     private func loadPopularAvatars() {
         popularDidLoad = false
+        logManager.trackEvent(event: ExploreViewEvent.loadPopularStart)
+
         Task {
             do {
                 popularAvatars = try await avatarManager.getPopularAvatars()
                 popularDidLoad = true
+                logManager.trackEvent(event: ExploreViewEvent.loadPopularSuccess(count: popularAvatars.count))
             } catch {
+                logManager.trackEvent(event: ExploreViewEvent.loadPopularFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
     }
 
     private func onAvatarPressed(_ avatarId: String) {
+        logManager.trackEvent(event: ExploreViewEvent.avatarPressed(avatarId: avatarId))
         navPathStack.append(.chat(avatarId))
     }
 
     private func onCategoryPressed(_ category: CharacterOption, _ imageName: String) {
+        logManager.trackEvent(event: ExploreViewEvent.categoryPressed(category: category))
         navPathStack.append(.category(category, imageName))
     }
 
@@ -304,22 +297,85 @@ extension ExploreView {
     }
 
     private func onDevSettingsPressed() {
+        logManager.trackEvent(event: ExploreViewEvent.devSettingsPressed)
         showDevSettings.toggle()
+    }
+}
+
+extension ExploreView {
+    enum ExploreViewEvent: LoggableEvent {
+        case loadFeaturedStart, loadFeaturedSuccess(count: Int), loadFeaturedFail(error: Error)
+        case loadPopularStart, loadPopularSuccess(count: Int), loadPopularFail(error: Error)
+        case avatarPressed(avatarId: String)
+        case categoryPressed(category: CharacterOption)
+        case devSettingsPressed
+
+        var eventName: String {
+            switch self {
+            case .loadFeaturedStart:
+                return "ExploreView_LoadFeatured_Start"
+            case .loadFeaturedSuccess:
+                return "ExploreView_LoadFeatured_Success"
+            case .loadFeaturedFail:
+                return "ExploreView_LoadFeatured_Fail"
+            case .loadPopularStart:
+                return "ExploreView_LoadPopular_Start"
+            case .loadPopularSuccess:
+                return "ExploreView_LoadPopular_Success"
+            case .loadPopularFail:
+                return "ExploreView_LoadPopular_Fail"
+            case .avatarPressed:
+                return "ExploreView_Avatar_Pressed"
+            case .categoryPressed:
+                return "ExploreView_Category_Pressed"
+            case .devSettingsPressed:
+                return "ExploreView_DevSettings_Pressed"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .loadFeaturedSuccess(count: let count):
+                return count.asEventParameter(key: "featured_count")
+            case .loadPopularSuccess(count: let count):
+                return count.asEventParameter(key: "popular_count")
+            case .loadFeaturedFail(error: let error),
+                 .loadPopularFail(error: let error):
+                return error.asEventParameter
+            case .avatarPressed(avatarId: let avatarId):
+                return avatarId.asEventParameter(key: "avatar_id")
+            case .categoryPressed(category: let category):
+                return category.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .loadFeaturedFail, .loadPopularFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
     }
 }
 
 #Preview("Has Data") {
     ExploreView()
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices()))
 }
 
 #Preview("No Data") {
     ExploreView()
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 3))))
 }
 
-
 #Preview("Slow Loading") {
     ExploreView()
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 4))))
 }

@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftfulUtilities
 
 struct DevSettingsView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
@@ -17,7 +18,7 @@ struct DevSettingsView: View {
         NavigationStack {
             List {
                 Section {
-                    let authArray = authManager.auth?.eventParameters.asAlphabeticalString ?? []
+                    let authArray = authManager.auth?.asEventParameter.asAlphabeticalString ?? []
 
                     ForEach(authArray, id: \.key) { item in
                         itemRow(item: item)
@@ -27,7 +28,7 @@ struct DevSettingsView: View {
                 }
 
                 Section {
-                    let userArray = userManager.currentUser?.eventParameters.asAlphabeticalString ?? []
+                    let userArray = userManager.currentUser?.asEventParameter.asAlphabeticalString ?? []
 
                     ForEach(userArray, id: \.key) { item in
                         itemRow(item: item)
@@ -46,12 +47,13 @@ struct DevSettingsView: View {
                     Text("Device Info")
                 }
             }
+            .screenAppearAnalytics(viewName: "DevSettingsView")
             .navigationTitle("Dev Settings")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Image(systemName: "xmark")
                         .styledButton {
-                            dismiss()
+                            onCloseButtonPressed()
                         }
                 }
             }
@@ -60,6 +62,11 @@ struct DevSettingsView: View {
 }
 
 extension DevSettingsView {
+    private func onCloseButtonPressed() {
+        logManager.trackEvent(event: DevSettingsViewEvent.closeButtonPressed)
+        dismiss()
+    }
+
     private func itemRow(item: (key: String, value: Any)) -> some View {
         HStack {
             Text(item.key)
@@ -82,7 +89,29 @@ extension DevSettingsView {
     }
 }
 
+extension DevSettingsView {
+    enum DevSettingsViewEvent: LoggableEvent {
+        case closeButtonPressed
+
+        var eventName: String {
+            switch self {
+            case .closeButtonPressed:
+                return "DevSettingsView_Close_Pressed"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            nil
+        }
+
+        var type: LogType {
+            .analytic
+        }
+    }
+}
+
 #Preview {
     DevSettingsView()
+        .environment(LogManager(services: [ConsoleService()]))
         .previewEnvironment()
 }

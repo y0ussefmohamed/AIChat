@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CreateAvatarView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(AuthManager.self) private var authManager
     @Environment(AIManager.self) private var aiManager
     @Environment(AvatarManager.self) private var avatarManager
@@ -43,6 +44,7 @@ struct CreateAvatarView: View {
             .onAppear {
                 resetForm()
             }
+            .screenAppearAnalytics(viewName: "CreateAvatarView")
             .navigationTitle("Create Avatar")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -145,20 +147,24 @@ struct CreateAvatarView: View {
 // Business Logic
 extension CreateAvatarView {
     private func onBackButtonPressed() {
+        logManager.trackEvent(event: CreateAvatarViewEvent.backButtonPressed)
         dismiss()
     }
 
     private func onGenerateImagePressed() {
         Task { @MainActor in
             isGeneratingImage = true
-            do {
-                let prompt = "\(avatarName) is a \(characterOption.rawValue) that is \(characterAction.rawValue) in the \(characterLocation.rawValue)"
+            defer { isGeneratingImage = false }
+            let prompt = "\(avatarName) is a \(characterOption.rawValue) that is \(characterAction.rawValue) in the \(characterLocation.rawValue)"
 
+            logManager.trackEvent(event: CreateAvatarViewEvent.generateImageStart(prompt: prompt))
+
+            do {
                 generatedImage = try await aiManager.generateImage(input: prompt)
+                logManager.trackEvent(event: CreateAvatarViewEvent.generateImageSuccess)
             } catch {
-                print("Failed to generate image: \(error)")
+                logManager.trackEvent(event: CreateAvatarViewEvent.generateImageFail(error: error))
             }
-            isGeneratingImage = false
         }
     }
 
@@ -174,19 +180,23 @@ extension CreateAvatarView {
                 return
             }
 
-            let uid = try authManager.getAuthId()
-            let avatar = Avatar.newAvatar(
-                name: avatarName,
-                option: characterOption,
-                action: characterAction,
-                location: characterLocation,
-                authorId: uid
-            )
-
             do {
+                let uid = try authManager.getAuthId()
+                let avatar = Avatar.newAvatar(
+                    name: avatarName,
+                    option: characterOption,
+                    action: characterAction,
+                    location: characterLocation,
+                    authorId: uid
+                )
+
+                logManager.trackEvent(event: CreateAvatarViewEvent.saveAvatarStart(avatar: avatar))
+
                 try await avatarManager.createAvatar(avatar: avatar, image: generatedImage)
+                logManager.trackEvent(event: CreateAvatarViewEvent.saveAvatarSuccess(avatar: avatar))
                 dismiss()
             } catch {
+                logManager.trackEvent(event: CreateAvatarViewEvent.saveAvatarFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
@@ -201,9 +211,63 @@ extension CreateAvatarView {
     }
 }
 
+extension CreateAvatarView {
+    enum CreateAvatarViewEvent: LoggableEvent {
+        case backButtonPressed
+        case generateImageStart(prompt: String), generateImageSuccess, generateImageFail(error: Error)
+        case saveAvatarStart(avatar: Avatar), saveAvatarSuccess(avatar: Avatar), saveAvatarFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .backButtonPressed:
+                return "CreateAvatarView_Back_Pressed"
+            case .generateImageStart:
+                return "CreateAvatarView_GenerateImage_Start"
+            case .generateImageSuccess:
+                return "CreateAvatarView_GenerateImage_Success"
+            case .generateImageFail:
+                return "CreateAvatarView_GenerateImage_Fail"
+            case .saveAvatarStart:
+                return "CreateAvatarView_SaveAvatar_Start"
+            case .saveAvatarSuccess:
+                return "CreateAvatarView_SaveAvatar_Success"
+            case .saveAvatarFail:
+                return "CreateAvatarView_SaveAvatar_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .generateImageStart(prompt: let prompt):
+                return prompt.asEventParameter(key: "prompt")
+            case .generateImageFail(error: let error),
+                 .saveAvatarFail(error: let error):
+                return error.asEventParameter
+            case .saveAvatarStart(avatar: let avatar),
+                 .saveAvatarSuccess(avatar: let avatar):
+                return avatar.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .generateImageFail:
+                return .severe
+            case .saveAvatarFail:
+                return .warning
+            default:
+                return .analytic
+            }
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
         CreateAvatarView()
+            .environment(LogManager(services: [ConsoleService()]))
             .environment(AuthManager(service: MockAuthService(user: .mock())))
             .environment(AIManager(aiServices: MockAIServices()))
             .environment(AvatarManager(services: MockAvatarServices()))

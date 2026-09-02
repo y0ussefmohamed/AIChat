@@ -68,7 +68,7 @@ struct CategoryListView: View {
         .onAppear {
             loadCategoryAvatars()
         }
-        .screenAppearAnalytics(viewName: "CategoryList")
+        .screenAppearAnalytics(viewName: "CategoryListView")
         .showCustomAlert(alert: $alert)
         .ignoresSafeArea()
         .listStyle(.plain)
@@ -141,10 +141,12 @@ struct CategoryListView: View {
 
 #Preview("Has Data") {
     CategoryListView(category: .man, navPathStack: .constant([]))
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 2))))
 }
 
 #Preview("No Data") {
     CategoryListView(category: .woman, navPathStack: .constant([]))
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 1))))
 }

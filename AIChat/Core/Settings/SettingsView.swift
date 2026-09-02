@@ -16,6 +16,7 @@ struct TextWidthPreferenceKey: PreferenceKey {
 }
 
 struct SettingsView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(AppState.self) private var appState
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
@@ -43,6 +44,7 @@ struct SettingsView: View {
                 aboutSection
                     .offset(y: -5)
             }
+            .screenAppearAnalytics(viewName: "SettingsView")
             .showCustomAlert(alert: $showAlert)
             .sheet(isPresented: $showCreateAccountView) {
                 LinkProviderView(usageOption: .createAccount)
@@ -88,7 +90,7 @@ struct SettingsView: View {
                     Text("Manage")
                         .badgeButtonModifier()
                         .styledButton(.pressable) {
-
+                            onManagePurchasesPressed()
                         }
                 }
             }
@@ -129,6 +131,9 @@ struct SettingsView: View {
 
             Text("Contact Us")
                 .foregroundStyle(.blue)
+                .styledButton(.plain) {
+                    onContactUsPressed()
+                }
         } header: {
             Text("Application")
         }
@@ -167,18 +172,22 @@ extension SettingsView {
     }
 
     private func onSignOutPressed() {
+        logManager.trackEvent(event: SettingsViewEvent.signOutStart)
         Task {
             do {
                 try authManager.signOut()
                 userManager.signOut()
+                logManager.trackEvent(event: SettingsViewEvent.signOutSuccess)
                 await dismissScreen()
             } catch {
+                logManager.trackEvent(event: SettingsViewEvent.signOutFail(error: error))
                 showAlert = AnyAppAlert(error: error)
             }
         }
     }
 
     private func onCreateAccountPressed() {
+        logManager.trackEvent(event: SettingsViewEvent.createAccountPressed)
         showCreateAccountView = true
     }
 
@@ -186,7 +195,16 @@ extension SettingsView {
         isPremium ? "Premium" : "Free"
     }
 
+    private func onManagePurchasesPressed() {
+        logManager.trackEvent(event: SettingsViewEvent.managePurchasesPressed)
+    }
+
+    private func onContactUsPressed() {
+        logManager.trackEvent(event: SettingsViewEvent.contactUsPressed)
+    }
+
     private func onDeleteAccountPressed() {
+        logManager.trackEvent(event: SettingsViewEvent.deleteAccountPressed)
         showAlert = AnyAppAlert(
             title: "Delete Account?",
             subtitle: "Are you sure you want to delete your account?",
@@ -201,6 +219,7 @@ extension SettingsView {
     }
 
     private func onDeleteAccountConfirmed() {
+        logManager.trackEvent(event: SettingsViewEvent.deleteAccountStart)
         Task {
             do {
                 let uid = try authManager.getAuthId()
@@ -212,9 +231,66 @@ extension SettingsView {
 
                 _ = try await (removeAvatars, deleteUser, deleteAuth, deleteChats)
 
+                logManager.trackEvent(event: SettingsViewEvent.deleteAccountSuccess)
                 await dismissScreen()
             } catch {
+                logManager.trackEvent(event: SettingsViewEvent.deleteAccountFail(error: error))
                 showAlert = AnyAppAlert(error: error)
+            }
+        }
+    }
+}
+
+extension SettingsView {
+    enum SettingsViewEvent: LoggableEvent {
+        case signOutStart, signOutSuccess, signOutFail(error: Error)
+        case createAccountPressed
+        case deleteAccountPressed
+        case deleteAccountStart, deleteAccountSuccess, deleteAccountFail(error: Error)
+        case managePurchasesPressed
+        case contactUsPressed
+
+        var eventName: String {
+            switch self {
+            case .signOutStart:
+                return "SettingsView_SignOut_Start"
+            case .signOutSuccess:
+                return "SettingsView_SignOut_Success"
+            case .signOutFail:
+                return "SettingsView_SignOut_Fail"
+            case .createAccountPressed:
+                return "SettingsView_CreateAccount_Pressed"
+            case .deleteAccountPressed:
+                return "SettingsView_DeleteAccount_Pressed"
+            case .deleteAccountStart:
+                return "SettingsView_DeleteAccount_Start"
+            case .deleteAccountSuccess:
+                return "SettingsView_DeleteAccount_Success"
+            case .deleteAccountFail:
+                return "SettingsView_DeleteAccount_Fail"
+            case .managePurchasesPressed:
+                return "SettingsView_ManagePurchases_Pressed"
+            case .contactUsPressed:
+                return "SettingsView_ContactUs_Pressed"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .signOutFail(error: let error),
+                 .deleteAccountFail(error: let error):
+                return error.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .deleteAccountFail, .signOutFail:
+                return .severe
+            default:
+                return .analytic
             }
         }
     }
@@ -222,6 +298,7 @@ extension SettingsView {
 
 #Preview("No Auth") {
     SettingsView()
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(UserManager(services: MockUserServicesContainer(user: nil)))
         .environment(AuthManager(service: MockAuthService(user: nil)))
         .previewEnvironment()
@@ -229,6 +306,7 @@ extension SettingsView {
 
 #Preview("Anonymous") {
     SettingsView()
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
         .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: true))))
         .previewEnvironment()
@@ -236,6 +314,7 @@ extension SettingsView {
 
 #Preview("Not Anonymous") {
     SettingsView()
+        .environment(LogManager(services: [ConsoleService()]))
         .environment(UserManager(services: MockUserServicesContainer(user: .mock)))
         .environment(AuthManager(service: MockAuthService(user: UserAuthInfo.mock(isAnonymous: false))))
         .previewEnvironment()

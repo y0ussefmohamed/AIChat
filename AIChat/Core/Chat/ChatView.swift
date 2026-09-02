@@ -780,58 +780,7 @@ extension ChatView {
 }
 
 #Preview("Chat - Long Conversation") {
-    let messages: [ChatMessage] = [
-        .newMessageFromAvatar(
-            chatId: Chat.mock.id,
-            avatarId: Avatar.mock.avatarId,
-            message: "Hey, what are you working on today?",
-            seenByIds: [UserModel.mock.userId],
-            dateCreated: .distantPast
-        ),
-        .newMessageFromUser(
-            chatId: Chat.mock.id,
-            userId: UserModel.mock.userId,
-            message: "I am improving the chat screen previews.",
-            dateCreated: .now.addingTimeInterval(minutes: -50)
-        ),
-        .newMessageFromAvatar(
-            chatId: Chat.mock.id,
-            avatarId: Avatar.mock.avatarId,
-            message: "Nice. Are you testing empty, loading, and long conversations?",
-            seenByIds: [UserModel.mock.userId],
-            dateCreated: .now.addingTimeInterval(minutes: -30)
-        ),
-        .newMessageFromUser(
-            chatId: Chat.mock.id,
-            userId: UserModel.mock.userId,
-            message: "Yes, I want one preview with more than six messages.",
-            dateCreated: .now.addingTimeInterval(minutes: -30)
-        ),
-        .newMessageFromAvatar(
-            chatId: Chat.mock.id,
-            avatarId: Avatar.mock.avatarId,
-            message: "That is useful because it shows scrolling, spacing, timestamps, and bubble alignment.",
-            seenByIds: [UserModel.mock.userId],
-            dateCreated: .now.addingTimeInterval(minutes: -30)
-        ),
-        .newMessageFromUser(
-            chatId: Chat.mock.id,
-            userId: UserModel.mock.userId,
-            message: "Exactly. I also want to see how long text wraps inside the bubble.",
-            dateCreated: .now.addingTimeInterval(minutes: -30)
-        ),
-        .newMessageFromAvatar(
-            chatId: Chat.mock.id,
-            avatarId: Avatar.mock.avatarId,
-            message: "Then add a slightly longer message to make sure the design still feels clean on smaller screens.",
-            seenByIds: [UserModel.mock.userId]
-        ),
-        .newMessageFromUser(
-            chatId: Chat.mock.id,
-            userId: UserModel.mock.userId,
-            message: "Perfect. This preview should help me polish the UI faster."
-        )
-    ]
+    let messages: [ChatMessage] = ChatMessage.previewLongConversation()
 
     NavigationStack {
         ChatView(avatarId: Avatar.mock.avatarId)

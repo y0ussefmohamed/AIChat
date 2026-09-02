@@ -191,7 +191,6 @@ struct UserChatsView: View {
             logManager.trackEvent(event: UserChatsViewEvent.loadRecentsSuccess(count: recentAvatars.count))
         } catch {
             logManager.trackEvent(event: UserChatsViewEvent.loadRecentsFail(error: error))
-            print(error)
         }
     }
 
@@ -205,7 +204,6 @@ struct UserChatsView: View {
             }
         } catch {
             logManager.trackEvent(event: UserChatsViewEvent.loadChatsFail(error: error))
-            print(error)
         }
     }
 
@@ -214,7 +212,6 @@ struct UserChatsView: View {
             return try await avatarManager.getAvatar(id: avatarId)
         } catch {
             logManager.trackEvent(event: UserChatsViewEvent.loadCellAvatarFail(error: error))
-            print(error)
         }
         return nil
     }
@@ -229,7 +226,6 @@ struct UserChatsView: View {
             }
         } catch {
             logManager.trackEvent(event: UserChatsViewEvent.streamLastMessageFail(error: error))
-            print(error)
         }
     }
 
@@ -299,7 +295,7 @@ extension UserChatsView {
                 return chat.asEventParameter
 
             case .recentAvatarPressed(avatarId: let avatarId):
-                return avatarId.asEventParamter(key: "avatar_id")
+                return avatarId.asEventParameter(key: "avatar_id")
 
             default:
                 return nil

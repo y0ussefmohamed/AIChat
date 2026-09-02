@@ -11,4 +11,8 @@ enum AppTap {
       case explore
       case chats
       case profile
+
+    var asEventParameter: [String: Any] {
+        ["selected_tab": String(describing: self)]
+    }
 }

@@ -40,8 +40,8 @@ struct UserAuthInfo: Sendable, Codable {
             lastSignInDate: Date()
         )
     }
-
-    var eventParameters: [String: Any] {
+    
+    var asEventParameter: [String: Any] {
         let dict: [String: Any?] = [
             "uauth_\(CodingKeys.uid.rawValue)": uid,
             "uauth_\(CodingKeys.email.rawValue)": email,
