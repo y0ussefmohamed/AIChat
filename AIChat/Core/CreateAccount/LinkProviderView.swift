@@ -29,9 +29,14 @@ enum LinkProviderViewOptions: String {
             "Sign Up"
         }
     }
+
+    var asEventParameter: [String: Any] {
+        return ["title": title]
+    }
 }
 
 struct LinkProviderView: View {
+    @Environment(LogManager.self) private var logManager
     @Environment(AuthManager.self) var authManager
     @Environment(UserManager.self) var userManager
     @Environment(\.dismiss) var dismiss
@@ -92,17 +97,16 @@ struct LinkProviderView: View {
                         .fontWeight(.bold)
                         .styledButton(.plain) {
                             withAnimation(.default) {
-                                if usageOption == .createAccount {
-                                    usageOption = .signIn
-                                } else {
-                                    usageOption = .createAccount
-                                }
+                                let targetOption: LinkProviderViewOptions = (usageOption == .createAccount) ? .signIn : .createAccount
+                                logManager.trackEvent(event: LinkProviderViewEvent.switchModePressed(to: targetOption))
+                                usageOption = targetOption
                             }
                         }
                 }
                 .font(.footnote)
 
             }
+            .screenAppearAnalytics(viewName: "LinkProviderView")
             .showCustomAlert(alert: $showAlert)
             .padding(24)
         }
@@ -166,45 +170,62 @@ struct LinkProviderView: View {
 
 extension LinkProviderView {
     func onSignInApple() {
+        logManager.trackEvent(event: LinkProviderViewEvent.signInAppleStart)
+
         Task {
             do {
                 let authInfo = try await authManager.signInApple()
-                print("Signed in with Apple: \(String(describing: authInfo.user.email))")
 
                 try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
+                let currentUser = userManager.currentUser
+
+                logManager.trackEvent(event: LinkProviderViewEvent.signInAppleSuccess(user: currentUser, isNewUser: authInfo.isNewUser))
+                
                 onDidSignIn?(authInfo.isNewUser)
                 dismiss()
             } catch {
+                logManager.trackEvent(event: LinkProviderViewEvent.signInAppleFail(error: error))
+                showAlert = AnyAppAlert(error: error)
                 print(error)
             }
         }
     }
 
     func signInEmail() {
+        logManager.trackEvent(event: LinkProviderViewEvent.signInEmailStart)
+
         Task {
             do {
                 let authInfo = try await authManager.signInEmail(email: email, password: password)
-                print("Signed in with Email: \(String(describing: authInfo.user.email))")
-
                 try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
+
+                let currentUser = userManager.currentUser
+                logManager.trackEvent(event: LinkProviderViewEvent.signInEmailSuccess(user: currentUser, isNewUser: authInfo.isNewUser))
+
                 onDidSignIn?(authInfo.isNewUser)
                 dismiss()
             } catch {
+                logManager.trackEvent(event: LinkProviderViewEvent.signInEmailFail(error: error))
                 showAlert = AnyAppAlert(error: error)
             }
         }
     }
 
     func createAccountEmail() {
+        logManager.trackEvent(event: LinkProviderViewEvent.createAccountEmailStart)
+
         Task {
             do {
                 let authInfo = try await authManager.createAccountEmail(email: email, password: password)
-                print("Created account with Email: \(String(describing: authInfo.user.email))")
-
                 try await userManager.logIn(auth: authInfo.user, isNewUser: authInfo.isNewUser)
+
+                let currentUser = userManager.currentUser
+                logManager.trackEvent(event: LinkProviderViewEvent.createAccountEmailSuccess(user: currentUser, isNewUser: authInfo.isNewUser))
+
                 onDidSignIn?(authInfo.isNewUser)
                 dismiss()
             } catch {
+                logManager.trackEvent(event: LinkProviderViewEvent.createAccountEmailFail(error: error))
                 showAlert = AnyAppAlert(error: error)
             }
         }
@@ -220,11 +241,78 @@ extension LinkProviderView {
     }
 }
 
+extension LinkProviderView {
+    enum LinkProviderViewEvent: LoggableEvent {
+        case switchModePressed(to: LinkProviderViewOptions)
+        case signInAppleStart, signInAppleSuccess(user: UserModel?, isNewUser: Bool), signInAppleFail(error: Error)
+        case signInEmailStart, signInEmailSuccess(user: UserModel?, isNewUser: Bool), signInEmailFail(error: Error)
+        case createAccountEmailStart, createAccountEmailSuccess(user: UserModel?, isNewUser: Bool), createAccountEmailFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .switchModePressed:
+                return "LinkProviderView_SwitchMode_Pressed"
+            case .signInAppleStart:
+                return "LinkProviderView_SignInApple_Start"
+            case .signInAppleSuccess:
+                return "LinkProviderView_SignInApple_Success"
+            case .signInAppleFail:
+                return "LinkProviderView_SignInApple_Fail"
+            case .signInEmailStart:
+                return "LinkProviderView_SignInEmail_Start"
+            case .signInEmailSuccess:
+                return "LinkProviderView_SignInEmail_Success"
+            case .signInEmailFail:
+                return "LinkProviderView_SignInEmail_Fail"
+            case .createAccountEmailStart:
+                return "LinkProviderView_CreateAccountEmail_Start"
+            case .createAccountEmailSuccess:
+                return "LinkProviderView_CreateAccountEmail_Success"
+            case .createAccountEmailFail:
+                return "LinkProviderView_CreateAccountEmail_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .switchModePressed(to: let option):
+                return option.asEventParameter
+
+            case .signInAppleSuccess(user: let user, isNewUser: let isNewUser),
+                 .signInEmailSuccess(user: let user, isNewUser: let isNewUser),
+                 .createAccountEmailSuccess(user: let user, isNewUser: let isNewUser):
+                return (user?.asEventParameter ?? [:])
+                    .merged(isNewUser.asEventParameter(key: "is_new_user"))
+
+            case .signInAppleFail(error: let error),
+                 .signInEmailFail(error: let error),
+                 .createAccountEmailFail(error: let error):
+                return error.asEventParameter
+
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .signInAppleFail, .signInEmailFail, .createAccountEmailFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
+    }
+}
+
 #Preview("Create Account") {
     LinkProviderView(usageOption: .createAccount)
+        .environment(LogManager(services: [ConsoleService()]))
         .previewEnvironment(isSignedIn: false)
 }
 
 #Preview("Sign In") {
-    LinkProviderView(usageOption: .signIn)        .previewEnvironment(isSignedIn: true)
+    LinkProviderView(usageOption: .signIn)
+        .environment(LogManager(services: [ConsoleService()]))
+        .previewEnvironment(isSignedIn: true)
 }

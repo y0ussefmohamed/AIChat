@@ -30,7 +30,7 @@ struct UserModel: Codable {
         case profileColorHex = "profile_color_hex"
     }
 
-    var eventParameters: [String: Any] {
+    var asEventParameter: [String: Any] {
         let dict: [String: Any?] = [
             "user_\(CodingKeys.userId.rawValue)": userId,
             "user_\(CodingKeys.email.rawValue)": email,
