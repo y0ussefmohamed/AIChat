@@ -115,6 +115,10 @@ class AuthManager {
     }
 
     private func addAuthListener() {
+        if let listener {
+            service.removeAuthenticatedUserListener(listener)
+        }
+
         Task {
             for await value in service.addAuthenticatedUserListener(action: { listner in
                 self.listener = listner
@@ -138,6 +142,7 @@ class AuthManager {
     }
 
     func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        defer { addAuthListener() }
         logManager?.trackEvent(event: AuthManagerEvent.signInAnonymousStart)
 
         do {
@@ -153,6 +158,7 @@ class AuthManager {
     }
 
     func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        defer { addAuthListener() }
         logManager?.trackEvent(event: AuthManagerEvent.signInAppleStart)
 
         do {
@@ -168,6 +174,7 @@ class AuthManager {
     }
 
     func signInEmail(email: String, password: String) async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        defer { addAuthListener() }
         logManager?.trackEvent(event: AuthManagerEvent.signInEmailStart)
 
         do {
@@ -220,6 +227,22 @@ class AuthManager {
             auth = nil
 
             logManager?.trackEvent(event: AuthManagerEvent.deleteAccountSuccess)
+        } catch let error as AuthError {
+            logManager?.trackEvent(event: AuthManagerEvent.deleteAccountFail(error: error))
+
+            if case .needsReauthentication(let providers) = error {
+                if providers.contains("apple.com") {
+                    _ = try await signInApple()
+                    try await deleteAccount()
+                    return
+                }
+
+                if providers.contains("password") || providers.contains("email") {
+                    throw error
+                }
+            }
+
+            throw error
         } catch {
             logManager?.trackEvent(event: AuthManagerEvent.deleteAccountFail(error: error))
             throw error

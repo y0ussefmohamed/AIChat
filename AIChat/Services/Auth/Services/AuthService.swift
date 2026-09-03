@@ -12,6 +12,8 @@ import SwiftUI
 protocol AuthService: Sendable {
     func addAuthenticatedUserListener(action: (any NSObjectProtocol) -> Void) -> AsyncStream<UserAuthInfo?>
 
+    func removeAuthenticatedUserListener(_ listener: any NSObjectProtocol)
+
     func getAuthenticatedUser() -> UserAuthInfo?
 
     func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool)

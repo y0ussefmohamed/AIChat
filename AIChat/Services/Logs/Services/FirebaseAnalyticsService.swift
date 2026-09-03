@@ -26,7 +26,7 @@ struct FirebaseAnalyticsService: LogService {
 
         for (key, value) in properties {
             if let stringValue = String.convertToString(value) {
-                let key = key.clean(to: 40), stringValue = stringValue.clean(to: 100)
+                let key = key.clean(to: 24), stringValue = stringValue.clean(to: 100)
 
                 Analytics.setUserProperty(stringValue, forName: key)
             }

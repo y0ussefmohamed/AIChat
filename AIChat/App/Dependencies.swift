@@ -41,37 +41,37 @@ struct Dependencies {
     init(buildConfig: BuildConfiguration) {
         switch buildConfig {
         case .mock(isSignedIn: let isSignedIn):
-            authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
-            userManager = UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil))
+            logManager = LogManager(services: [ConsoleService(printParams: false)])
+            authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager)
+            userManager = UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil), logManager: logManager)
             aiManager = AIManager(aiServices: MockAIServices())
             avatarManager = AvatarManager(services: MockAvatarServices())
             chatManager = ChatManager(service: MockChatService())
-            logManager = LogManager(services: [ConsoleService(printParams: false)])
         case .dev:
-            authManager = AuthManager(service: FirebaseAuthServices())
-            userManager = UserManager(services: ProductionUserServicesContainer())
-            aiManager = AIManager(aiServices: ProductionAIServices())
-            avatarManager = AvatarManager(services: ProductionAvatarServices())
-            chatManager = ChatManager(service: FirebaseChatService())
             logManager = LogManager(
                 services: [
                     ConsoleService(printParams: true),
                     FirebaseAnalyticsService(),
-                    MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: true),
+                    MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: false),
                     FirebaseCrashlyticsService()
                 ]
             )
-        case .production:
-            authManager = AuthManager(service: FirebaseAuthServices())
-            userManager = UserManager(services: ProductionUserServicesContainer())
+            authManager = AuthManager(service: FirebaseAuthServices(), logManager: logManager)
+            userManager = UserManager(services: ProductionUserServicesContainer(), logManager: logManager)
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
+        case .production:
             logManager = LogManager(services: [
                 FirebaseAnalyticsService(),
                 MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: false),
                 FirebaseCrashlyticsService()
             ])
+            authManager = AuthManager(service: FirebaseAuthServices(), logManager: logManager)
+            userManager = UserManager(services: ProductionUserServicesContainer(), logManager: logManager)
+            aiManager = AIManager(aiServices: ProductionAIServices())
+            avatarManager = AvatarManager(services: ProductionAvatarServices())
+            chatManager = ChatManager(service: FirebaseChatService())
         }
     }
 }

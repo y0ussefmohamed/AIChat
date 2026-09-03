@@ -43,7 +43,7 @@ struct Chat: Identifiable, Codable, StringIdentifiable {
             "chat_\(CodingKeys.userId.rawValue)": userId,
             "chat_\(CodingKeys.avatarId.rawValue)": avatarId,
             "chat_\(CodingKeys.dateCreated.rawValue)": dateCreated.timeIntervalSince1970,
-            "chat_\(CodingKeys.dateModified.rawValue)": dateModified.timeIntervalSince1970,
+            "chat_\(CodingKeys.dateModified.rawValue)": dateModified.timeIntervalSince1970
         ]
 
         return dict.compactMapValues({$0})

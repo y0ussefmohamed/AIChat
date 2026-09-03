@@ -27,6 +27,10 @@ struct FirebaseAuthServices: AuthService {
         }
     }
 
+    func removeAuthenticatedUserListener(_ listener: any NSObjectProtocol) {
+        Auth.auth().removeStateDidChangeListener(listener)
+    }
+
     func getAuthenticatedUser() -> UserAuthInfo? {
         if let user = Auth.auth().currentUser {
             return UserAuthInfo(user: user)
@@ -105,7 +109,19 @@ struct FirebaseAuthServices: AuthService {
 
     func deleteAccount() async throws {
         guard let user = Auth.auth().currentUser else { throw AuthError.userNotFound }
-        try await user.delete()
+
+        do {
+            try await user.delete()
+        } catch let error as NSError {
+            let authError = AuthErrorCode(rawValue: error.code)
+
+            switch authError {
+            case .requiresRecentLogin:
+                throw AuthError.needsReauthentication(providers: user.providerData.compactMap(\.providerID))
+            default:
+                throw error
+            }
+        }
     }
 }
 
