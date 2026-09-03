@@ -26,87 +26,6 @@ class UserManager {
         self.currentUser = local.getCurrentUser()
     }
 
-    enum UserManagerEvent: LoggableEvent {
-        case logInStart(isNewUser: Bool), logInSuccess(user: UserModel?, isNewUser: Bool), logInFail(error: Error)
-        case streamUserSuccess(user: UserModel?), streamUserFail(error: Error)
-        case saveUserLocallyFail(error: Error)
-        case markOnboardingStart(profileColorHex: String), markOnboardingSuccess(user: UserModel?), markOnboardingFail(error: Error)
-        case signOut(user: UserModel?)
-        case deleteUserStart(user: UserModel?), deleteUserSuccess, deleteUserFail(error: Error)
-
-        var eventName: String {
-            switch self {
-            case .logInStart:
-                return "UserManager_LogIn_Start"
-            case .logInSuccess:
-                return "UserManager_LogIn_Success"
-            case .logInFail:
-                return "UserManager_LogIn_Fail"
-            case .streamUserSuccess:
-                return "UserManager_StreamUser_Success"
-            case .streamUserFail:
-                return "UserManager_StreamUser_Fail"
-            case .saveUserLocallyFail:
-                return "UserManager_SaveUserLocally_Fail"
-            case .markOnboardingStart:
-                return "UserManager_MarkOnboarding_Start"
-            case .markOnboardingSuccess:
-                return "UserManager_MarkOnboarding_Success"
-            case .markOnboardingFail:
-                return "UserManager_MarkOnboarding_Fail"
-            case .signOut:
-                return "UserManager_SignOut"
-            case .deleteUserStart:
-                return "UserManager_DeleteUser_Start"
-            case .deleteUserSuccess:
-                return "UserManager_DeleteUser_Success"
-            case .deleteUserFail:
-                return "UserManager_DeleteUser_Fail"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .logInStart(isNewUser: let isNewUser):
-                return isNewUser.asEventParameter(key: "is_new_user")
-
-            case .logInSuccess(user: let user, isNewUser: let isNewUser):
-                return (user?.asEventParameter ?? [:])
-                    .merged(isNewUser.asEventParameter(key: "is_new_user"))
-
-            case .markOnboardingStart(profileColorHex: let hexStr):
-                return hexStr.asEventParameter(key: "profile_color_hex")
-
-            case .markOnboardingSuccess(user: let user),
-                    .streamUserSuccess(user: let user),
-                    .signOut(user: let user),
-                    .deleteUserStart(user: let user):
-                return user?.asEventParameter
-
-            case .logInFail(error: let error),
-                 .streamUserFail(error: let error),
-                 .saveUserLocallyFail(error: let error),
-                 .markOnboardingFail(error: let error),
-                 .deleteUserFail(error: let error):
-                return error.asEventParameter
-
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .streamUserFail, .saveUserLocallyFail, .logInFail:
-                return .severe
-            case .markOnboardingFail, .deleteUserFail:
-                return .warning
-            default:
-                return .analytic
-            }
-        }
-    }
-
     private func addCurrentUserListener(userId: String) {
         Task {
             do {
@@ -192,4 +111,88 @@ class UserManager {
 
         return uid
     }
+}
+
+extension UserManager {
+    enum UserManagerEvent: LoggableEvent {
+        case logInStart(isNewUser: Bool), logInSuccess(user: UserModel?, isNewUser: Bool), logInFail(error: Error)
+        case streamUserSuccess(user: UserModel?), streamUserFail(error: Error)
+        case saveUserLocallyFail(error: Error)
+        case markOnboardingStart(profileColorHex: String), markOnboardingSuccess(user: UserModel?), markOnboardingFail(error: Error)
+        case signOut(user: UserModel?)
+        case deleteUserStart(user: UserModel?), deleteUserSuccess, deleteUserFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .logInStart:
+                return "UserManager_LogIn_Start"
+            case .logInSuccess:
+                return "UserManager_LogIn_Success"
+            case .logInFail:
+                return "UserManager_LogIn_Fail"
+            case .streamUserSuccess:
+                return "UserManager_StreamUser_Success"
+            case .streamUserFail:
+                return "UserManager_StreamUser_Fail"
+            case .saveUserLocallyFail:
+                return "UserManager_SaveUserLocally_Fail"
+            case .markOnboardingStart:
+                return "UserManager_MarkOnboarding_Start"
+            case .markOnboardingSuccess:
+                return "UserManager_MarkOnboarding_Success"
+            case .markOnboardingFail:
+                return "UserManager_MarkOnboarding_Fail"
+            case .signOut:
+                return "UserManager_SignOut"
+            case .deleteUserStart:
+                return "UserManager_DeleteUser_Start"
+            case .deleteUserSuccess:
+                return "UserManager_DeleteUser_Success"
+            case .deleteUserFail:
+                return "UserManager_DeleteUser_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .logInStart(isNewUser: let isNewUser):
+                return isNewUser.asEventParameter(key: "is_new_user")
+
+            case .logInSuccess(user: let user, isNewUser: let isNewUser):
+                return (user?.asEventParameter ?? [:])
+                    .merged(isNewUser.asEventParameter(key: "is_new_user"))
+
+            case .markOnboardingStart(profileColorHex: let hexStr):
+                return hexStr.asEventParameter(key: "profile_color_hex")
+
+            case .markOnboardingSuccess(user: let user),
+                    .streamUserSuccess(user: let user),
+                    .signOut(user: let user),
+                    .deleteUserStart(user: let user):
+                return user?.asEventParameter
+
+            case .logInFail(error: let error),
+                 .streamUserFail(error: let error),
+                 .saveUserLocallyFail(error: let error),
+                 .markOnboardingFail(error: let error),
+                 .deleteUserFail(error: let error):
+                return error.asEventParameter
+
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .streamUserFail, .saveUserLocallyFail, .logInFail:
+                return .severe
+            case .markOnboardingFail, .deleteUserFail:
+                return .warning
+            default:
+                return .analytic
+            }
+        }
+    }
+
 }

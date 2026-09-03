@@ -153,8 +153,9 @@ extension CreateAvatarView {
 
     private func onGenerateImagePressed() {
         Task { @MainActor in
-            isGeneratingImage = true
             defer { isGeneratingImage = false }
+            isGeneratingImage = true
+
             let prompt = "\(avatarName) is a \(characterOption.rawValue) that is \(characterAction.rawValue) in the \(characterLocation.rawValue)"
 
             logManager.trackEvent(event: CreateAvatarViewEvent.generateImageStart(prompt: prompt))
