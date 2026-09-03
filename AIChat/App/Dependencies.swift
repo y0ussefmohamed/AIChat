@@ -52,7 +52,7 @@ struct Dependencies {
                 services: [
                     ConsoleService(printParams: true),
                     FirebaseAnalyticsService(),
-                    MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: false),
+                    MixpanelService(token: Secrets.mixpanelToken, loggingEnabled: true),
                     FirebaseCrashlyticsService()
                 ]
             )

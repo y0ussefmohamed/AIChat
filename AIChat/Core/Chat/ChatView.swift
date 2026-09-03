@@ -332,7 +332,7 @@ extension ChatView {
         case loadMessagesStart, loadMessagesFail(error: Error)
         case messageSeenFail(error: Error)
         case sentChatMessageStart(chat: Chat?, Avatar: Avatar?), sentChatMessageFail(error: Error)
-        case messageSentSuccess
+        case messageSentSuccess(avatar: Avatar?, message: ChatMessage?)
         case avatarResponseStart, avatarResponseFail(error: Error)
         case avatarResponseGenerated(chat: Chat?, avatar: Avatar?, response: ChatMessage)
         case responseSavedSuccess
@@ -410,6 +410,13 @@ extension ChatView {
                  .reportChatFail(error: let error):
                 return error.asEventParameter
 
+            case .messageSentSuccess(avatar: let avatar, message: let message):
+                if let avatar, let message {
+                    return avatar.asEventParameter.merged(message.asEventParameter)
+                } else {
+                    return nil
+                }
+
             case .loadChatSuccess(chat: let chat),
                  .createChatStart(chat: let chat),
                  .createChatSuccess(chat: let chat),
@@ -476,7 +483,7 @@ extension ChatView {
                 scrollPositionId = newMessage.id
 
                 try await chatManager.addChatMessage(message: newMessage)
-                logManager.trackEvent(event: ChatViewEvent.messageSentSuccess)
+                logManager.trackEvent(event: ChatViewEvent.messageSentSuccess(avatar: avatar, message: newMessage))
 
                 self.avatarsResponse()
             } catch {

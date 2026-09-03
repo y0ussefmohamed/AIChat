@@ -12,8 +12,9 @@ struct MixpanelService: LogService {
 
     private var instance: MixpanelInstance { Mixpanel.mainInstance() }
 
-    init(token: String, loggingEnabled: Bool = false) {
-        Mixpanel.initialize(token: token, trackAutomaticEvents: true)
+    init(token: String, loggingEnabled: Bool = false, serverURL: String = "https://api-eu.mixpanel.com") {
+        Mixpanel.initialize(token: token, trackAutomaticEvents: true, serverURL: serverURL)
+        instance.serverURL = serverURL
         instance.loggingEnabled = loggingEnabled
     }
 
@@ -43,6 +44,7 @@ struct MixpanelService: LogService {
     
     func deleteUserProfile() {
         instance.people.deleteUser()
+        instance.reset()
     }
     
     func trackEvent(event: any LoggableEvent) {
@@ -58,6 +60,7 @@ struct MixpanelService: LogService {
         }
 
         instance.track(event: event.eventName, properties: eventProperties.isEmpty ? nil : eventProperties)
+        instance.flush()
     }
     
     func trackScreenEvent(event: any LoggableEvent) {
