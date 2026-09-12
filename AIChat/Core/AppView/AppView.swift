@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftfulUtilities
 
 struct AppView: View {
     @Environment(AuthManager.self) private var authManager
@@ -28,6 +29,10 @@ struct AppView: View {
         .task {
             await checkUserStatus()
         }
+        .task {
+            try? await Task.sleep(for: .seconds(2))
+            await showATTPromptIfNeeded()
+        }
         .onChange(of: appState.showTabBar) { _, showTabBar in
             /// if user signedOut\deletedAccount then create a new anonymous account
             if !showTabBar {
@@ -38,46 +43,11 @@ struct AppView: View {
         }
     }
 
-    enum AppViewEvent: LoggableEvent {
-        case existingAuthStart, existingAuthSuccess, existingAuthFail(error: Error)
-        case anonymousAuthStart, anonymousAuthSuccess, anonymousAuthFail(error: Error)
-
-        var eventName: String {
-            switch self {
-            case .existingAuthStart:
-                return "AppView_ExistingAuth_Start"
-            case .existingAuthSuccess:
-                return "AppView_ExistingAuth_Success"
-            case .existingAuthFail:
-                return "AppView_ExistingAuth_Fail"
-            case .anonymousAuthStart:
-                return "AppView_AnonymousAuth_Start"
-            case .anonymousAuthSuccess:
-                return "AppView_AnonymousAuth_Success"
-            case .anonymousAuthFail:
-                return "AppView_AnonymousAuth_Fail"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .existingAuthFail(error: let error):
-                return error.asEventParameter
-            case .anonymousAuthFail(error: let error):
-                return error.asEventParameter
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .existingAuthFail, .anonymousAuthFail:
-                return .severe
-            default:
-                return .analytic
-            }
-        }
+    private func showATTPromptIfNeeded() async {
+        #if !DEBUG
+        let status = await AppTrackingTransparencyHelper.requestTrackingAuthorization()
+        logManager.trackEvent(event: AppViewEvent.attStatus(params: status.eventParameters))
+        #endif
     }
 
     private func checkUserStatus() async {
@@ -103,6 +73,55 @@ struct AppView: View {
                 logManager.trackEvent(event: AppViewEvent.anonymousAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(2.5))
                 await checkUserStatus()
+            }
+        }
+    }
+}
+
+extension AppView {
+    enum AppViewEvent: LoggableEvent {
+        case attStatus(params: [String: Any])
+        case existingAuthStart, existingAuthSuccess, existingAuthFail(error: Error)
+        case anonymousAuthStart, anonymousAuthSuccess, anonymousAuthFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .attStatus:
+                return "AppView_AttStatus"
+            case .existingAuthStart:
+                return "AppView_ExistingAuth_Start"
+            case .existingAuthSuccess:
+                return "AppView_ExistingAuth_Success"
+            case .existingAuthFail:
+                return "AppView_ExistingAuth_Fail"
+            case .anonymousAuthStart:
+                return "AppView_AnonymousAuth_Start"
+            case .anonymousAuthSuccess:
+                return "AppView_AnonymousAuth_Success"
+            case .anonymousAuthFail:
+                return "AppView_AnonymousAuth_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .attStatus(params: let params):
+                return params
+            case .existingAuthFail(error: let error):
+                return error.asEventParameter
+            case .anonymousAuthFail(error: let error):
+                return error.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .existingAuthFail, .anonymousAuthFail:
+                return .severe
+            default:
+                return .analytic
             }
         }
     }
