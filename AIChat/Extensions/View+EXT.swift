@@ -82,14 +82,18 @@ extension View {
         }
     }
 
-    func showModal(isPresented: Binding<Bool>, @ViewBuilder content: () -> some View, transition: AnyTransition) -> some View {
+    func showModal<Content: View>(
+        isPresented: Binding<Bool>,
+        transition: AnyTransition = .slide,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
         self
-            .overlay(
+            .overlay {
                 ModalSupportView(showProfileModal: isPresented) {
                     content()
                         .transition(transition)
                 }
-            )
+            }
     }
 
     func shimmering() -> some View {

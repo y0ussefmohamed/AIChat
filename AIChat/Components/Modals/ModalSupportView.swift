@@ -46,8 +46,7 @@ private struct PreviewView: View {
             })
         }
         .showModal(
-            isPresented: $showProfileModal,
-            content: { /// this will be the modalContent inside the `ModalSupportView`
+            isPresented: $showProfileModal, transition: .scale(scale: 0.9)) { /// this will be the modalContent inside the `ModalSupportView`
                 ZStack {
                     let avatar = Avatar.mocks[2]
                     ProfileModalView(
@@ -59,9 +58,7 @@ private struct PreviewView: View {
                         }
                     )
                 }
-            },
-            transition: .slide
-        )
+            }
     }
 }
 

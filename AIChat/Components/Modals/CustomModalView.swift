@@ -11,7 +11,7 @@ struct CustomModalView: View {
     var title: String = "Title"
     var subtitle: String? = "This is a Subtitle"
     var primaryButtonTitle: String = "Yes"
-    var primaryButtonnAction: () -> Void = {}
+    var primaryButtonAction: () -> Void = {}
     var secondaryButtonTitle: String = "No"
     var secondaryButtonAction: () -> Void = {}
 
@@ -38,7 +38,7 @@ struct CustomModalView: View {
                     .foregroundStyle(.white)
                     .cornerRadius(16)
                     .styledButton(.pressable) {
-                        primaryButtonnAction()
+                        primaryButtonAction()
                     }
 
                 Text(secondaryButtonTitle)
@@ -65,7 +65,7 @@ struct CustomModalView: View {
             title: "Are you enjoying AIChat?",
             subtitle: "We'd love to hear your feedback",
             primaryButtonTitle: "YES!",
-            primaryButtonnAction: {
+            primaryButtonAction: {
 
             },
             secondaryButtonTitle: "Not Yet",

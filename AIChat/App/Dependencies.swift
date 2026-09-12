@@ -37,6 +37,7 @@ struct Dependencies {
     let avatarManager: AvatarManager
     let chatManager: ChatManager
     let logManager: LogManager
+    let pushManager: PushManager
 
     init(buildConfig: BuildConfiguration) {
         switch buildConfig {
@@ -73,6 +74,8 @@ struct Dependencies {
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
         }
+
+        pushManager = PushManager() /// same manager for all builds
     }
 }
 
@@ -90,5 +93,6 @@ extension View {
             .environment(AIManager(aiServices: MockAIServices()))
             .environment(ChatManager(service: MockChatService()))
             .environment(LogManager(services: []))
+            .environment(PushManager())
     }
 }

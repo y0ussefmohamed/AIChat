@@ -1,7 +1,7 @@
 //
 //  ChatView.swift
 //  AIChat
-//
+//  swiftlint:disable file_length
 //  Created by Youssef Mohamed on 12/03/2026.
 //
 
@@ -64,13 +64,12 @@ struct ChatView: View {
         .screenAppearAnalytics(viewName: "ChatView")
         .showCustomAlert(alert: $alert)
         .showModal(
-            isPresented: $showProfileModal,
-            content: {
+            isPresented: $showProfileModal) {
                 if let avatar {
                     profileModal(avatar: avatar)
                 }
-            },
-            transition: .slide)
+            }
+
         .task {
             await loadAvatar()
         }

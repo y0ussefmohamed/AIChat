@@ -51,9 +51,9 @@ struct SettingsView: View {
             .sheet(isPresented: $showCreateAccountView) {
                 LinkProviderView(usageOption: .createAccount)
             }
-            .showModal(isPresented: $showRatingModal, content: {
+            .showModal(isPresented: $showRatingModal) {
                 ratingsModal
-            }, transition: .slide)
+            }
         }
     }
 
@@ -62,7 +62,7 @@ struct SettingsView: View {
             title: "Are you enjoying AIChat?",
             subtitle: "We'd love to hear your feedback",
             primaryButtonTitle: "YES!",
-            primaryButtonnAction: {
+            primaryButtonAction: {
                 onRatingButtonPressed()
                 showRatingModal = false
             },

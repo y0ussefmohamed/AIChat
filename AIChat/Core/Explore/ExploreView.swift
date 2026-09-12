@@ -10,6 +10,8 @@ import SwiftUI
 struct ExploreView: View {
     @Environment(LogManager.self) private var logManager
     @Environment(AvatarManager.self) private var avatarManager
+    @Environment(PushManager.self) private var pushManager
+
     @State private var featuredAvatars: [Avatar] = []
     @State private var categories: [CharacterOption] = CharacterOption.allCases
     @State private var popularAvatars: [Avatar] = []
@@ -19,6 +21,8 @@ struct ExploreView: View {
     @State private var popularDidLoad: Bool = false
     @State private var showDevSettings: Bool = false
     @State private var alert: AnyAppAlert?
+    @State private var showNotificationButton: Bool = true
+    @State private var showPushNotificationModal: Bool = false
 
     var body: some View {
         NavigationStack(path: $navPathStack) {
@@ -53,9 +57,16 @@ struct ExploreView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     if !popularDidLoad || !featuredDidLoad {
                         ProgressView()
+                    } else {
+                        if showNotificationButton {
+                            pushNotificationButton
+                        }
                     }
                 }
             })
+            .showModal(isPresented: $showPushNotificationModal) {
+                pushNotificationModal
+            }
             .sheet(isPresented: $showDevSettings) {
                 DevSettingsView()
             }
@@ -65,6 +76,14 @@ struct ExploreView: View {
                     ChatView(avatarId: avatarId)
                 case .category(let category, let imageName):
                     CategoryListView(category: category, categoryImageName: imageName, navPathStack: $navPathStack)
+                }
+            }
+            .task {
+                await handleShowNotificationButton()
+
+                let userAllowedNotifications = await pushManager.isAuthorized()
+                if userAllowedNotifications {
+                    try? await pushManager.schedulePushNotificationsForTheNextWeek()
                 }
             }
             .onFirstAppear {
@@ -246,6 +265,50 @@ extension ExploreView {
         }
     }
 
+    private func handleShowNotificationButton() async {
+        /// returns false if user allowed or disallowed the notifications
+        showNotificationButton = await pushManager.canRequestAuthorization()
+    }
+
+    private var pushNotificationButton: some View {
+        Image(systemName: "bell.fill")
+            .font(.headline)
+            .styledButton {
+                showPushNotificationModal = true
+            }
+    }
+
+    private var pushNotificationModal: some View {
+        CustomModalView(
+            title: "Enable Notifications",
+            subtitle: "Turn on push notifications to stay updated with important alerts and reminders.",
+            primaryButtonTitle: "Enable",
+            primaryButtonAction: {
+                showPushNotificationModal = false
+
+                Task {
+                    do {
+                        /// this opens the IOS Real `Built-in` Push Notification Enable Modal
+                        let userDidAllowNotifications = try await pushManager.requestAuthorization()
+
+                        if userDidAllowNotifications {
+                            try await pushManager.schedulePushNotificationsForTheNextWeek()
+                        }
+
+                        /// if notifications is allowed/disallowed then reset `showNotificationButton`
+                        await handleShowNotificationButton()
+                    } catch {
+                        alert = AnyAppAlert(error: error)
+                    }
+                }
+            },
+            secondaryButtonTitle: "Not Now",
+            secondaryButtonAction: {
+                showPushNotificationModal = false
+            }
+        )
+    }
+
     private func loadFeaturedAvatars() {
         featuredDidLoad = false
         logManager.trackEvent(event: ExploreViewEvent.loadFeaturedStart)
@@ -364,18 +427,21 @@ extension ExploreView {
 
 #Preview("Has Data") {
     ExploreView()
+        .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices()))
 }
 
 #Preview("No Data") {
     ExploreView()
+        .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 3))))
 }
 
 #Preview("Slow Loading") {
     ExploreView()
+        .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 4))))
 }
