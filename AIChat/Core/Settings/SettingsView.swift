@@ -27,6 +27,7 @@ struct SettingsView: View {
     @State private var versionTextWidth: CGFloat = 0
     @State private var showCreateAccountView: Bool = false
     @State private var showAlert: AnyAppAlert?
+    @State private var showRatingModal: Bool = false
 
     private var isAnonymousUser: Bool {
         authManager.auth?.isAnonymous ?? false
@@ -44,13 +45,32 @@ struct SettingsView: View {
                 aboutSection
                     .offset(y: -5)
             }
+            .navigationTitle("Settings")
             .screenAppearAnalytics(viewName: "SettingsView")
             .showCustomAlert(alert: $showAlert)
             .sheet(isPresented: $showCreateAccountView) {
                 LinkProviderView(usageOption: .createAccount)
             }
-            .navigationTitle("Settings")
+            .showModal(isPresented: $showRatingModal, content: {
+                ratingsModal
+            }, transition: .slide)
         }
+    }
+
+    private var ratingsModal: some View {
+        CustomModalView(
+            title: "Are you enjoying AIChat?",
+            subtitle: "We'd love to hear your feedback",
+            primaryButtonTitle: "YES!",
+            primaryButtonnAction: {
+                onRatingButtonPressed()
+                showRatingModal = false
+            },
+            secondaryButtonTitle: "Not Yet",
+            secondaryButtonAction: {
+                showRatingModal = false
+            }
+        )
     }
 
     private var accountSection: some View {
@@ -102,6 +122,12 @@ struct SettingsView: View {
 
     private var applicationSection: some View {
         Section {
+            Text("Enjoy AIChat?")
+                .foregroundStyle(LinearGradient(colors: [.orange, .yellow], startPoint: .top, endPoint: .bottom))
+                .styledButton(.plain) {
+                    showRatingModal = true
+                }
+
             HStack {
                 Text("Version")
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -186,6 +212,11 @@ extension SettingsView {
         }
     }
 
+    private func onRatingButtonPressed() {
+        logManager.trackEvent(event: SettingsViewEvent.ratingPressed)
+        AppStoreRatingsHelper.requestRatingsReview()
+    }
+
     private func onCreateAccountPressed() {
         logManager.trackEvent(event: SettingsViewEvent.createAccountPressed)
         showCreateAccountView = true
@@ -201,6 +232,14 @@ extension SettingsView {
 
     private func onContactUsPressed() {
         logManager.trackEvent(event: SettingsViewEvent.contactUsPressed)
+
+        let email = "youssef.mo.ib@gmail.com"
+        let emailString = "mailto:\(email)"
+
+        guard let url = URL(string: emailString), UIApplication.shared.canOpenURL(url) else { return }
+
+        UIApplication.shared.open(url)
+
     }
 
     private func onDeleteAccountPressed() {
@@ -250,6 +289,7 @@ extension SettingsView {
         case deleteAccountStart, deleteAccountSuccess, deleteAccountFail(error: Error)
         case managePurchasesPressed
         case contactUsPressed
+        case ratingPressed
 
         var eventName: String {
             switch self {
@@ -273,6 +313,8 @@ extension SettingsView {
                 return "SettingsView_ManagePurchases_Pressed"
             case .contactUsPressed:
                 return "SettingsView_ContactUs_Pressed"
+            case .ratingPressed:
+                return "SettingsView_Rating_Pressed"
             }
         }
 
