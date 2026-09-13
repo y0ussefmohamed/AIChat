@@ -15,29 +15,43 @@ struct AppView: View {
     @State var appState: AppState = AppState()
 
     var body: some View {
-        AppViewBuilder(
-            showTabBar: appState.showTabBar,
-            tabbarView: {
-                TabBarView()
-            },
-            onboardingView: {
-                WelcomeView()
-        })
-        /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
-        .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
-        .screenAppearAnalytics(viewName: "AppView")
-        .task {
-            await checkUserStatus()
-        }
-        .task {
-            try? await Task.sleep(for: .seconds(2))
-            await showATTPromptIfNeeded()
-        }
-        .onChange(of: appState.showTabBar) { _, showTabBar in
-            /// if user signedOut\deletedAccount then create a new anonymous account
-            if !showTabBar {
-                Task {
-                    await checkUserStatus()
+        RootView(
+            delegate: RootDelegate(
+                onApplicationDidAppear: nil,
+                onApplicationWillEnterForeground: { _ in
+                    Task {
+                        await checkUserStatus()
+                    }
+                },
+                onApplicationDidBecomeActive: nil,
+                onApplicationWillResignActive: nil,
+                onApplicationDidEnterBackground: nil,
+                onApplicationWillTerminate: nil)
+        ) {
+            AppViewBuilder(
+                showTabBar: appState.showTabBar,
+                tabbarView: {
+                    TabBarView()
+                },
+                onboardingView: {
+                    WelcomeView()
+            })
+            /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
+            .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
+            .screenAppearAnalytics(viewName: "AppView")
+            .task {
+                await checkUserStatus()
+            }
+            .task {
+                try? await Task.sleep(for: .seconds(2))
+                await showATTPromptIfNeeded()
+            }
+            .onChange(of: appState.showTabBar) { _, showTabBar in
+                /// if user signedOut\deletedAccount then create a new anonymous account
+                if !showTabBar {
+                    Task {
+                        await checkUserStatus()
+                    }
                 }
             }
         }
