@@ -90,6 +90,9 @@ struct ExploreView: View {
                 loadFeaturedAvatars()
                 loadPopularAvatars()
             }
+            .onOpenURL { url in
+                handleDeepLink(url: url)
+            }
         }
     }
 }
@@ -262,6 +265,27 @@ extension ExploreView {
 
         } header: {
             Text("Popular")
+        }
+    }
+
+    private func handleDeepLink(url: URL) {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+        let queryItems = components.queryItems else {
+            return
+        }
+
+        for queryItem in queryItems {
+            if queryItem.name == "category",
+               let value = queryItem.value,
+               let category = CharacterOption(rawValue: value) {
+
+                let imageName = popularAvatars.first {
+                    $0.characterOption == category
+                }?.profileImageName ?? Constants.randomImage
+
+                navPathStack.append(.category(category, imageName))
+                return
+            }
         }
     }
 

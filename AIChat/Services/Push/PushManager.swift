@@ -54,17 +54,4 @@ class PushManager {
             )
         }
     }
-
-    func removeAllNotifications() {
-        LocalNotifications.removeAllPendingNotifications()
-        LocalNotifications.removeAllDeliveredNotifications()
-    }
-
-    func clearBadge() {
-        LocalNotifications.setApplicationIconBadgeNumber(to: 0)
-    }
-
-    func openSettings() throws {
-        try LocalNotifications.openAppSettings()
-    }
 }
