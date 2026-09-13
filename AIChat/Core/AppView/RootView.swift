@@ -34,11 +34,11 @@ import SwiftUI
 public struct RootDelegate {
     
     var onApplicationDidAppear: (() -> Void)?
-    var onApplicationWillEnterForeground: ((Notification) -> Void)? = nil
-    var onApplicationDidBecomeActive: ((Notification) -> Void)? = nil
-    var onApplicationWillResignActive: ((Notification) -> Void)? = nil
-    var onApplicationDidEnterBackground: ((Notification) -> Void)? = nil
-    var onApplicationWillTerminate: ((Notification) -> Void)? = nil
+    var onApplicationWillEnterForeground: ((Notification) -> Void)?
+    var onApplicationDidBecomeActive: ((Notification) -> Void)?
+    var onApplicationWillResignActive: ((Notification) -> Void)?
+    var onApplicationDidEnterBackground: ((Notification) -> Void)?
+    var onApplicationWillTerminate: ((Notification) -> Void)?
 
     public init(
         onApplicationDidAppear: (() -> Void)? = nil,
@@ -117,19 +117,19 @@ public struct RootView: View {
                 onApplicationDidAppear: {
                     
                 },
-                onApplicationWillEnterForeground: { notification in
-                    
+                onApplicationWillEnterForeground: { _ in
+
                 },
-                onApplicationDidBecomeActive: { notification in
-                    
+                onApplicationDidBecomeActive: { _ in
+
                 },
-                onApplicationWillResignActive: { notification in
-                    
+                onApplicationWillResignActive: { _ in
+
                 },
-                onApplicationDidEnterBackground: { notification in
-                    
+                onApplicationDidEnterBackground: { _ in
+
                 },
-                onApplicationWillTerminate: { notification in
+                onApplicationWillTerminate: { _ in
                     
                 }
             ),
