@@ -8,7 +8,7 @@
 import Foundation
 import IdentifiableByString
 
-struct Chat: Identifiable, Codable, StringIdentifiable {
+nonisolated struct Chat: Identifiable, Codable, StringIdentifiable, Sendable {
     let id: String
     let userId: String
     let avatarId: String

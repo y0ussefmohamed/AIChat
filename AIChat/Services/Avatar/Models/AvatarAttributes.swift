@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum CharacterOption: String, CaseIterable, Hashable, Codable {
+nonisolated enum CharacterOption: String, CaseIterable, Hashable, Codable, Sendable {
     case man, woman, alien, dog, cat
 
     static var `default`: Self { // characterOption ?? CharacterOption.default.rawValue
@@ -39,7 +39,7 @@ enum CharacterOption: String, CaseIterable, Hashable, Codable {
     }
 }
 
-enum CharacterAction: String, CaseIterable, Hashable, Codable {
+nonisolated enum CharacterAction: String, CaseIterable, Hashable, Codable, Sendable {
     case smiling, sitting, eating, drinking, walking, shopping, studying, working, relaxing, fighting, crying
 
     static var `default`: Self {
@@ -51,7 +51,7 @@ enum CharacterAction: String, CaseIterable, Hashable, Codable {
     }
 }
 
-enum CharacterLocation: String, CaseIterable, Hashable, Codable {
+nonisolated enum CharacterLocation: String, CaseIterable, Hashable, Codable, Sendable {
     case park, mall, meusem, city, desert, forest, space
 
     static var `default`: Self {

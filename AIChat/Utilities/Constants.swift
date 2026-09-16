@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Constants {
+nonisolated struct Constants: Sendable {
     static let randomImage = "https://picsum.photos/500"
     static let privacyPolicyURL = URL(string: "https://www.apple.com")!
     static let termsOfServiceURL = URL(string: "https://www.apple.com")!

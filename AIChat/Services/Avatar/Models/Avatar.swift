@@ -8,7 +8,7 @@
 import Foundation
 import IdentifiableByString
 
-struct Avatar: Hashable, Codable, StringIdentifiable {
+nonisolated struct Avatar: Hashable, Codable, Sendable, StringIdentifiable {
     var id: String { avatarId }
     let avatarId: String
     let name: String?
