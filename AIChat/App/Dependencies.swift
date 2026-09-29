@@ -38,6 +38,7 @@ struct Dependencies {
     let chatManager: ChatManager
     let logManager: LogManager
     let pushManager: PushManager
+    let abTestManager: ABTestManager
 
     init(buildConfig: BuildConfiguration) {
         switch buildConfig {
@@ -48,6 +49,8 @@ struct Dependencies {
             aiManager = AIManager(aiServices: MockAIServices())
             avatarManager = AvatarManager(services: MockAvatarServices())
             chatManager = ChatManager(service: MockChatService())
+            abTestManager = ABTestManager(service: MockABTestService(createAccountTest: true), logManager: logManager)
+
         case .dev:
             logManager = LogManager(
                 services: [
@@ -62,6 +65,8 @@ struct Dependencies {
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
+            abTestManager = ABTestManager(service: MockABTestService(createAccountTest: true), logManager: logManager)
+
         case .production:
             logManager = LogManager(services: [
                 FirebaseAnalyticsService(),
@@ -73,6 +78,7 @@ struct Dependencies {
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
+            abTestManager = ABTestManager(service: MockABTestService(createAccountTest: false), logManager: logManager)
         }
 
         pushManager = PushManager() /// same manager for all builds
@@ -94,5 +100,6 @@ extension View {
             .environment(ChatManager(service: MockChatService()))
             .environment(LogManager(services: []))
             .environment(PushManager())
+            .environment(ABTestManager(service: MockABTestService()))
     }
 }

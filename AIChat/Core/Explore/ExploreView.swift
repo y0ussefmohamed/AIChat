@@ -9,8 +9,10 @@ import SwiftUI
 
 struct ExploreView: View {
     @Environment(LogManager.self) private var logManager
+    @Environment(AuthManager.self) private var authManager
     @Environment(AvatarManager.self) private var avatarManager
     @Environment(PushManager.self) private var pushManager
+    @Environment(ABTestManager.self) private var abTestManager
 
     @State private var featuredAvatars: [Avatar] = []
     @State private var categories: [CharacterOption] = CharacterOption.allCases
@@ -23,6 +25,8 @@ struct ExploreView: View {
     @State private var alert: AnyAppAlert?
     @State private var showNotificationButton: Bool = true
     @State private var showPushNotificationModal: Bool = false
+
+    @State private var showCreateAccountView: Bool = false
 
     var body: some View {
         NavigationStack(path: $navPathStack) {
@@ -70,6 +74,9 @@ struct ExploreView: View {
             .sheet(isPresented: $showDevSettings) {
                 DevSettingsView()
             }
+            .sheet(isPresented: $showCreateAccountView) {
+                LinkProviderView(usageOption: .createAccount)
+            }
             .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
                 switch pathOptionTop {
                 case .chat(let avatarId):
@@ -89,6 +96,7 @@ struct ExploreView: View {
             .onFirstAppear {
                 loadFeaturedAvatars()
                 loadPopularAvatars()
+                showCreateAccountIfNeeded()
             }
             .onOpenURL { url in
                 handleDeepLink(url: url)
@@ -387,6 +395,18 @@ extension ExploreView {
         logManager.trackEvent(event: ExploreViewEvent.devSettingsPressed)
         showDevSettings.toggle()
     }
+
+    /// run this if user is anonymous and the create account AB test is valid for users
+    private func showCreateAccountIfNeeded() {
+        guard authManager.auth?.isAnonymous == true &&
+              abTestManager.activeTests.createAccountTest == true else { return }
+
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            showCreateAccountView = true
+        }
+    }
+
 }
 
 extension ExploreView {
@@ -454,6 +474,17 @@ extension ExploreView {
         .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices()))
+}
+
+#Preview("Has Data w/ Create Acc Test") {
+    ExploreView()
+        /// to mock create account test
+        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: true))))
+        .environment(ABTestManager(service: MockABTestService(createAccountTest: true)))
+        .environment(LogManager(services: [ConsoleService()]))
+        .environment(AvatarManager(services: MockAvatarServices()))
+        .previewEnvironment()
+
 }
 
 #Preview("No Data") {
