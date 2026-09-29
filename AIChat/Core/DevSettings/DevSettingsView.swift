@@ -13,14 +13,24 @@ struct DevSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
+    @Environment(ABTestManager.self) private var abTestManager
+
+    @State private var createAccountTest = false
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    let authArray = authManager.auth?.asEventParameter.asAlphabeticalString ?? []
+                    Toggle("CreateAccountTest", isOn: $createAccountTest)
+                        .onChange(of: createAccountTest) { _, newValue in
+                            updateCreateAccountTest(to: newValue)
+                        }
+                } header: {
+                    Text("AB Test Section")
+                }
 
-                    ForEach(authArray, id: \.key) { item in
+                Section {
+                    ForEach(authInfo, id: \.key) { item in
                         itemRow(item: item)
                     }
                 } header: {
@@ -28,9 +38,7 @@ struct DevSettingsView: View {
                 }
 
                 Section {
-                    let userArray = userManager.currentUser?.asEventParameter.asAlphabeticalString ?? []
-
-                    ForEach(userArray, id: \.key) { item in
+                    ForEach(currentUserInfo, id: \.key) { item in
                         itemRow(item: item)
                     }
                 } header: {
@@ -38,9 +46,7 @@ struct DevSettingsView: View {
                 }
 
                 Section {
-                    let deviceInfoArray = Utilities.eventParameters.asAlphabeticalString
-
-                    ForEach(deviceInfoArray, id: \.key) { item in
+                    ForEach(deviceInfo, id: \.key) { item in
                         itemRow(item: item)
                     }
                 } header: {
@@ -57,17 +63,48 @@ struct DevSettingsView: View {
                         }
                 }
             }
+            .onFirstAppear {
+                loadCreateAccountTest()
+            }
         }
     }
 }
 
-extension DevSettingsView {
-    private func onCloseButtonPressed() {
+private extension DevSettingsView {
+    var authInfo: [(key: String, value: Any)] {
+        authManager.auth?.asEventParameter.asAlphabeticalString ?? []
+    }
+
+    var currentUserInfo: [(key: String, value: Any)] {
+        userManager.currentUser?.asEventParameter.asAlphabeticalString ?? []
+    }
+
+    var deviceInfo: [(key: String, value: Any)] {
+        Utilities.eventParameters.asAlphabeticalString
+    }
+
+    func loadCreateAccountTest() {
+        createAccountTest = abTestManager.activeTests.createAccountTest
+    }
+
+    func updateCreateAccountTest(to newValue: Bool) {
+        guard newValue != abTestManager.activeTests.createAccountTest else {
+            return
+        }
+
+        /// since activeTests is a get only property
+        var tests = abTestManager.activeTests
+        tests.update(createAccountTest: newValue)
+
+        try? abTestManager.override(updatedTests: tests)
+    }
+
+    func onCloseButtonPressed() {
         logManager.trackEvent(event: DevSettingsViewEvent.closeButtonPressed)
         dismiss()
     }
 
-    private func itemRow(item: (key: String, value: Any)) -> some View {
+    func itemRow(item: (key: String, value: Any)) -> some View {
         HStack {
             Text(item.key)
 
@@ -79,10 +116,8 @@ extension DevSettingsView {
                     Circle()
                         .fill(color)
                         .frame(width: 24, height: 24)
-                } else {
-                    if let conv = String.convertToString(item.value) {
-                        Text(conv)
-                    }
+                } else if let convertedValue = String.convertToString(item.value) {
+                    Text(convertedValue)
                 }
             }
         }

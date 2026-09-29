@@ -19,10 +19,16 @@ class ABTestManager {
         self.activeTests = service.activeTests /// to achieve encapuslation and access this instead of accessing the whole service
         self.logManager = logManager
         
-        self.configure()
+        self.configureUserProperties()
     }
 
-    private func configure() {
+    private func configureUserProperties() {
+        activeTests = service.activeTests
         logManager?.addUserProperties(properties: activeTests.asEventParamaters, isHighPriority: false)
+    }
+
+    func override(updatedTests: ActiveABTests) throws {
+        try service.saveUpdatedConfig(updatedTests: updatedTests)
+        configureUserProperties()
     }
 }
