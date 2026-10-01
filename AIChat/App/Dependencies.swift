@@ -49,7 +49,14 @@ struct Dependencies {
             aiManager = AIManager(aiServices: MockAIServices())
             avatarManager = AvatarManager(services: MockAvatarServices())
             chatManager = ChatManager(service: MockChatService())
-            abTestManager = ABTestManager(service: MockABTestService(createAccountTest: true), logManager: logManager)
+            abTestManager = ABTestManager(
+                service: MockABTestService(
+                    createAccountTest: true,
+                    onboardingCommunityTest: true,
+                    categoryRowTest: .default
+                ),
+                logManager: logManager
+            )
 
         case .dev:
             logManager = LogManager(

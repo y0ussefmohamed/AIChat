@@ -11,10 +11,6 @@ import FirebaseRemoteConfig
 final class FirebaseABTestService: ABTestService {
     private let logManager: LogManager?
 
-    var activeTests: ActiveABTests {
-        ActiveABTests(config: RemoteConfig.remoteConfig())
-    }
-
     init(logManager: LogManager? = nil) {
         self.logManager = logManager
 
@@ -29,10 +25,8 @@ final class FirebaseABTestService: ABTestService {
         remoteConfig.activate()
     }
 
-    func saveUpdatedConfig(updatedTests: ActiveABTests) throws {
-        // This violates interface segregation principle but won't make multiple protocols now for faster development
-        // Remote Config values cannot be written to Firebase
-        // directly from the client app.
+    var activeTests: ActiveABTests {
+        ActiveABTests(config: RemoteConfig.remoteConfig())
     }
 
     func fetchUpdatedConfig() async throws -> ActiveABTests {

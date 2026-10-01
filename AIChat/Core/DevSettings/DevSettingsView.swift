@@ -45,6 +45,7 @@ struct DevSettingsView: View {
                 } header: {
                     Text("AB Test Section")
                 }
+                .disabled(!abTestManager.canOverrideTests)
 
                 Section {
                     ForEach(authInfo, id: \.key) { item in

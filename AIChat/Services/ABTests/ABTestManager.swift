@@ -12,10 +12,16 @@ class ABTestManager {
     private(set) var activeTests: ActiveABTests /// accessing active tests from here
 
     private let service: ABTestService
+    private let editableService: (any EditableABTestService)?
     private let logManager: LogManager?
+
+    var canOverrideTests: Bool {
+        editableService != nil
+    }
 
     init(service: ABTestService, logManager: LogManager? = nil) {
         self.service = service
+        self.editableService = service as? any EditableABTestService
         self.logManager = logManager
 
         self.activeTests = service.activeTests /// to achieve encapuslation and access this instead of accessing the whole service
@@ -36,11 +42,24 @@ class ABTestManager {
         logManager?.addUserProperties(properties: activeTests.asEventParamaters, isHighPriority: false)
     }
 
-    /// impossible to be called if the service injected is the firebase; because firebase is only injected in the prod dependencies, which doesn' t have the dev button
     func override(updatedTests: ActiveABTests) throws {
-        try service.saveUpdatedConfig(updatedTests: updatedTests)
+        guard let editableService else {
+            throw OverrideError.notSupported
+        }
+
+        try editableService.saveUpdatedConfig(updatedTests: updatedTests)
         activeTests = service.activeTests
 
         configureUserProperties()
+    }
+}
+
+extension ABTestManager {
+    enum OverrideError: LocalizedError {
+        case notSupported
+
+        var errorDescription: String? {
+            "The current A/B test service does not support overrides."
+        }
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class LocalABTestService: ABTestService {
+class LocalABTestService: EditableABTestService {
     @UserDefault(key: ActiveABTests.CodingKeys.createAccountTest.rawValue, startingValue: Bool.random())
     private var createAccountTest: Bool
 

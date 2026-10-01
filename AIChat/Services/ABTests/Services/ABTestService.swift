@@ -9,6 +9,9 @@ import Foundation
 
 protocol ABTestService {
     var activeTests: ActiveABTests { get }
-    func saveUpdatedConfig(updatedTests: ActiveABTests) throws
     func fetchUpdatedConfig() async throws -> ActiveABTests
+}
+
+protocol EditableABTestService: ABTestService {
+    func saveUpdatedConfig(updatedTests: ActiveABTests) throws
 }

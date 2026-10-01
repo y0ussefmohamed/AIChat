@@ -7,7 +7,7 @@
 
 import Foundation
 
-class MockABTestService: ABTestService {
+class MockABTestService: EditableABTestService {
     var activeTests: ActiveABTests
 
     init(createAccountTest: Bool? = nil, onboardingCommunityTest: Bool? = nil, categoryRowTest: CategoryRowTestOption? = nil) {
