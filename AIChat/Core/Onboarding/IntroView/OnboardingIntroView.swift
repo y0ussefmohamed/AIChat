@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OnboardingIntroView: View {
+    @Environment(ABTestManager.self) private var abTestManager
     @Environment(LogManager.self) private var logManager
 
     var body: some View {
@@ -43,7 +44,11 @@ struct OnboardingIntroView: View {
 extension OnboardingIntroView {
     private var ctaButton: some View {
         NavigationLink {
-            OnboardingColorView()
+            if abTestManager.activeTests.onboardingCommunityTest {
+                OnboardingCommunityView()
+            } else {
+                OnboardingColorView()
+            }
         } label: {
             Text("Continue")
                 .callToActionButton()
@@ -79,7 +84,15 @@ extension OnboardingIntroView {
     }
 }
 
-#Preview {
+
+#Preview("Original") {
     OnboardingIntroView()
+        .environment(ABTestManager(service: MockABTestService(onboardingCommunityTest: false)))
+        .environment(LogManager(services: [ConsoleService()]))
+}
+
+#Preview("Onboarding AB Test") {
+    OnboardingIntroView()
+        .environment(ABTestManager(service: MockABTestService(onboardingCommunityTest: true)))
         .environment(LogManager(services: [ConsoleService()]))
 }

@@ -15,7 +15,7 @@ extension Double: UserDefaultsCompatible {}
 extension String: UserDefaultsCompatible {}
 extension URL: UserDefaultsCompatible {}
 
-/// this `wrapper` is used to set this `Bool` to `.random()` if not saved in `UserDefaults` and if saved then extract the saved value
+/// this `wrapper` is used to set this `T` to `.random()` if not saved in `UserDefaults` and if saved then extract the saved value
 @propertyWrapper
 struct UserDefault<T: UserDefaultsCompatible> {
     let key: String

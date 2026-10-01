@@ -15,7 +15,8 @@ struct DevSettingsView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(ABTestManager.self) private var abTestManager
 
-    @State private var createAccountTest = false
+    @State private var createAccountTest: Bool = false
+    @State private var onboardingCommunityTest: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,11 @@ struct DevSettingsView: View {
                     Toggle("CreateAccountTest", isOn: $createAccountTest)
                         .onChange(of: createAccountTest) { _, newValue in
                             updateCreateAccountTest(to: newValue)
+                        }
+
+                    Toggle("OnboardingCommunityTest", isOn: $onboardingCommunityTest)
+                        .onChange(of: onboardingCommunityTest) { _, newValue in
+                            updateOnboardingCommunityTest(to: newValue)
                         }
                 } header: {
                     Text("AB Test Section")
@@ -64,7 +70,7 @@ struct DevSettingsView: View {
                 }
             }
             .onFirstAppear {
-                loadCreateAccountTest()
+                loadActiveTests()
             }
         }
     }
@@ -83,8 +89,9 @@ private extension DevSettingsView {
         Utilities.eventParameters.asAlphabeticalString
     }
 
-    func loadCreateAccountTest() {
+    func loadActiveTests() {
         createAccountTest = abTestManager.activeTests.createAccountTest
+        onboardingCommunityTest = abTestManager.activeTests.onboardingCommunityTest
     }
 
     func updateCreateAccountTest(to newValue: Bool) {
@@ -95,6 +102,17 @@ private extension DevSettingsView {
         /// since activeTests is a get only property
         var tests = abTestManager.activeTests
         tests.update(createAccountTest: newValue)
+
+        try? abTestManager.override(updatedTests: tests)
+    }
+
+    func updateOnboardingCommunityTest(to newValue: Bool) {
+        guard newValue != abTestManager.activeTests.onboardingCommunityTest else {
+            return
+        }
+
+        var tests = abTestManager.activeTests
+        tests.update(onboardingCommunityTest: newValue)
 
         try? abTestManager.override(updatedTests: tests)
     }
