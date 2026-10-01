@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C9088435306E716B000CF4FB /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = C9088434306E716B000CF4FB /* FirebaseRemoteConfig */; };
 		C90C84512F8DB39300C06E8E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C90C84502F8DB39300C06E8E /* FirebaseFirestore */; };
 		C90C84542F8E9DCA00C06E8E /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C90C84532F8E9DCA00C06E8E /* SwiftfulFirestore */; };
 		C92C927330462884003AA026 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C92C927230462884003AA026 /* FirebaseCrashlytics */; };
@@ -82,6 +83,7 @@
 				C9D3B97A2F7264F0009CE29E /* SignInAppleAsync in Frameworks */,
 				C9AF3F352F58C5610041BC26 /* SDWebImageSwiftUI in Frameworks */,
 				C95CA7BE2F90653700C34B6F /* FirebaseStorage in Frameworks */,
+				C9088435306E716B000CF4FB /* FirebaseRemoteConfig in Frameworks */,
 				C90C84542F8E9DCA00C06E8E /* SwiftfulFirestore in Frameworks */,
 				C95CA7A42F90084B00C34B6F /* GoogleGenerativeAI in Frameworks */,
 				C92C927330462884003AA026 /* FirebaseCrashlytics in Frameworks */,
@@ -171,6 +173,7 @@
 				C9C02B7C3029E69F00EDBAD1 /* FirebaseAnalytics */,
 				C9C8C449302CBF4E00E707B1 /* Mixpanel */,
 				C92C927230462884003AA026 /* FirebaseCrashlytics */,
+				C9088434306E716B000CF4FB /* FirebaseRemoteConfig */,
 			);
 			productName = AIChat;
 			productReference = C9652ECF2F54F19900AA48CD /* AIChat.app */;
@@ -940,6 +943,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C9088434306E716B000CF4FB /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9D3B96A2F719779009CE29E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
 		C90C84502F8DB39300C06E8E /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C9D3B96A2F719779009CE29E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

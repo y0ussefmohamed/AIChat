@@ -30,4 +30,8 @@ class LocalABTestService: ABTestService {
         onboardingCommunityTest = updatedTests.onboardingCommunityTest
         categoryRowTest = updatedTests.categoryRowTest
     }
+
+    func fetchUpdatedConfig() async throws -> ActiveABTests {
+        activeTests
+    }
 }

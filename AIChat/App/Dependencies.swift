@@ -78,7 +78,7 @@ struct Dependencies {
             aiManager = AIManager(aiServices: ProductionAIServices())
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
-            abTestManager = ABTestManager(service: MockABTestService(createAccountTest: false), logManager: logManager)
+            abTestManager = ABTestManager(service: FirebaseABTestService(logManager: logManager), logManager: logManager)
         }
 
         pushManager = PushManager() /// same manager for all builds

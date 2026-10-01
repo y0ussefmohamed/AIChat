@@ -25,6 +25,14 @@ struct ActiveABTests: Codable {
         case categoryRowTest = "_20260110_CategoryRowABTest"
     }
 
+    var asEventParameter: [String: Any] {
+        [
+            "is_create_account_test_active": createAccountTest,
+            "is_onboarding_community_test_active": onboardingCommunityTest,
+            "category_row_test": categoryRowTest.rawValue
+        ]
+    }
+
     var asEventParamaters: [String: Any] {
         let dict: [String: Any?] = [
             "test\(CodingKeys.createAccountTest.rawValue)": createAccountTest,
