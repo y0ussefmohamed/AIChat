@@ -10,10 +10,11 @@ import Foundation
 class MockABTestService: ABTestService {
     var activeTests: ActiveABTests
 
-    init(createAccountTest: Bool? = nil, onboardingCommunityTest: Bool? = nil) {
+    init(createAccountTest: Bool? = nil, onboardingCommunityTest: Bool? = nil, categoryRowTest: CategoryRowTestOption? = nil) {
         self.activeTests = ActiveABTests(
             createAccountTest: createAccountTest ?? false,
-            onboardingCommunityTest: onboardingCommunityTest ?? false
+            onboardingCommunityTest: onboardingCommunityTest ?? false,
+            categoryRowTest: categoryRowTest ?? .default
         )
     }
 

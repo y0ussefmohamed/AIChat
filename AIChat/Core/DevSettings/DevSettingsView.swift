@@ -17,6 +17,7 @@ struct DevSettingsView: View {
 
     @State private var createAccountTest: Bool = false
     @State private var onboardingCommunityTest: Bool = false
+    @State private var categoryRowTest: CategoryRowTestOption = .default
 
     var body: some View {
         NavigationStack {
@@ -31,6 +32,16 @@ struct DevSettingsView: View {
                         .onChange(of: onboardingCommunityTest) { _, newValue in
                             updateOnboardingCommunityTest(to: newValue)
                         }
+
+                    Picker("CategoryRowTest", selection: $categoryRowTest) {
+                        ForEach(CategoryRowTestOption.allCases, id: \.self) { option in
+                            Text(option.rawValue.capitalized)
+                                .tag(option)
+                        }
+                    }
+                    .onChange(of: categoryRowTest) { _, newValue in
+                        updateCategoryRowTest(to: newValue)
+                    }
                 } header: {
                     Text("AB Test Section")
                 }
@@ -92,6 +103,7 @@ private extension DevSettingsView {
     func loadActiveTests() {
         createAccountTest = abTestManager.activeTests.createAccountTest
         onboardingCommunityTest = abTestManager.activeTests.onboardingCommunityTest
+        categoryRowTest = abTestManager.activeTests.categoryRowTest
     }
 
     func updateCreateAccountTest(to newValue: Bool) {
@@ -113,6 +125,17 @@ private extension DevSettingsView {
 
         var tests = abTestManager.activeTests
         tests.update(onboardingCommunityTest: newValue)
+
+        try? abTestManager.override(updatedTests: tests)
+    }
+
+    func updateCategoryRowTest(to newValue: CategoryRowTestOption) {
+        guard newValue != abTestManager.activeTests.categoryRowTest else {
+            return
+        }
+
+        var tests = abTestManager.activeTests
+        tests.update(categoryRowTest: newValue)
 
         try? abTestManager.override(updatedTests: tests)
     }

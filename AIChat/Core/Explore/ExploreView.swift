@@ -31,16 +31,19 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack(path: $navPathStack) {
             List {
+
+                if abTestManager.activeTests.categoryRowTest == .top {
+                    categoryRow
+                }
+
                 if featuredDidLoad {
                     featuredSection
                 } else {
                     featuredLoadingView
                 }
 
-                if popularDidLoad {
-                    categoriesSection
-                } else {
-                    categoriesLoadingView
+                if abTestManager.activeTests.categoryRowTest == .original {
+                    categoryRow
                 }
 
                 if popularDidLoad {
@@ -276,6 +279,15 @@ extension ExploreView {
         }
     }
 
+    @ViewBuilder
+    private var categoryRow: some View {
+        if popularDidLoad {
+            categoriesSection
+        } else {
+            categoriesLoadingView
+        }
+    }
+
     private func handleDeepLink(url: URL) {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
         let queryItems = components.queryItems else {
@@ -471,9 +483,9 @@ extension ExploreView {
 
 #Preview("Has Data") {
     ExploreView()
-        .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices()))
+        .previewEnvironment()
 }
 
 #Preview("Has Data w/ Create Acc Test") {
@@ -484,19 +496,36 @@ extension ExploreView {
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices()))
         .previewEnvironment()
+}
 
+#Preview("CategoryRowTest: Original") {
+    ExploreView()
+        .environment(ABTestManager(service: MockABTestService(categoryRowTest: .original)))
+        .previewEnvironment()
+}
+
+#Preview("CategoryRowTest: Top") {
+    ExploreView()
+        .environment(ABTestManager(service: MockABTestService(categoryRowTest: .top)))
+        .previewEnvironment()
+}
+
+#Preview("CategoryRowTest: Hidden") {
+    ExploreView()
+        .environment(ABTestManager(service: MockABTestService(categoryRowTest: .hidden)))
+        .previewEnvironment()
 }
 
 #Preview("No Data") {
     ExploreView()
-        .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 3))))
+        .previewEnvironment()
 }
 
 #Preview("Slow Loading") {
     ExploreView()
-        .previewEnvironment()
         .environment(LogManager(services: [ConsoleService()]))
         .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 4))))
+        .previewEnvironment()
 }

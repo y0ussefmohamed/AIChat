@@ -23,12 +23,13 @@ class ABTestManager {
     }
 
     private func configureUserProperties() {
-        activeTests = service.activeTests
         logManager?.addUserProperties(properties: activeTests.asEventParamaters, isHighPriority: false)
     }
 
     func override(updatedTests: ActiveABTests) throws {
         try service.saveUpdatedConfig(updatedTests: updatedTests)
+        activeTests = service.activeTests
+
         configureUserProperties()
     }
 }
