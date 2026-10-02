@@ -42,6 +42,7 @@ class ABTestManager {
         logManager?.addUserProperties(properties: activeTests.asEventParamaters, isHighPriority: false)
     }
 
+    /// in order for this function to run the service should only be the `EditableABTestService`
     func override(updatedTests: ActiveABTests) throws {
         guard let editableService else {
             throw OverrideError.notSupported
