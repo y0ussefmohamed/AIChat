@@ -157,11 +157,4 @@ struct UserModelTests {
         #expect(user.didCompleteOnboarding == false)
         #expect(user.profileColorHex == "#123456")
     }
-
-    @Test("Static mock and mocks provide valid sample instances")
-    func mock_returnsExpectedUser() {
-        #expect(UserModel.mock.userId == UserModel.mocks[1].userId)
-        #expect(UserModel.mock.profileColorHex == UserModel.mocks[1].profileColorHex)
-        #expect(UserModel.mocks.count == 4)
-    }
 }

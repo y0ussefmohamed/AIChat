@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum AuthError: Error, LocalizedError {
+enum AuthError: Error, LocalizedError, Equatable {
     case userNotFound
     case notSignedIn
     case needsReauthentication(providers: [String])

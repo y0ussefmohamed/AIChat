@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct UserAuthInfo: Sendable, Codable {
+struct UserAuthInfo: Sendable, Codable, Equatable {
     let uid: String
     let email: String?
     let isAnonymous: Bool
