@@ -43,6 +43,8 @@ struct CustomListCellView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([avatarName, avatarDescription].compactMap { $0 }.joined(separator: ", "))
     }
 }
 

@@ -29,6 +29,7 @@ struct CategoryListView: View {
                 font: .largeTitle,
                 cornerRadius: 0
             )
+            .accessibilityIdentifier(AccessibilityID.Category.title)
             .removeListRowFormatting()
 
             if isLoading {
@@ -52,6 +53,7 @@ struct CategoryListView: View {
                         .styledButton(.highlighted) {
                             onRowTap(avatar.avatarId)
                         }
+                        .accessibilityIdentifier(AccessibilityID.Category.avatar(avatar.avatarId))
                         .removeListRowFormatting()
                     }
                 } else {
@@ -60,11 +62,13 @@ struct CategoryListView: View {
                         systemImage: "person.fill.xmark",
                         description: Text("There are no avatars in this category yet. Check back later!")
                     )
+                    .accessibilityIdentifier(AccessibilityID.Category.empty)
                     .listRowSeparator(.hidden)
                 }
 
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Category.list)
         .onAppear {
             loadCategoryAvatars()
         }

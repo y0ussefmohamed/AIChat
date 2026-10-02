@@ -53,6 +53,8 @@ struct ChatRowCellView: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 8)
         .background(Color(uiColor: .systemBackground))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(([headline, subheadline].compactMap { $0 } + [isNewMessage ? "Unread" : "Read"]).joined(separator: ", "))
     }
 }
 

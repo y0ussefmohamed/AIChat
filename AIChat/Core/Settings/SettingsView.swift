@@ -27,6 +27,7 @@ struct SettingsView: View {
     @State private var versionTextWidth: CGFloat = 0
     @State private var showCreateAccountView: Bool = false
     @State private var showAlert: AnyAppAlert?
+    @State private var showDeleteAccountConfirmation: Bool = false
     @State private var showRatingModal: Bool = false
 
     private var isAnonymousUser: Bool {
@@ -45,6 +46,7 @@ struct SettingsView: View {
                 aboutSection
                     .offset(y: -5)
             }
+            .accessibilityIdentifier(AccessibilityID.Settings.list)
             .navigationTitle("Settings")
             .screenAppearAnalytics(viewName: "SettingsView")
             .showCustomAlert(alert: $showAlert)
@@ -54,6 +56,14 @@ struct SettingsView: View {
             .showModal(isPresented: $showRatingModal) {
                 ratingsModal
             }
+        }
+        .alert("Delete Account?", isPresented: $showDeleteAccountConfirmation) {
+            Button("Delete", role: .destructive) {
+                onDeleteAccountConfirmed()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete your account?")
         }
     }
 
@@ -69,7 +79,8 @@ struct SettingsView: View {
             secondaryButtonTitle: "Not Yet",
             secondaryButtonAction: {
                 showRatingModal = false
-            }
+            },
+            accessibilityIdentifier: AccessibilityID.Modal.rating
         )
     }
 
@@ -78,12 +89,14 @@ struct SettingsView: View {
             if isAnonymousUser {
                 Text("Save & Backup Account")
                     .styledButton(.plain, action: onCreateAccountPressed)
+                    .accessibilityIdentifier(AccessibilityID.Settings.backup)
             } else {
                 if authManager.auth == nil {
                     Text("No User Account Exists")
                 } else {
                     Text("Sign out")
                         .styledButton(.plain, action: onSignOutPressed)
+                        .accessibilityIdentifier(AccessibilityID.Settings.signOut)
                 }
             }
 
@@ -92,6 +105,7 @@ struct SettingsView: View {
                 .styledButton(.plain) {
                     onDeleteAccountPressed()
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.deleteAccount)
         } header: {
             Text("Account")
         }
@@ -105,6 +119,7 @@ struct SettingsView: View {
                     .styledButton(.plain) {
 
                     }
+                    .accessibilityIdentifier(AccessibilityID.Settings.premium)
 
                 if isPremium {
                     Text("Manage")
@@ -112,6 +127,7 @@ struct SettingsView: View {
                         .styledButton(.pressable) {
                             onManagePurchasesPressed()
                         }
+                        .accessibilityIdentifier(AccessibilityID.Settings.manage)
                 }
             }
 
@@ -127,9 +143,11 @@ struct SettingsView: View {
                 .styledButton(.plain) {
                     showRatingModal = true
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.rating)
 
             HStack {
                 Text("Version")
+                    .accessibilityIdentifier(AccessibilityID.Settings.version)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(Utilities.appVersion ?? "")
@@ -148,6 +166,7 @@ struct SettingsView: View {
 
             HStack {
                 Text("Build Number")
+                    .accessibilityIdentifier(AccessibilityID.Settings.build)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(Utilities.buildNumber ?? "")
@@ -160,6 +179,7 @@ struct SettingsView: View {
                 .styledButton(.plain) {
                     onContactUsPressed()
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.contact)
         } header: {
             Text("Application")
         }
@@ -244,17 +264,7 @@ extension SettingsView {
 
     private func onDeleteAccountPressed() {
         logManager.trackEvent(event: SettingsViewEvent.deleteAccountPressed)
-        showAlert = AnyAppAlert(
-            title: "Delete Account?",
-            subtitle: "Are you sure you want to delete your account?",
-            buttons: {
-                AnyView(
-                    Button("Delete", role: .destructive) {
-                        onDeleteAccountConfirmed()
-                    }
-                )
-            }
-        )
+        showDeleteAccountConfirmation = true
     }
 
     private func onDeleteAccountConfirmed() {

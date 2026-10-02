@@ -60,6 +60,7 @@ struct LinkProviderView: View {
                     .styledButton(.pressable) {
                         signingActionMethod()
                     }
+                    .accessibilityIdentifier(AccessibilityID.Account.submit)
 
                 HStack {
                     VStack {
@@ -85,6 +86,7 @@ struct LinkProviderView: View {
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 50)
                 .cornerRadius(10)
+                .accessibilityIdentifier(AccessibilityID.Account.apple)
 
                 Spacer()
 
@@ -102,6 +104,7 @@ struct LinkProviderView: View {
                                 usageOption = targetOption
                             }
                         }
+                        .accessibilityIdentifier(AccessibilityID.Account.switchMode)
                 }
                 .font(.footnote)
 
@@ -115,6 +118,7 @@ struct LinkProviderView: View {
     private var viewHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(usageOption.title)
+                .accessibilityIdentifier(AccessibilityID.Account.title)
                 .font(.title.bold())
             VStack(alignment: .leading, spacing: 0) {
                 Text("Don't Lose Your Data!")
@@ -131,9 +135,9 @@ struct LinkProviderView: View {
         Group {
             VStack(spacing: 16) {
                 if usageOption == .createAccount {
-                    CustomTextField(text: $fullName, placeholder: "Full Name", icon: "person")
+                    CustomTextField(text: $fullName, placeholder: "Full Name", icon: "person", accessibilityIdentifier: AccessibilityID.Account.fullName)
                 }
-                CustomTextField(text: $email, placeholder: "Email", icon: "envelope")
+                CustomTextField(text: $email, placeholder: "Email", icon: "envelope", accessibilityIdentifier: AccessibilityID.Account.email)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
 
@@ -150,8 +154,10 @@ struct LinkProviderView: View {
             Group {
                 if isPasswordVisible {
                     TextField("Password", text: $password)
+                        .accessibilityIdentifier(AccessibilityID.Account.password)
                 } else {
                     SecureField("Password", text: $password)
+                        .accessibilityIdentifier(AccessibilityID.Account.password)
                 }
             }
 
@@ -161,6 +167,8 @@ struct LinkProviderView: View {
                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                     .foregroundStyle(.secondary)
             }
+            .accessibilityIdentifier(AccessibilityID.Account.passwordVisibility)
+            .accessibilityLabel(isPasswordVisible ? "Hide password" : "Show password")
         }
         .padding()
         .background(Color(.systemGray6))

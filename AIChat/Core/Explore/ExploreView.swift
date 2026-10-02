@@ -52,6 +52,7 @@ struct ExploreView: View {
                     popularLoadingView
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Explore.list)
             .screenAppearAnalytics(viewName: "ExploreView")
             .navigationTitle("Explore")
             .toolbar(content: {
@@ -206,10 +207,13 @@ extension ExploreView {
                 .styledButton {
                     onAvatarPressed(avatar.avatarId)
                 }
+                .accessibilityIdentifier(AccessibilityID.Explore.featured(avatar.avatarId))
             }
+            .accessibilityIdentifier(AccessibilityID.Explore.carousel)
             .removeListRowFormatting()
         } header: {
             Text("Featured")
+                .accessibilityIdentifier(AccessibilityID.Explore.featuredTitle)
         }
     }
 
@@ -244,18 +248,21 @@ extension ExploreView {
                             .styledButton(.pressable) {
                                 onCategoryPressed(category, imageName)
                             }
+                            .accessibilityIdentifier(AccessibilityID.Explore.category(category.rawValue))
                         }
                     }
                 }
                 .frame(height: 150)
             }
             .scrollIndicators(.never)
+            .accessibilityIdentifier(AccessibilityID.Explore.categories)
             /// Page like scrolling
             .scrollTargetLayout()
             .scrollTargetBehavior(.viewAligned)
             .removeListRowFormatting()
         } header: {
             Text("Categories")
+                .accessibilityIdentifier(AccessibilityID.Explore.categoriesTitle)
         }
     }
 
@@ -271,11 +278,13 @@ extension ExploreView {
                 .styledButton(.highlighted) {
                     onAvatarPressed(avatar.avatarId)
                 }
+                .accessibilityIdentifier(AccessibilityID.Explore.popular(avatar.avatarId))
                 .removeListRowFormatting()
             }
 
         } header: {
             Text("Popular")
+                .accessibilityIdentifier(AccessibilityID.Explore.popularTitle)
         }
     }
 
@@ -320,6 +329,8 @@ extension ExploreView {
             .styledButton {
                 showPushNotificationModal = true
             }
+            .accessibilityLabel("Notification settings")
+            .accessibilityIdentifier(AccessibilityID.Explore.notifications)
     }
 
     private var pushNotificationModal: some View {
@@ -349,7 +360,8 @@ extension ExploreView {
             secondaryButtonTitle: "Not Now",
             secondaryButtonAction: {
                 showPushNotificationModal = false
-            }
+            },
+            accessibilityIdentifier: AccessibilityID.Modal.notifications
         )
     }
 
@@ -401,6 +413,7 @@ extension ExploreView {
             .styledButton(.plain) {
                 onDevSettingsPressed()
             }
+            .accessibilityIdentifier(AccessibilityID.Explore.developerSettings)
     }
 
     private func onDevSettingsPressed() {

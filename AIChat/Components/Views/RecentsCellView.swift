@@ -22,6 +22,8 @@ struct RecentsCellView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(name)
     }
 }
 

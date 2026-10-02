@@ -40,6 +40,7 @@ struct UserChatsView: View {
                     chatsSection
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Chats.list)
             .screenAppearAnalytics(viewName: "UserChatsView")
             .navigationTitle("Chats")
             .task {
@@ -103,6 +104,7 @@ struct UserChatsView: View {
 
                 VStack(spacing: 8) {
                     Text("No conversations yet")
+                        .accessibilityIdentifier(AccessibilityID.Chats.empty)
                         .font(.title2)
                         .fontWeight(.bold)
 
@@ -125,6 +127,7 @@ struct UserChatsView: View {
                     logManager.trackEvent(event: UserChatsViewEvent.exploreAvatarsPressed)
                     selectedTab = .explore
                 }
+                .accessibilityIdentifier(AccessibilityID.Chats.explore)
                 .padding(.top, 4)
             }
             .padding(.vertical, 60)
@@ -143,12 +146,14 @@ struct UserChatsView: View {
                             .styledButton(.pressable) {
                                 onRecentsAvatarTap(avatarId: avatar.avatarId)
                             }
+                            .accessibilityIdentifier(AccessibilityID.Chats.recent(avatar.avatarId))
                         }
                     }
                 }
                 .padding(.top, 10)
             }
             .frame(height: 120)
+            .accessibilityIdentifier(AccessibilityID.Chats.recents)
             .scrollIndicators(.hidden)
             .removeListRowFormatting()
         } header: {
@@ -177,6 +182,7 @@ struct UserChatsView: View {
                 .styledButton {
                     onRowTap(for: chat)
                 }
+                .accessibilityIdentifier(AccessibilityID.Chats.row(chat.id))
                 .removeListRowFormatting()
             }
         } header: {

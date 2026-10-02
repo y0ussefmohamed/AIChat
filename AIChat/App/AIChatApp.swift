@@ -10,6 +10,7 @@ import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     var dependencies: Dependencies!
+    var imageURLOverride: URL?
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -25,6 +26,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #endif
 
         config.configure()
+        #if MOCK
+        if let configuration = UITestConfiguration.current {
+            dependencies = Dependencies(uiTestConfiguration: configuration)
+            imageURLOverride = configuration.imageURL
+            return true
+        }
+        #endif
         dependencies = Dependencies(buildConfig: config)
         return true
     }
@@ -45,6 +53,7 @@ struct AIChatApp: App {
                 .environment(delegate.dependencies.logManager)
                 .environment(delegate.dependencies.pushManager)
                 .environment(delegate.dependencies.abTestManager)
+                .environment(\.imageURLOverride, delegate.imageURLOverride)
         }
     }
 }

@@ -157,4 +157,87 @@ struct UserModelTests {
         #expect(user.didCompleteOnboarding == false)
         #expect(user.profileColorHex == "#123456")
     }
+
+    @Test("Initializing from minimal authentication preserves nil optional fields and a false anonymous flag")
+    func init_fromMinimalAuth_preservesOptionalValues() {
+        let user = UserModel(auth: UserAuthInfo(uid: "minimal"), creationVersion: nil)
+
+        #expect(user.userId == "minimal")
+        #expect(user.email == nil)
+        #expect(user.isAnonymous == false)
+        #expect(user.creationDate == nil)
+        #expect(user.creationVersion == nil)
+        #expect(user.lastSignInDate == nil)
+        #expect(user.didCompleteOnboarding == nil)
+        #expect(user.profileColorHex == nil)
+    }
+
+    @Test("Encoding uses all persisted snake_case keys and Unix dates")
+    func codable_encodesExpectedKeys() throws {
+        let user = UserModel(
+            userId: "user_123", email: "user@example.com", isAnonymous: false,
+            creationDate: Date(timeIntervalSince1970: 1_700_000_000), creationVersion: "1.2.3",
+            lastSignInDate: Date(timeIntervalSince1970: 1_700_000_500),
+            didCompleteOnboarding: false, profileColorHex: "#123456"
+        )
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .secondsSince1970
+        let data = try encoder.encode(user)
+        let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+        #expect(Set(json.keys) == [
+            "user_id", "email", "is_anonymous", "creation_date", "creation_version",
+            "last_sign_in_date", "did_complete_onboarding", "profile_color_hex"
+        ])
+        #expect(json["user_id"] as? String == "user_123")
+        #expect(json["email"] as? String == "user@example.com")
+        #expect(json["is_anonymous"] as? Bool == false)
+        #expect(json["creation_date"] as? Double == 1_700_000_000)
+        #expect(json["creation_version"] as? String == "1.2.3")
+        #expect(json["last_sign_in_date"] as? Double == 1_700_000_500)
+        #expect(json["did_complete_onboarding"] as? Bool == false)
+        #expect(json["profile_color_hex"] as? String == "#123456")
+
+        let minimalData = try encoder.encode(UserModel(userId: "minimal"))
+        let minimalJSON = try #require(JSONSerialization.jsonObject(with: minimalData) as? [String: Any])
+        #expect(Set(minimalJSON.keys) == ["user_id"])
+    }
+
+    @Test("Optional user fields may be missing or null", arguments: [
+        #"{"user_id":"minimal"}"#,
+        #"{"user_id":"minimal","email":null,"is_anonymous":null,"creation_date":null,"creation_version":null,"last_sign_in_date":null,"did_complete_onboarding":null,"profile_color_hex":null}"#
+    ])
+    func codable_decodesMinimalUser(json: String) throws {
+        let user = try JSONDecoder().decode(UserModel.self, from: Data(json.utf8))
+
+        #expect(user.userId == "minimal")
+        #expect(user.email == nil)
+        #expect(user.isAnonymous == nil)
+        #expect(user.creationDate == nil)
+        #expect(user.creationVersion == nil)
+        #expect(user.lastSignInDate == nil)
+        #expect(user.didCompleteOnboarding == nil)
+        #expect(user.profileColorHex == nil)
+    }
+
+    @Test("Decoding rejects missing IDs and invalid boolean fields", arguments: [
+        #"{}"#,
+        #"{"user_id":null}"#,
+        #"{"user_id":"user_123","is_anonymous":"false"}"#,
+        #"{"user_id":"user_123","did_complete_onboarding":"true"}"#
+    ])
+    func codable_rejectsInvalidPayload(json: String) {
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(UserModel.self, from: Data(json.utf8))
+        }
+    }
+
+    @Test("Event parameters preserve false flags instead of omitting them")
+    func asEventParameter_preservesFalseFlags() {
+        let parameters = UserModel(userId: "user_123", isAnonymous: false, didCompleteOnboarding: false).asEventParameter
+
+        #expect(Set(parameters.keys) == ["user_user_id", "user_is_anonymous", "user_did_complete_onboarding"])
+        #expect(parameters["user_is_anonymous"] as? Bool == false)
+        #expect(parameters["user_did_complete_onboarding"] as? Bool == false)
+    }
 }

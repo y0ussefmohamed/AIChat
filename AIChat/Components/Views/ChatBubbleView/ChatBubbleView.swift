@@ -14,6 +14,8 @@ struct ChatBubbleView: View {
     var text: String = "Hey, How are You?"
     var onImagePressed: (() -> Void)?
     var bubbleColor: Color = .blue
+    var textIdentifier: String = "chat.bubble.text"
+    var imageIdentifier: String = "chat.bubble.avatar"
 
     var body: some View {
         VStack {
@@ -25,6 +27,10 @@ struct ChatBubbleView: View {
                                 .onTapGesture {
                                     onImagePressed?()
                                 }
+                                .accessibilityLabel("View avatar profile")
+                                .accessibilityIdentifier(imageIdentifier)
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAction { onImagePressed?() }
                         } else {
                             Rectangle()
                                 .fill(.gray.opacity(0.7))
@@ -34,10 +40,12 @@ struct ChatBubbleView: View {
                     .frame(width: 45, height: 45)
 
                     Text(text)
+                        .accessibilityIdentifier(textIdentifier)
                         .chatBubbleModifier(textUIColor: .label, backgroundColor: .gray.opacity(0.2))
                 }
             } else {
                 Text(text)
+                    .accessibilityIdentifier(textIdentifier)
                     .chatBubbleModifier(textUIColor: .systemBackground, backgroundColor: bubbleColor)
             }
         }

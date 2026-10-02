@@ -28,6 +28,8 @@ struct CategoryCellView: View {
             }
         }
         .cornerRadius(cornerRadius)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title ?? "Avatar category")
     }
 }
 

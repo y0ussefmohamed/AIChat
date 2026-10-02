@@ -44,6 +44,8 @@ struct HeroCellView: View {
             .foregroundStyle(.white)
         })
         .cornerRadius(16)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([title, subtitle].compactMap { $0 }.joined(separator: ", "))
     }
 }
 

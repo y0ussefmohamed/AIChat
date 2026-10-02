@@ -28,6 +28,10 @@ struct ProfileView: View {
                         .fill(currentUser?.profileColor ?? .accent)
                         .frame(width: 100, height: 100)
                         .frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("Profile color")
+                        .accessibilityValue(currentUser?.profileColorHex ?? "Accent")
+                        .accessibilityIdentifier(AccessibilityID.Profile.color)
                 }
                 .removeListRowFormatting()
 
@@ -53,6 +57,7 @@ struct ProfileView: View {
                             .styledButton(.pressable) {
                                 onAvatarPressed(avatar)
                             }
+                            .accessibilityIdentifier(AccessibilityID.Profile.avatar(avatar.avatarId))
                         }
                         .onDelete(perform: onDeleteAvatar)
                         .removeListRowFormatting()
@@ -67,10 +72,13 @@ struct ProfileView: View {
                             .foregroundStyle(.accent)
                             .tappableBackground()
                             .styledButton(action: onNewAvatarButtonPressed)
+                            .accessibilityLabel("Create avatar")
+                            .accessibilityIdentifier(AccessibilityID.Profile.createAvatar)
                     }
                     .padding(.horizontal, 8)
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Profile.list)
             .screenAppearAnalytics(viewName: "ProfileView")
             .navigationTitle("Profile")
             .toolbar {
@@ -106,6 +114,8 @@ struct ProfileView: View {
         Image(systemName: "gear")
             .font(.headline)
             .styledButton(action: onSettingsButtonPressed)
+            .accessibilityLabel("Settings")
+            .accessibilityIdentifier(AccessibilityID.Profile.settings)
     }
 
     private var emptyAvatarsView: some View {
@@ -115,6 +125,7 @@ struct ProfileView: View {
                 .foregroundStyle(.secondary)
 
             Text("No Avatars Yet")
+                .accessibilityIdentifier(AccessibilityID.Profile.empty)
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(.primary)
 
@@ -133,6 +144,7 @@ struct ProfileView: View {
                     .clipShape(Capsule())
                     .padding(.top, 8)
                     .styledButton(.pressable, action: onNewAvatarButtonPressed)
+                    .accessibilityIdentifier(AccessibilityID.Profile.emptyCreate)
         }
     }
 

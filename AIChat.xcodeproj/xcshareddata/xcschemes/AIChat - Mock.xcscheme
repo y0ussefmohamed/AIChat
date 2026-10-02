@@ -21,6 +21,20 @@
                ReferencedContainer = "container:AIChat.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C9652EE52F54F19900AA48CD"
+               BuildableName = "AIChatUITests.xctest"
+               BlueprintName = "AIChatUITests"
+               ReferencedContainer = "container:AIChat.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -37,6 +51,17 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C9F9A938306FE2990077D2A2"
                BuildableName = "AIChat_Tests.xctest"
+               ReferencedContainer = "container:AIChat.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C9652EE52F54F19900AA48CD"
+               BuildableName = "AIChatUITests.xctest"
+               BlueprintName = "AIChatUITests"
                ReferencedContainer = "container:AIChat.xcodeproj">
             </BuildableReference>
          </TestableReference>

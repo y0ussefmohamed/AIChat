@@ -20,6 +20,11 @@ struct ModalSupportView<Content: View>: View {
                     .onTapGesture {
                         showProfileModal = false
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Dismiss modal")
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { showProfileModal = false }
+                    .accessibilityIdentifier(AccessibilityID.Modal.backdrop)
                     .zIndex(1)
 
                 modalContent

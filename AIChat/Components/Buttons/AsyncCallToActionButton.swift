@@ -25,6 +25,8 @@ struct AsyncCallToActionButton: View {
             }
             .callToActionButton(buttonColor: buttonColor ?? .accent)
         }
+        .accessibilityLabel(title)
+        .accessibilityValue(conditionToLoad ? "Loading" : "Ready")
         .disabled(conditionToLoad)
         .opacity(conditionToLoad ? 0.6 : 1.0)
     }

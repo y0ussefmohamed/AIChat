@@ -29,6 +29,8 @@ struct OnboardingIntroView: View {
                     +
                     Text("with AI generated responses")
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier(AccessibilityID.Onboarding.intro)
                 .frame(maxHeight: .infinity)
 
                 ctaButton
@@ -53,6 +55,7 @@ extension OnboardingIntroView {
             Text("Continue")
                 .callToActionButton()
         }
+        .accessibilityIdentifier(AccessibilityID.Onboarding.introContinue)
         .simultaneousGesture(TapGesture().onEnded {
             onContinueButtonPressed()
         })

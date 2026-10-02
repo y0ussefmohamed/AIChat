@@ -59,6 +59,8 @@ struct ChatView: View {
                     .foregroundStyle(.accent)
                     .padding(8)
                     .styledButton(action: onEllipsisButtonPressed)
+                    .accessibilityLabel("Conversation actions")
+                    .accessibilityIdentifier(AccessibilityID.Chat.actions)
             }
         }
         .screenAppearAnalytics(viewName: "ChatView")
@@ -169,6 +171,7 @@ struct ChatView: View {
                             if let uid = try? authManager.getAuthId() {
                                 if shouldShowTimestamp(for: message, at: index) {
                                     timestampView(date: message.dateCreatedCalculated)
+                                        .accessibilityIdentifier(AccessibilityID.Chat.timestamp(message.id))
                                 }
 
                                 ChatBubbleViewBuilder(
@@ -189,6 +192,7 @@ struct ChatView: View {
                 }
                 .padding([.horizontal, .top], 8)
             }
+            .accessibilityIdentifier(AccessibilityID.Chat.scroll)
             .defaultScrollAnchor(.bottom)
             .safeAreaPadding(.bottom, 20)
             .animation(.default, value: chatMessages.count)
@@ -232,6 +236,8 @@ struct ChatView: View {
             .styledButton {
                 showProfileModal.toggle()
             }
+            .accessibilityLabel("View avatar profile")
+            .accessibilityIdentifier(AccessibilityID.Chat.emptyAvatar)
             .frame(width: 90, height: 90)
             .clipShape(Circle())
 
@@ -256,6 +262,7 @@ struct ChatView: View {
                 .styledButton(.pressable) {
                     onSendMessagePressed(chatStarter: "Hello \(avatar?.name ?? "")!")
                 }
+                .accessibilityIdentifier(AccessibilityID.Chat.starter)
         }
         .padding(.horizontal, 32)
         .frame(maxWidth: .infinity)
@@ -264,6 +271,7 @@ struct ChatView: View {
 
     private var textFieldSection: some View {
         TextField("Say something...", text: $messageTextField)
+            .accessibilityIdentifier(AccessibilityID.Chat.composer)
             .keyboardType(.alphabet)
             .autocorrectionDisabled(true)
             .padding()
@@ -285,6 +293,8 @@ struct ChatView: View {
                     .padding(.horizontal, 4)
                     .tappableBackground()
                     .styledButton(.plain, action: { onSendMessagePressed() })
+                    .accessibilityLabel("Send message")
+                    .accessibilityIdentifier(AccessibilityID.Chat.send)
                     .disabled(messageTextField.isEmpty)
             }
             .padding(.horizontal)
@@ -305,6 +315,9 @@ struct ChatView: View {
             .frame(width: 45, height: 45)
 
             TypingIndicatorView()
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Avatar is typing")
+                .accessibilityIdentifier(AccessibilityID.Chat.typing)
                 .scaleEffect(0.8)
             Spacer()
         }

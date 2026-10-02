@@ -19,11 +19,16 @@ struct ProfileModalView: View {
                 ImageLoaderView(imageUrlString: imageName, forceTransitionAnimation: true)
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 300)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Avatar profile image")
+                    .accessibilityAddTraits(.isImage)
+                    .accessibilityIdentifier(AccessibilityID.Modal.profileImage)
             }
 
             VStack(alignment: .leading) {
                 if let title {
                     Text(title)
+                        .accessibilityIdentifier(AccessibilityID.Modal.profileTitle)
                         .font(.title)
                         .foregroundStyle(Color(uiColor: .label))
                         .fontWeight(.bold)
@@ -31,6 +36,7 @@ struct ProfileModalView: View {
 
                 if let subtitle {
                     Text(subtitle)
+                        .accessibilityIdentifier(AccessibilityID.Modal.profileSubtitle)
                         .font(.title3)
                         .foregroundStyle(Color(uiColor: .secondaryLabel))
                 }
@@ -50,6 +56,8 @@ struct ProfileModalView: View {
                 .tappableBackground()
                 .padding(8)
                 .styledButton(.pressable, action: onXMarkPressed)
+                .accessibilityLabel("Close avatar profile")
+                .accessibilityIdentifier(AccessibilityID.Modal.profileClose)
         }
         .cornerRadius(16)
     }

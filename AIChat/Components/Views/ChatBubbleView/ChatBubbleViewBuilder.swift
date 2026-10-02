@@ -22,7 +22,9 @@ struct ChatBubbleViewBuilder: View {
                 avatarImageName: imageName,
                 text: message.content ?? "",
                 onImagePressed: onImagePressed,
-                bubbleColor: bubbleColor
+                bubbleColor: bubbleColor,
+                textIdentifier: AccessibilityID.Chat.message(message.id),
+                imageIdentifier: AccessibilityID.Chat.avatarImage(message.id)
             )
             .padding(.leading, isAvatar ? 0 : 75) /// if the currentUser typed a very long message it doesn't go in the avatar's section in the UI
             .padding(.trailing, isAvatar ? 75 : 0) /// same for the avatars' message

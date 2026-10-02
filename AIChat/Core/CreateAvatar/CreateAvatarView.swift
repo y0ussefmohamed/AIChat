@@ -38,9 +38,11 @@ struct CreateAvatarView: View {
                         onSaveButtonPressed()
                     }
                 }
+                .accessibilityIdentifier(AccessibilityID.CreateAvatar.save)
                 .opacity(avatarName.isEmpty || generatedImage == nil ? 0.6 : 1)
                 .removeListRowFormatting()
             }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.list)
             .onAppear {
                 resetForm()
             }
@@ -62,11 +64,14 @@ struct CreateAvatarView: View {
             .styledButton(.plain) {
                 onBackButtonPressed()
             }
+            .accessibilityLabel("Close avatar creation")
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.close)
     }
 
     private var nameSection: some View {
         Section {
             TextField("Enter Avatar Name", text: $avatarName)
+                .accessibilityIdentifier(AccessibilityID.CreateAvatar.name)
         } header: {
             Text("Name Your Avatar*")
         }
@@ -77,29 +82,38 @@ struct CreateAvatarView: View {
             Picker(selection: $characterOption) {
                 ForEach(CharacterOption.allCases, id: \.self) { option in
                     Text(option.rawValue)
+                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.characterOption(option.rawValue))
                         .tag(option) /// to know what option is selected
                 }
             } label: {
                 Text("is \(characterOption.prefix.lowercased()) ...")
             }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.character)
+            .accessibilityValue(characterOption.rawValue)
 
             Picker(selection: $characterAction) {
                 ForEach(CharacterAction.allCases, id: \.self) { action in
                     Text(action.rawValue)
+                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.actionOption(action.rawValue))
                         .tag(action)
                 }
             } label: {
                 Text("that is ...")
             }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.action)
+            .accessibilityValue(characterAction.rawValue)
 
             Picker(selection: $characterLocation) {
                 ForEach(CharacterLocation.allCases, id: \.self) { location in
                     Text(location.rawValue)
+                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.locationOption(location.rawValue))
                         .tag(location) /// to know what option is selected
                 }
             } label: {
                 Text("in the ...")
             }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.location)
+            .accessibilityValue(characterLocation.rawValue)
 
         } header: {
             Text("Attributes")
@@ -117,8 +131,10 @@ struct CreateAvatarView: View {
                             .styledButton(.plain) {
                                 onGenerateImagePressed()
                             }
+                            .accessibilityIdentifier(AccessibilityID.CreateAvatar.generate)
                     } else {
                         ProgressView()
+                            .accessibilityIdentifier(AccessibilityID.CreateAvatar.generating)
                             .tint(.accent)
                     }
                 }
@@ -134,6 +150,8 @@ struct CreateAvatarView: View {
                                     .resizable()
                                     .scaledToFill()
                                     .clipShape(Circle())
+                                    .accessibilityLabel("Generated avatar image")
+                                    .accessibilityIdentifier(AccessibilityID.CreateAvatar.generatedImage)
                             }
                         }
                     )

@@ -18,6 +18,7 @@ struct OnboardingCommunityView: View {
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("WELCOME TO THE COMMUNITY")
+                            .accessibilityIdentifier(AccessibilityID.Onboarding.community)
                             .font(.caption)
                             .fontWeight(.bold)
                             .tracking(2)
@@ -88,7 +89,10 @@ private extension OnboardingCommunityView {
                 .offset(x: 78, y: 88)
         }
         .frame(height: 290)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("AI characters gathered around a conversation")
+        .accessibilityAddTraits(.isImage)
+        .accessibilityIdentifier(AccessibilityID.Onboarding.communityIllustration)
     }
 
     var ctaButton: some View {
@@ -98,6 +102,7 @@ private extension OnboardingCommunityView {
             Text("Continue")
                 .callToActionButton()
         }
+        .accessibilityIdentifier(AccessibilityID.Onboarding.communityContinue)
         .simultaneousGesture(TapGesture().onEnded {
             onContinueButtonPressed()
         })

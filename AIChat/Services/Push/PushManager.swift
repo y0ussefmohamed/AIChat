@@ -7,15 +7,20 @@
 
 import Foundation
 import UserNotifications
-import SwiftfulUtilities
 
 @MainActor
 @Observable
 class PushManager {
 
+    private let service: any PushNotificationService
+
+    init(service: any PushNotificationService = LocalPushNotificationService()) {
+        self.service = service
+    }
+
     func isAuthorized() async -> Bool {
         do {
-            let status = try await LocalNotifications.getNotificationStatus()
+            let status = try await service.getNotificationStatus()
             return status == .authorized
         } catch {
             return false
@@ -24,34 +29,27 @@ class PushManager {
 
     /// called to see if the user wants push notifications or not
     func requestAuthorization() async throws -> Bool {
-        try await LocalNotifications.requestAuthorization()
+        try await service.requestAuthorization()
     }
 
     /// sees if the user didn't take an action yet towards the push notifications allowance
     func canRequestAuthorization() async -> Bool {
-        await LocalNotifications.canRequestAuthorization()
+        await service.canRequestAuthorization()
     }
 
     func schedulePushNotificationsForTheNextWeek() async throws {
-        LocalNotifications.removeAllPendingNotifications()
+        service.removeAllPendingNotifications()
 
         for day in 1...7 {
-            let content = AnyNotificationContent(
+            let request = PushNotificationRequest(
                 id: "daily-reminder-\(day)",
                 title: "AIChat",
                 body: "What's on your mind today?",
-                sound: true
-            )
-
-            let trigger = NotificationTriggerOption.time(
+                sound: true,
                 timeInterval: TimeInterval(day * 24 * 60 * 60),
                 repeats: false
             )
-
-            try await LocalNotifications.scheduleNotification(
-                content: content,
-                trigger: trigger
-            )
+            try await service.scheduleNotification(request: request)
         }
     }
 }

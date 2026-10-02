@@ -20,6 +20,8 @@ struct OnboardingCompletedView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Setup Completed! 🎉")
+                .accessibilityIdentifier(AccessibilityID.Onboarding.completed)
+                .accessibilityValue(selectedColor.toHex())
                 .font(.largeTitle)
                 .fontWeight(.semibold)
                 .foregroundStyle(selectedColor)
@@ -35,6 +37,7 @@ struct OnboardingCompletedView: View {
             AsyncCallToActionButton(title: "Finish", buttonColor: selectedColor, conditionToLoad: $isLoadingToSetupProfile) {
                 onFinishButtonPressed()
             }
+            .accessibilityIdentifier(AccessibilityID.Onboarding.finish)
         }
         .showCustomAlert(alert: $alert)
         .padding(16)

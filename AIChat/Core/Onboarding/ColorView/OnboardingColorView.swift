@@ -11,6 +11,7 @@ struct OnboardingColorView: View {
     @Environment(LogManager.self) private var logManager
     @State private var selectedColorIdx: Int?
     let profileColors: [Color] = [.red, .green, .orange, .blue, .mint, .purple, .cyan, .teal, .indigo]
+    private let profileColorNames = ["Red", "Green", "Orange", "Blue", "Mint", "Purple", "Cyan", "Teal", "Indigo"]
 
     var body: some View {
         ScrollView {
@@ -41,19 +42,25 @@ extension OnboardingColorView {
             content: {
                 Section(content: {
                     ForEach(profileColors.indices, id: \.self) { colorIdx in
-                        Circle()
-                            .fill(.accent)
-                            .overlay(
-                                Circle()
-                                    .fill(profileColors[colorIdx])
-                                    .padding(selectedColorIdx == colorIdx ? 10 : 0)
-                            )
-                            .onTapGesture {
-                                onColorSelected(index: colorIdx)
-                            }
+                        Button {
+                            onColorSelected(index: colorIdx)
+                        } label: {
+                            Circle()
+                                .fill(.accent)
+                                .overlay(
+                                    Circle()
+                                        .fill(profileColors[colorIdx])
+                                        .padding(selectedColorIdx == colorIdx ? 10 : 0)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.Onboarding.color(colorIdx))
+                        .accessibilityLabel(profileColorNames[colorIdx])
+                        .accessibilityValue(selectedColorIdx == colorIdx ? "Selected" : "Not selected")
                     }
                 }, header: {
                     Text("Select a Profile Color")
+                        .accessibilityIdentifier(AccessibilityID.Onboarding.colorTitle)
                         .frame(maxWidth: .infinity)
                         .font(.headline)
                 })
@@ -75,6 +82,7 @@ extension OnboardingColorView {
                 .callToActionButton(buttonColor: selectedColor)
                 .padding(16)
         }
+        .accessibilityIdentifier(AccessibilityID.Onboarding.colorContinue)
         .simultaneousGesture(TapGesture().onEnded {
             let hex = selectedColor.toHex()
             logManager.trackEvent(event: OnboardingColorViewEvent.continueButtonPressed(hex: hex))

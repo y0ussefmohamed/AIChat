@@ -12,6 +12,7 @@ struct CustomTextField: View {
     @Binding var text: String
     let placeholder: String
     let icon: String?
+    var accessibilityIdentifier: String = "customTextField"
 
     var body: some View {
         HStack {
@@ -21,6 +22,7 @@ struct CustomTextField: View {
             }
 
             TextField(placeholder, text: $text)
+                .accessibilityIdentifier(accessibilityIdentifier)
         }
         .padding()
         .background(Color(.systemGray6))

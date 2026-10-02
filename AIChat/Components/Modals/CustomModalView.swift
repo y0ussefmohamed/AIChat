@@ -14,11 +14,13 @@ struct CustomModalView: View {
     var primaryButtonAction: () -> Void = {}
     var secondaryButtonTitle: String = "No"
     var secondaryButtonAction: () -> Void = {}
+    var accessibilityIdentifier: String = "modal"
 
     var body: some View {
         VStack(spacing: 24) {
             VStack(spacing: 12) {
                 Text(title)
+                    .accessibilityIdentifier(AccessibilityID.Modal.title(accessibilityIdentifier))
                     .font(.title3)
                     .fontWeight(.semibold)
 
@@ -40,14 +42,15 @@ struct CustomModalView: View {
                     .styledButton(.pressable) {
                         primaryButtonAction()
                     }
+                    .accessibilityIdentifier(AccessibilityID.Modal.primary(accessibilityIdentifier))
 
                 Text(secondaryButtonTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .styledButton(.plain) {
                         secondaryButtonAction()
-
                     }
+                    .accessibilityIdentifier(AccessibilityID.Modal.secondary(accessibilityIdentifier))
             }
         }
         .multilineTextAlignment(.center)

@@ -43,6 +43,7 @@ extension WelcomeView {
     private var titleSection: some View {
         VStack {
             Text("AI Chat 📱")
+                .accessibilityIdentifier(AccessibilityID.Welcome.title)
                 .font(Font.title.bold())
                 .foregroundStyle(.black)
 
@@ -60,6 +61,7 @@ extension WelcomeView {
                 Text("Get Started")
                     .callToActionButton()
             }
+            .accessibilityIdentifier(AccessibilityID.Welcome.getStarted)
             .simultaneousGesture(TapGesture().onEnded {
                 onGetStartedPressed()
             })
@@ -74,6 +76,7 @@ extension WelcomeView {
                 .styledButton {
                     onSignInPressed()
                 }
+                .accessibilityIdentifier(AccessibilityID.Welcome.signIn)
         }
     }
 
@@ -99,6 +102,7 @@ extension WelcomeView {
             Link(destination: Constants.termsOfServiceURL) {
                 Text("Terms of Service")
             }
+            .accessibilityIdentifier(AccessibilityID.Welcome.terms)
             .simultaneousGesture(TapGesture().onEnded {
                 logManager.trackEvent(event: WelcomeViewEvent.termsOfServicePressed)
             })
@@ -109,6 +113,7 @@ extension WelcomeView {
             Link(destination: Constants.privacyPolicyURL) {
                 Text("Privacy Policy")
             }
+            .accessibilityIdentifier(AccessibilityID.Welcome.privacy)
             .simultaneousGesture(TapGesture().onEnded {
                 logManager.trackEvent(event: WelcomeViewEvent.privacyPolicyPressed)
             })

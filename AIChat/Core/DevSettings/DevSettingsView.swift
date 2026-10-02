@@ -24,11 +24,13 @@ struct DevSettingsView: View {
             List {
                 Section {
                     Toggle("CreateAccountTest", isOn: $createAccountTest)
+                        .accessibilityIdentifier(AccessibilityID.DeveloperSettings.createAccount)
                         .onChange(of: createAccountTest) { _, newValue in
                             updateCreateAccountTest(to: newValue)
                         }
 
                     Toggle("OnboardingCommunityTest", isOn: $onboardingCommunityTest)
+                        .accessibilityIdentifier(AccessibilityID.DeveloperSettings.community)
                         .onChange(of: onboardingCommunityTest) { _, newValue in
                             updateOnboardingCommunityTest(to: newValue)
                         }
@@ -36,9 +38,12 @@ struct DevSettingsView: View {
                     Picker("CategoryRowTest", selection: $categoryRowTest) {
                         ForEach(CategoryRowTestOption.allCases, id: \.self) { option in
                             Text(option.rawValue.capitalized)
+                                .accessibilityIdentifier(AccessibilityID.DeveloperSettings.categoryOption(option.rawValue))
                                 .tag(option)
                         }
                     }
+                    .accessibilityIdentifier(AccessibilityID.DeveloperSettings.categoryRow)
+                    .accessibilityValue(categoryRowTest.rawValue)
                     .onChange(of: categoryRowTest) { _, newValue in
                         updateCategoryRowTest(to: newValue)
                     }
@@ -71,6 +76,7 @@ struct DevSettingsView: View {
                     Text("Device Info")
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.DeveloperSettings.list)
             .screenAppearAnalytics(viewName: "DevSettingsView")
             .navigationTitle("Dev Settings")
             .toolbar {
@@ -79,6 +85,8 @@ struct DevSettingsView: View {
                         .styledButton {
                             onCloseButtonPressed()
                         }
+                        .accessibilityLabel("Close developer settings")
+                        .accessibilityIdentifier(AccessibilityID.DeveloperSettings.close)
                 }
             }
             .onFirstAppear {

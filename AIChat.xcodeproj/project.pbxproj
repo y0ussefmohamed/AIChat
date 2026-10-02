@@ -63,6 +63,16 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A17C0A713070F19900AA48CD /* AIChat_UITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AIChat_UITests;
+			sourceTree = "<group>";
+		};
+		A17C0A713070F19900AA48CE /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		C9652ED12F54F19900AA48CD /* AIChat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -134,6 +144,8 @@
 			children = (
 				C9652ED12F54F19900AA48CD /* AIChat */,
 				C9F9A93A306FE2990077D2A2 /* AIChat_Tests */,
+				A17C0A713070F19900AA48CD /* AIChat_UITests */,
+				A17C0A713070F19900AA48CE /* Shared */,
 				C90C844F2F8DB39300C06E8E /* Frameworks */,
 				C9652ED02F54F19900AA48CD /* Products */,
 			);
@@ -168,6 +180,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				A17C0A713070F19900AA48CE /* Shared */,
 				C9652ED12F54F19900AA48CD /* AIChat */,
 			);
 			name = AIChat;
@@ -221,6 +234,10 @@
 			);
 			dependencies = (
 				C9652EE82F54F19900AA48CD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A17C0A713070F19900AA48CD /* AIChat_UITests */,
+				A17C0A713070F19900AA48CE /* Shared */,
 			);
 			name = AIChatUITests;
 			packageProductDependencies = (
