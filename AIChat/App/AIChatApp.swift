@@ -26,6 +26,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #endif
 
         config.configure()
+        
         #if MOCK
         if let configuration = UITestConfiguration.current {
             dependencies = Dependencies(uiTestConfiguration: configuration)
@@ -33,6 +34,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return true
         }
         #endif
+
         dependencies = Dependencies(buildConfig: config)
         return true
     }

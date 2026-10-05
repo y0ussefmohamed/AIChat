@@ -10,9 +10,11 @@ class AIChatUITestCase: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
+        
         #if !MOCK
         throw XCTSkip("UI tests require the AIChat - Mock scheme.")
         #endif
+
         XCUIDevice.shared.orientation = .portrait
     }
 
