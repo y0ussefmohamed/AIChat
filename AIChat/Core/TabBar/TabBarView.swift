@@ -12,6 +12,7 @@ struct TabBarView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(AvatarManager.self) private var avatarManager
+    @Environment(AIManager.self) private var aiManager
 
     @State private var selectedTab: AppTap = .explore
 
@@ -34,7 +35,8 @@ struct TabBarView: View {
                     logManager: logManager,
                     authManager: authManager,
                     userManager: userManager,
-                    avatarManager: avatarManager
+                    avatarManager: avatarManager,
+                    aiManager: aiManager
                 )
             )
             .tabItem {

@@ -10,10 +10,12 @@ import SwiftUI
 @MainActor
 @Observable
 class ProfileViewModel {
-    private let logManager: LogManager
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let avatarManager: AvatarManager
+    let logManager: LogManager
+    let authManager: AuthManager
+    let userManager: UserManager
+    let avatarManager: AvatarManager
+
+    let aiManager: AIManager
 
     private(set) var currentUser: UserModel?
     private(set) var currentUserAvatars: [Avatar] = []
@@ -28,12 +30,14 @@ class ProfileViewModel {
         logManager: LogManager,
         authManager: AuthManager,
         userManager: UserManager,
-        avatarManager: AvatarManager
+        avatarManager: AvatarManager,
+        aiManager: AIManager
     ) {
         self.logManager = logManager
         self.authManager = authManager
         self.userManager = userManager
         self.avatarManager = avatarManager
+        self.aiManager = aiManager
     }
 
     func loadData() async {
@@ -238,7 +242,14 @@ struct ProfileView: View {
                 await viewModel.loadData()
             }
         }, content: {
-            CreateAvatarView()
+            CreateAvatarView(
+                viewModel: CreateAvatarViewModel(
+                    logManager: viewModel.logManager,
+                    authManager: viewModel.authManager,
+                    aiManager: viewModel.aiManager,
+                    avatarManager: viewModel.avatarManager
+                )
+            )
         })
     }
 
@@ -289,7 +300,8 @@ struct ProfileView: View {
                 logManager: DevPreview.shared.logManager,
                 authManager: DevPreview.shared.authManager,
                 userManager: DevPreview.shared.userManager,
-                avatarManager: DevPreview.shared.avatarManager
+                avatarManager: DevPreview.shared.avatarManager,
+                aiManager: DevPreview.shared.aiManager
             )
         )
     }

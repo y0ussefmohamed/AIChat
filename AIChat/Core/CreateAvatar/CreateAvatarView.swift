@@ -7,169 +7,42 @@
 
 import SwiftUI
 
-struct CreateAvatarView: View {
-    @Environment(LogManager.self) private var logManager
-    @Environment(AuthManager.self) private var authManager
-    @Environment(AIManager.self) private var aiManager
-    @Environment(AvatarManager.self) private var avatarManager
-    @Environment(\.dismiss) private var dismiss
+@MainActor
+@Observable
+class CreateAvatarViewModel {
+    private let logManager: LogManager
+    private let authManager: AuthManager
+    private let aiManager: AIManager
+    private let avatarManager: AvatarManager
 
-    @State private var avatarName: String = ""
-    @State private var characterOption: CharacterOption = .default
-    @State private var characterAction: CharacterAction = .default
-    @State private var characterLocation: CharacterLocation = .default
+    private(set) var isGeneratingImage: Bool?
+    private(set) var generatedImage: UIImage?
 
-    @State private var isGeneratingImage: Bool?
-    @State private var generatedImage: UIImage?
-    @State private var isSavingAvatar: Bool = false
-    @State private var alert: AnyAppAlert?
+    var isSavingAvatar: Bool = false
+    var avatarName: String = ""
+    var characterOption: CharacterOption = .default
+    var characterAction: CharacterAction = .default
+    var characterLocation: CharacterLocation = .default
+    var alert: AnyAppAlert?
 
-    var body: some View {
-        NavigationStack {
-            List {
-                nameSection
-
-                attributesSection
-
-                imageSection
-
-                AsyncCallToActionButton(title: "Save", buttonColor: .accent, conditionToLoad: $isSavingAvatar) {
-                    if !avatarName.isEmpty && generatedImage != nil {
-                        onSaveButtonPressed()
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.CreateAvatar.save)
-                .opacity(avatarName.isEmpty || generatedImage == nil ? 0.6 : 1)
-                .removeListRowFormatting()
-            }
-            .accessibilityIdentifier(AccessibilityID.CreateAvatar.list)
-            .onAppear {
-                resetForm()
-            }
-            .screenAppearAnalytics(viewName: "CreateAvatarView")
-            .navigationTitle("Create Avatar")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    backButton
-                }
-            }
-            .showCustomAlert(alert: $alert)
-        }
+    init(
+        logManager: LogManager,
+        authManager: AuthManager,
+        aiManager: AIManager,
+        avatarManager: AvatarManager
+    ) {
+        self.logManager = logManager
+        self.authManager = authManager
+        self.aiManager = aiManager
+        self.avatarManager = avatarManager
     }
 
-    private var backButton: some View {
-        Image(systemName: "xmark")
-            .foregroundStyle(.accent)
-            .fontWeight(.semibold)
-            .styledButton(.plain) {
-                onBackButtonPressed()
-            }
-            .accessibilityLabel("Close avatar creation")
-            .accessibilityIdentifier(AccessibilityID.CreateAvatar.close)
-    }
-
-    private var nameSection: some View {
-        Section {
-            TextField("Enter Avatar Name", text: $avatarName)
-                .accessibilityIdentifier(AccessibilityID.CreateAvatar.name)
-        } header: {
-            Text("Name Your Avatar*")
-        }
-    }
-
-    private var attributesSection: some View {
-        Section {
-            Picker(selection: $characterOption) {
-                ForEach(CharacterOption.allCases, id: \.self) { option in
-                    Text(option.rawValue)
-                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.characterOption(option.rawValue))
-                        .tag(option) /// to know what option is selected
-                }
-            } label: {
-                Text("is \(characterOption.prefix.lowercased()) ...")
-            }
-            .accessibilityIdentifier(AccessibilityID.CreateAvatar.character)
-            .accessibilityValue(characterOption.rawValue)
-
-            Picker(selection: $characterAction) {
-                ForEach(CharacterAction.allCases, id: \.self) { action in
-                    Text(action.rawValue)
-                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.actionOption(action.rawValue))
-                        .tag(action)
-                }
-            } label: {
-                Text("that is ...")
-            }
-            .accessibilityIdentifier(AccessibilityID.CreateAvatar.action)
-            .accessibilityValue(characterAction.rawValue)
-
-            Picker(selection: $characterLocation) {
-                ForEach(CharacterLocation.allCases, id: \.self) { location in
-                    Text(location.rawValue)
-                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.locationOption(location.rawValue))
-                        .tag(location) /// to know what option is selected
-                }
-            } label: {
-                Text("in the ...")
-            }
-            .accessibilityIdentifier(AccessibilityID.CreateAvatar.location)
-            .accessibilityValue(characterLocation.rawValue)
-
-        } header: {
-            Text("Attributes")
-        }
-    }
-
-    private var imageSection: some View {
-        Section {
-            HStack(alignment: .top) {
-                Group {
-                    if isGeneratingImage != true {
-                        Text("Generate Image")
-                            .underline()
-                            .foregroundStyle(.accent)
-                            .styledButton(.plain) {
-                                onGenerateImagePressed()
-                            }
-                            .accessibilityIdentifier(AccessibilityID.CreateAvatar.generate)
-                    } else {
-                        ProgressView()
-                            .accessibilityIdentifier(AccessibilityID.CreateAvatar.generating)
-                            .tint(.accent)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-
-                Circle()
-                    .fill(.gray.opacity(0.4))
-                    .frame(width: 220, height: 220)
-                    .overlay(
-                        ZStack {
-                            if let generatedImage {
-                                Image(uiImage: generatedImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .clipShape(Circle())
-                                    .accessibilityLabel("Generated avatar image")
-                                    .accessibilityIdentifier(AccessibilityID.CreateAvatar.generatedImage)
-                            }
-                        }
-                    )
-            }
-            .padding(.horizontal, 10)
-            .removeListRowFormatting()
-        }
-    }
-}
-
-// Business Logic
-extension CreateAvatarView {
-    private func onBackButtonPressed() {
+    func onBackButtonPressed(onDismiss: () -> Void) {
         logManager.trackEvent(event: CreateAvatarViewEvent.backButtonPressed)
-        dismiss()
+        onDismiss()
     }
 
-    private func onGenerateImagePressed() {
+    func onGenerateImagePressed() {
         Task { @MainActor in
             defer { isGeneratingImage = false }
             isGeneratingImage = true
@@ -187,7 +60,7 @@ extension CreateAvatarView {
         }
     }
 
-    private func onSaveButtonPressed() {
+    func onSaveButtonPressed(onDismiss: @escaping () -> Void) {
         guard let generatedImage else { return }
         isSavingAvatar = true
 
@@ -213,7 +86,8 @@ extension CreateAvatarView {
 
                 try await avatarManager.createAvatar(avatar: avatar, image: generatedImage)
                 logManager.trackEvent(event: CreateAvatarViewEvent.saveAvatarSuccess(avatar: avatar))
-                dismiss()
+
+                onDismiss()
             } catch {
                 logManager.trackEvent(event: CreateAvatarViewEvent.saveAvatarFail(error: error))
                 alert = AnyAppAlert(error: error)
@@ -221,7 +95,7 @@ extension CreateAvatarView {
         }
     }
 
-    private func resetForm() {
+    func resetForm() {
         generatedImage = nil
         avatarName = ""
         characterAction = .default
@@ -230,7 +104,7 @@ extension CreateAvatarView {
     }
 }
 
-extension CreateAvatarView {
+extension CreateAvatarViewModel {
     enum CreateAvatarViewEvent: LoggableEvent {
         case backButtonPressed
         case generateImageStart(prompt: String), generateImageSuccess, generateImageFail(error: Error)
@@ -283,12 +157,170 @@ extension CreateAvatarView {
     }
 }
 
+struct CreateAvatarView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var viewModel: CreateAvatarViewModel
+
+    init(viewModel: CreateAvatarViewModel) {
+        _viewModel = State(wrappedValue: viewModel)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                nameSection
+
+                attributesSection
+
+                imageSection
+
+                saveButton
+            }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.list)
+            .onAppear {
+                viewModel.resetForm()
+            }
+            .screenAppearAnalytics(viewName: "CreateAvatarView")
+            .navigationTitle("Create Avatar")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    backButton
+                }
+            }
+            .showCustomAlert(alert: $viewModel.alert)
+        }
+    }
+
+    private var backButton: some View {
+        Image(systemName: "xmark")
+            .foregroundStyle(.accent)
+            .fontWeight(.semibold)
+            .styledButton(.plain) {
+                viewModel.onBackButtonPressed(onDismiss: {
+                    dismiss()
+                })
+            }
+            .accessibilityLabel("Close avatar creation")
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.close)
+    }
+
+    private var saveButton: some View {
+        AsyncCallToActionButton(title: "Save", buttonColor: .accent, conditionToLoad: $viewModel.isSavingAvatar) {
+            if !viewModel.avatarName.isEmpty && viewModel.generatedImage != nil {
+                viewModel.onSaveButtonPressed(onDismiss: {
+                    dismiss()
+                })
+            }
+        }
+        .accessibilityIdentifier(AccessibilityID.CreateAvatar.save)
+        .opacity(viewModel.avatarName.isEmpty || viewModel.generatedImage == nil ? 0.6 : 1)
+        .removeListRowFormatting()
+    }
+
+    private var nameSection: some View {
+        Section {
+            TextField("Enter Avatar Name", text: $viewModel.avatarName)
+                .accessibilityIdentifier(AccessibilityID.CreateAvatar.name)
+        } header: {
+            Text("Name Your Avatar*")
+        }
+    }
+
+    private var attributesSection: some View {
+        Section {
+            Picker(selection: $viewModel.characterOption) {
+                ForEach(CharacterOption.allCases, id: \.self) { option in
+                    Text(option.rawValue)
+                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.characterOption(option.rawValue))
+                        .tag(option) /// to know what option is selected
+                }
+            } label: {
+                Text("is \(viewModel.characterOption.prefix.lowercased()) ...")
+            }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.character)
+            .accessibilityValue(viewModel.characterOption.rawValue)
+
+            Picker(selection: $viewModel.characterAction) {
+                ForEach(CharacterAction.allCases, id: \.self) { action in
+                    Text(action.rawValue)
+                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.actionOption(action.rawValue))
+                        .tag(action)
+                }
+            } label: {
+                Text("that is ...")
+            }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.action)
+            .accessibilityValue(viewModel.characterAction.rawValue)
+
+            Picker(selection: $viewModel.characterLocation) {
+                ForEach(CharacterLocation.allCases, id: \.self) { location in
+                    Text(location.rawValue)
+                        .accessibilityIdentifier(AccessibilityID.CreateAvatar.locationOption(location.rawValue))
+                        .tag(location) /// to know what option is selected
+                }
+            } label: {
+                Text("in the ...")
+            }
+            .accessibilityIdentifier(AccessibilityID.CreateAvatar.location)
+            .accessibilityValue(viewModel.characterLocation.rawValue)
+
+        } header: {
+            Text("Attributes")
+        }
+    }
+
+    private var imageSection: some View {
+        Section {
+            HStack(alignment: .top) {
+                Group {
+                    if viewModel.isGeneratingImage != true {
+                        Text("Generate Image")
+                            .underline()
+                            .foregroundStyle(.accent)
+                            .styledButton(.plain) {
+                                viewModel.onGenerateImagePressed()
+                            }
+                            .accessibilityIdentifier(AccessibilityID.CreateAvatar.generate)
+                    } else {
+                        ProgressView()
+                            .accessibilityIdentifier(AccessibilityID.CreateAvatar.generating)
+                            .tint(.accent)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+
+                Circle()
+                    .fill(.gray.opacity(0.4))
+                    .frame(width: 220, height: 220)
+                    .overlay(
+                        ZStack {
+                            if let generatedImage = viewModel.generatedImage {
+                                Image(uiImage: generatedImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .clipShape(Circle())
+                                    .accessibilityLabel("Generated avatar image")
+                                    .accessibilityIdentifier(AccessibilityID.CreateAvatar.generatedImage)
+                            }
+                        }
+                    )
+            }
+            .padding(.horizontal, 10)
+            .removeListRowFormatting()
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
-        CreateAvatarView()
-            .environment(LogManager(services: [ConsoleService()]))
-            .environment(AuthManager(service: MockAuthService(user: .mock())))
-            .environment(AIManager(aiServices: MockAIServices()))
-            .environment(AvatarManager(services: MockAvatarServices()))
+        CreateAvatarView(
+            viewModel: CreateAvatarViewModel(
+                logManager: DevPreview.shared.logManager,
+                authManager: DevPreview.shared.authManager,
+                aiManager: DevPreview.shared.aiManager,
+                avatarManager: DevPreview.shared.avatarManager
+            )
+        )
     }
+    .previewEnvironment()
 }
