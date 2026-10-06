@@ -7,166 +7,36 @@
 
 import SwiftUI
 
-struct ProfileView: View {
-    @Environment(LogManager.self) private var logManager
-    @Environment(AuthManager.self) private var authManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(AvatarManager.self) private var avatarManager
-    @State private var showSettingsView: Bool = false
-    @State private var showCreateAvatarView: Bool = false
-    @State private var alert: AnyAppAlert?
-    @State private var currentUser: UserModel?
-    @State private var currentUserAvatars: [Avatar] = []
-    @State private var isLoading: Bool = false
+@MainActor
+@Observable
+class ProfileViewModel {
+    private let logManager: LogManager
+    private let authManager: AuthManager
+    private let userManager: UserManager
+    private let avatarManager: AvatarManager
 
-    @State private var navPathStack: [String] = []
-    var body: some View {
-        NavigationStack(path: $navPathStack) {
-            List {
-                Section {
-                    Circle()
-                        .fill(currentUser?.profileColor ?? .accent)
-                        .frame(width: 100, height: 100)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("Profile color")
-                        .accessibilityValue(currentUser?.profileColorHex ?? "Accent")
-                        .accessibilityIdentifier(AccessibilityID.Profile.color)
-                }
-                .removeListRowFormatting()
+    private(set) var currentUser: UserModel?
+    private(set) var currentUserAvatars: [Avatar] = []
 
-                Section {
-                    if currentUserAvatars.isEmpty {
-                        if isLoading {
-                            ProgressView()
-                                .removeListRowFormatting()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            emptyAvatarsView
-                                .removeListRowFormatting()
-                                .padding(.vertical, 10)
-                                .frame(maxWidth: .infinity)
-                        }
-                    } else {
-                        ForEach(currentUserAvatars, id: \.self) { avatar in
-                            CustomListCellView(
-                                avatarName: avatar.name,
-                                avatarDescription: nil,
-                                imageName: avatar.profileImageName
-                            )
-                            .styledButton(.pressable) {
-                                onAvatarPressed(avatar)
-                            }
-                            .accessibilityIdentifier(AccessibilityID.Profile.avatar(avatar.avatarId))
-                        }
-                        .onDelete(perform: onDeleteAvatar)
-                        .removeListRowFormatting()
-                    }
-                } header: {
-                    HStack {
-                        Text("My Avatars")
-                            .frame(maxWidth: .infinity, alignment: .leading)
+    var isLoading: Bool = false
+    var showSettingsView: Bool = false
+    var showCreateAvatarView: Bool = false
+    var alert: AnyAppAlert?
+    var navPathStack: [String] = []
 
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.accent)
-                            .tappableBackground()
-                            .styledButton(action: onNewAvatarButtonPressed)
-                            .accessibilityLabel("Create avatar")
-                            .accessibilityIdentifier(AccessibilityID.Profile.createAvatar)
-                    }
-                    .padding(.horizontal, 8)
-                }
-            }
-            .accessibilityIdentifier(AccessibilityID.Profile.list)
-            .screenAppearAnalytics(viewName: "ProfileView")
-            .navigationTitle("Profile")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    settingsButton
-                }
-            }
-            .navigationDestination(for: String.self) { avatarId in
-                ChatView(avatarId: avatarId)
-            }
-        }
-        .showCustomAlert(alert: $alert)
-        .task {
-            await loadData()
-        }
-        .sheet(isPresented: $showSettingsView, onDismiss: {
-            Task {
-                await loadData()
-            }
-        }, content: {
-            SettingsView()
-        })
-        .fullScreenCover(isPresented: $showCreateAvatarView, onDismiss: {
-            Task {
-                await loadData()
-            }
-        }, content: {
-            CreateAvatarView()
-        })
+    init(
+        logManager: LogManager,
+        authManager: AuthManager,
+        userManager: UserManager,
+        avatarManager: AvatarManager
+    ) {
+        self.logManager = logManager
+        self.authManager = authManager
+        self.userManager = userManager
+        self.avatarManager = avatarManager
     }
 
-    private var settingsButton: some View {
-        Image(systemName: "gear")
-            .font(.headline)
-            .styledButton(action: onSettingsButtonPressed)
-            .accessibilityLabel("Settings")
-            .accessibilityIdentifier(AccessibilityID.Profile.settings)
-    }
-
-    private var emptyAvatarsView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.badge.plus")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(.secondary)
-
-            Text("No Avatars Yet")
-                .accessibilityIdentifier(AccessibilityID.Profile.empty)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.primary)
-
-            Text("Create your first custom avatar to get started.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-
-            Text("Create Avatar")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(Color.accentColor.opacity(0.15))
-                    .foregroundStyle(.accent)
-                    .clipShape(Capsule())
-                    .padding(.top, 8)
-                    .styledButton(.pressable, action: onNewAvatarButtonPressed)
-                    .accessibilityIdentifier(AccessibilityID.Profile.emptyCreate)
-        }
-    }
-
-    private func onAvatarPressed(_ avatar: Avatar) {
-        logManager.trackEvent(event: ProfileViewEvent.avatarPressed(avatar: avatar))
-        navPathStack.append(avatar.avatarId)
-    }
-}
-
-// MARK: - Seperate Business Logic out of Views
-extension ProfileView {
-    private func onSettingsButtonPressed() {
-        logManager.trackEvent(event: ProfileViewEvent.settingsButtonPressed)
-        showSettingsView = true
-    }
-
-    private func onNewAvatarButtonPressed() {
-        logManager.trackEvent(event: ProfileViewEvent.newAvatarButtonPressed)
-        showCreateAvatarView = true
-    }
-
-    private func loadData() async {
+    func loadData() async {
         self.currentUser = userManager.currentUser
 
         isLoading = true
@@ -183,7 +53,22 @@ extension ProfileView {
         isLoading = false
     }
 
-    private func onDeleteAvatar(indexSet: IndexSet) {
+    func onSettingsButtonPressed() {
+        logManager.trackEvent(event: ProfileViewEvent.settingsButtonPressed)
+        showSettingsView = true
+    }
+
+    func onNewAvatarButtonPressed() {
+        logManager.trackEvent(event: ProfileViewEvent.newAvatarButtonPressed)
+        showCreateAvatarView = true
+    }
+
+    func onAvatarPressed(avatar: Avatar) {
+        logManager.trackEvent(event: ProfileViewEvent.avatarPressed(avatar: avatar))
+        navPathStack.append(avatar.avatarId)
+    }
+
+    func onDeleteAvatar(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
         let avatarToDelete = currentUserAvatars[index]
         currentUserAvatars.remove(atOffsets: IndexSet(integer: index))
@@ -202,7 +87,7 @@ extension ProfileView {
     }
 }
 
-extension ProfileView {
+extension ProfileViewModel {
     enum ProfileViewEvent: LoggableEvent {
         case loadAvatarsStart, loadAvatarsSuccess(count: Int), loadAvatarsFail(error: Error)
         case settingsButtonPressed
@@ -260,10 +145,153 @@ extension ProfileView {
     }
 }
 
+struct ProfileView: View {
+    @State private var viewModel: ProfileViewModel
+
+    init(viewModel: ProfileViewModel) {
+        _viewModel = State(wrappedValue: viewModel)
+    }
+
+    var body: some View {
+        NavigationStack(path: $viewModel.navPathStack) {
+            List {
+                Section {
+                    Circle()
+                        .fill(viewModel.currentUser?.profileColor ?? .accent)
+                        .frame(width: 100, height: 100)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("Profile color")
+                        .accessibilityValue(viewModel.currentUser?.profileColorHex ?? "Accent")
+                        .accessibilityIdentifier(AccessibilityID.Profile.color)
+                }
+                .removeListRowFormatting()
+
+                Section {
+                    if viewModel.currentUserAvatars.isEmpty {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .removeListRowFormatting()
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            emptyAvatarsView
+                                .removeListRowFormatting()
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity)
+                        }
+                    } else {
+                        ForEach(viewModel.currentUserAvatars, id: \.self) { avatar in
+                            CustomListCellView(
+                                avatarName: avatar.name,
+                                avatarDescription: nil,
+                                imageName: avatar.profileImageName
+                            )
+                            .styledButton(.pressable) {
+                                viewModel.onAvatarPressed(avatar: avatar)
+                            }
+                            .accessibilityIdentifier(AccessibilityID.Profile.avatar(avatar.avatarId))
+                        }
+                        .onDelete(perform: viewModel.onDeleteAvatar)
+                        .removeListRowFormatting()
+                    }
+                } header: {
+                    HStack {
+                        Text("My Avatars")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.accent)
+                            .tappableBackground()
+                            .styledButton(action: viewModel.onNewAvatarButtonPressed)
+                            .accessibilityLabel("Create avatar")
+                            .accessibilityIdentifier(AccessibilityID.Profile.createAvatar)
+                    }
+                    .padding(.horizontal, 8)
+                }
+            }
+            .accessibilityIdentifier(AccessibilityID.Profile.list)
+            .screenAppearAnalytics(viewName: "ProfileView")
+            .navigationTitle("Profile")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    settingsButton
+                }
+            }
+            .navigationDestination(for: String.self) { avatarId in
+                ChatView(avatarId: avatarId)
+            }
+        }
+        .showCustomAlert(alert: $viewModel.alert)
+        .task {
+            await viewModel.loadData()
+        }
+        .sheet(isPresented: $viewModel.showSettingsView, onDismiss: {
+            Task {
+                await viewModel.loadData()
+            }
+        }, content: {
+            SettingsView()
+        })
+        .fullScreenCover(isPresented: $viewModel.showCreateAvatarView, onDismiss: {
+            Task {
+                await viewModel.loadData()
+            }
+        }, content: {
+            CreateAvatarView()
+        })
+    }
+
+    private var settingsButton: some View {
+        Image(systemName: "gear")
+            .font(.headline)
+            .styledButton(action: viewModel.onSettingsButtonPressed)
+            .accessibilityLabel("Settings")
+            .accessibilityIdentifier(AccessibilityID.Profile.settings)
+    }
+
+    private var emptyAvatarsView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "person.crop.circle.badge.plus")
+                .font(.system(size: 44, weight: .light))
+                .foregroundStyle(.secondary)
+
+            Text("No Avatars Yet")
+                .accessibilityIdentifier(AccessibilityID.Profile.empty)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Text("Create your first custom avatar to get started.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Text("Create Avatar")
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+                .background(Color.accentColor.opacity(0.15))
+                .foregroundStyle(.accent)
+                .clipShape(Capsule())
+                .padding(.top, 8)
+                .styledButton(.pressable, action: viewModel.onNewAvatarButtonPressed)
+                .accessibilityIdentifier(AccessibilityID.Profile.emptyCreate)
+        }
+    }
+}
+
+
 #Preview {
     NavigationStack {
-        ProfileView()
-            .environment(LogManager(services: [ConsoleService()]))
-            .previewEnvironment()
+        ProfileView(
+            viewModel: ProfileViewModel(
+                logManager: DevPreview.shared.logManager,
+                authManager: DevPreview.shared.authManager,
+                userManager: DevPreview.shared.userManager,
+                avatarManager: DevPreview.shared.avatarManager
+            )
+        )
     }
+    .previewEnvironment()
 }

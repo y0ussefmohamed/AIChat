@@ -9,6 +9,10 @@ import SwiftUI
 
 struct TabBarView: View {
     @Environment(LogManager.self) private var logManager
+    @Environment(AuthManager.self) private var authManager
+    @Environment(UserManager.self) private var userManager
+    @Environment(AvatarManager.self) private var avatarManager
+
     @State private var selectedTab: AppTap = .explore
 
     var body: some View {
@@ -25,15 +29,24 @@ struct TabBarView: View {
                 }
                 .tag(AppTap.chats)
 
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
-                .tag(AppTap.profile)
+            ProfileView(
+                viewModel: ProfileViewModel(
+                    logManager: logManager,
+                    authManager: authManager,
+                    userManager: userManager,
+                    avatarManager: avatarManager
+                )
+            )
+            .tabItem {
+                Label("Profile", systemImage: "person.fill")
+            }
+            .tag(AppTap.profile)
         }
         .screenAppearAnalytics(viewName: "TabBarView")
         .onChange(of: selectedTab) { _, newTab in
-            logManager.trackEvent(event: TabBarViewEvent.tabSelected(tab: newTab))
+            logManager.trackEvent(
+                event: TabBarViewEvent.tabSelected(tab: newTab)
+            )
         }
     }
 }
@@ -64,6 +77,5 @@ extension TabBarView {
 
 #Preview {
     TabBarView()
-        .environment(LogManager(services: [ConsoleService()]))
         .previewEnvironment()
 }

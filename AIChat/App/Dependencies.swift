@@ -110,3 +110,58 @@ extension View {
             .environment(ABTestManager(service: MockABTestService()))
     }
 }
+
+@MainActor
+final class DevPreview {
+    static let shared = DevPreview()
+
+    let authManager: AuthManager
+    let userManager: UserManager
+    let aiManager: AIManager
+    let avatarManager: AvatarManager
+    let chatManager: ChatManager
+    let logManager: LogManager
+    let pushManager: PushManager
+    let abTestManager: ABTestManager
+
+    init() {
+        self.logManager = LogManager(
+            services: [
+                ConsoleService(printParams: false)
+            ]
+        )
+
+        self.authManager = AuthManager(
+            service: MockAuthService(user: .mock()),
+            logManager: logManager
+        )
+
+        self.userManager = UserManager(
+            services: MockUserServicesContainer(user: .mock),
+            logManager: logManager
+        )
+
+        self.aiManager = AIManager(
+            aiServices: MockAIServices()
+        )
+
+        self.avatarManager = AvatarManager(
+            services: MockAvatarServices()
+        )
+
+        self.chatManager = ChatManager(
+            service: MockChatService()
+        )
+
+        self.pushManager = PushManager()
+
+        self.abTestManager = ABTestManager(
+            service: MockABTestService(
+                createAccountTest: true,
+                onboardingCommunityTest: true,
+                categoryRowTest: .default
+            ),
+            logManager: logManager
+        )
+    }
+}
