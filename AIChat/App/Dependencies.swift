@@ -1,7 +1,7 @@
 //
 //  Dependencies.swift
 //  AIChat
-//
+//  swiftlint:disable function_body_length
 //  Created by Youssef Mohamed on 29/06/2026.
 //
 import Foundation
@@ -31,6 +31,8 @@ enum BuildConfiguration {
 
 @MainActor
 struct Dependencies {
+    let container: DependencyContainer
+
     let authManager: AuthManager
     let userManager: UserManager
     let aiManager: AIManager
@@ -89,31 +91,51 @@ struct Dependencies {
         }
 
         pushManager = PushManager() /// same manager for all builds
-    }
-}
 
-extension View {
-    func previewEnvironment(
-        isSignedIn: Bool = true,
-        remoteAvatarService: RemoteAvatarService = MockAvatarService(),
-        localAvatarPersistence: LocalAvatarPersistence = MockLocalAvatarPersistence()
-    ) -> some View {
-        self
-            .environment(AppState())
-            .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
-            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
-            .environment(AvatarManager(services: MockAvatarServices(remote: remoteAvatarService, local: localAvatarPersistence)))
-            .environment(AIManager(aiServices: MockAIServices()))
-            .environment(ChatManager(service: MockChatService()))
-            .environment(LogManager(services: []))
-            .environment(PushManager())
-            .environment(ABTestManager(service: MockABTestService()))
+        let container = DependencyContainer()
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(AvatarManager.self, service: avatarManager)
+        container.register(ChatManager.self, service: chatManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(ABTestManager.self, service: abTestManager)
+
+        self.container = container
     }
 }
 
 @MainActor
+@Observable
+class DependencyContainer {
+    private var services: [String: Any] = [:]
+
+    /// puts the Manager name as a key string with its type and class passed as the value
+    func register<T> (_ type: T.Type, service: T) {
+        let key = "\(type)"
+        services[key] = service
+    }
+
+    /// puts the Manager name as a key string with its type and class passed as the value
+    func register<T> (_ type: T.Type, service: () -> T) {
+        let key = "\(type)"
+        services[key] = service()
+    }
+
+    /// gets the value of this key (which is string name of this class) from the map
+    func resolve<T> (_ type: T.Type) -> T? {
+        let key = "\(type)"
+        return services[key] as? T
+    }
+}
+
+
+@MainActor
 final class DevPreview {
     static let shared = DevPreview()
+
+    let container: DependencyContainer
 
     let authManager: AuthManager
     let userManager: UserManager
@@ -125,43 +147,25 @@ final class DevPreview {
     let abTestManager: ABTestManager
 
     init() {
-        self.logManager = LogManager(
-            services: [
-                ConsoleService(printParams: false)
-            ]
-        )
-
-        self.authManager = AuthManager(
-            service: MockAuthService(user: .mock()),
-            logManager: logManager
-        )
-
-        self.userManager = UserManager(
-            services: MockUserServicesContainer(user: .mock),
-            logManager: logManager
-        )
-
-        self.aiManager = AIManager(
-            aiServices: MockAIServices()
-        )
-
-        self.avatarManager = AvatarManager(
-            services: MockAvatarServices()
-        )
-
-        self.chatManager = ChatManager(
-            service: MockChatService()
-        )
-
+        self.logManager = LogManager(services: [ConsoleService(printParams: false)])
+        self.authManager = AuthManager(service: MockAuthService(user: .mock()), logManager: logManager)
+        self.userManager = UserManager(services: MockUserServicesContainer(user: .mock), logManager: logManager)
+        self.aiManager = AIManager(aiServices: MockAIServices())
+        self.avatarManager = AvatarManager(services: MockAvatarServices())
+        self.chatManager = ChatManager(service: MockChatService())
         self.pushManager = PushManager()
+        self.abTestManager = ABTestManager(service: MockABTestService(createAccountTest: true, onboardingCommunityTest: true, categoryRowTest: .default), logManager: logManager)
 
-        self.abTestManager = ABTestManager(
-            service: MockABTestService(
-                createAccountTest: true,
-                onboardingCommunityTest: true,
-                categoryRowTest: .default
-            ),
-            logManager: logManager
-        )
+        let container = DependencyContainer()
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(AvatarManager.self, service: avatarManager)
+        container.register(ChatManager.self, service: chatManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(ABTestManager.self, service: abTestManager)
+
+        self.container = container
     }
 }

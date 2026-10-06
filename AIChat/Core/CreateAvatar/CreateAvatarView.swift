@@ -25,16 +25,11 @@ class CreateAvatarViewModel {
     var characterLocation: CharacterLocation = .default
     var alert: AnyAppAlert?
 
-    init(
-        logManager: LogManager,
-        authManager: AuthManager,
-        aiManager: AIManager,
-        avatarManager: AvatarManager
-    ) {
-        self.logManager = logManager
-        self.authManager = authManager
-        self.aiManager = aiManager
-        self.avatarManager = avatarManager
+    init(container: DependencyContainer) {        
+        self.logManager = container.resolve(LogManager.self)!
+        self.authManager = container.resolve(AuthManager.self)!
+        self.aiManager = container.resolve(AIManager.self)!
+        self.avatarManager = container.resolve(AvatarManager.self)!
     }
 
     func onBackButtonPressed(onDismiss: () -> Void) {
@@ -159,11 +154,7 @@ extension CreateAvatarViewModel {
 
 struct CreateAvatarView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel: CreateAvatarViewModel
-
-    init(viewModel: CreateAvatarViewModel) {
-        _viewModel = State(wrappedValue: viewModel)
-    }
+    @State var viewModel: CreateAvatarViewModel
 
     var body: some View {
         NavigationStack {
@@ -314,12 +305,7 @@ struct CreateAvatarView: View {
 #Preview {
     NavigationStack {
         CreateAvatarView(
-            viewModel: CreateAvatarViewModel(
-                logManager: DevPreview.shared.logManager,
-                authManager: DevPreview.shared.authManager,
-                aiManager: DevPreview.shared.aiManager,
-                avatarManager: DevPreview.shared.avatarManager
-            )
+            viewModel: CreateAvatarViewModel(container: DevPreview.shared.container)
         )
     }
     .previewEnvironment()

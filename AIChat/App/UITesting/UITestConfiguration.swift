@@ -90,6 +90,17 @@ extension Dependencies {
             onboardingCommunityTest: config.scenario != .communityDisabled,
             categoryRowTest: config.scenario == .categoriesHidden ? .hidden : (config.scenario == .categoriesTop ? .top : .original)
         ), logManager: log)
+
+        container = DependencyContainer()
+
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(AvatarManager.self, service: avatarManager)
+        container.register(ChatManager.self, service: chatManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(ABTestManager.self, service: abTestManager)
     }
 }
 #endif

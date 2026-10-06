@@ -105,3 +105,69 @@ extension View {
             .modifier(AppearAnalyticsViewModifier(viewName: viewName))
     }
 }
+
+extension View {
+    func previewEnvironment(
+        isSignedIn: Bool = true,
+        remoteAvatarService: RemoteAvatarService = MockAvatarService(),
+        localAvatarPersistence: LocalAvatarPersistence = MockLocalAvatarPersistence()
+    ) -> some View {
+        self
+            .environment(AppState())
+            .environment(DependencyContainer())
+            .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
+            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
+            .environment(AvatarManager(services: MockAvatarServices(remote: remoteAvatarService, local: localAvatarPersistence)))
+            .environment(AIManager(aiServices: MockAIServices()))
+            .environment(ChatManager(service: MockChatService()))
+            .environment(LogManager(services: []))
+            .environment(PushManager())
+            .environment(ABTestManager(service: MockABTestService()))
+    }
+
+    @MainActor
+    func previewContainerEnvironment(
+        isSignedIn: Bool = true,
+        remoteAvatarService: RemoteAvatarService = MockAvatarService(),
+        localAvatarPersistence: LocalAvatarPersistence = MockLocalAvatarPersistence()
+    ) -> some View {
+        let container = DependencyContainer()
+        let logManager = LogManager(services: [])
+
+        container.register(LogManager.self, service: logManager)
+
+        container.register(AuthManager.self, service: AuthManager(
+            service: MockAuthService(user: isSignedIn ? .mock() : nil),
+            logManager: logManager
+        ))
+
+        container.register(UserManager.self, service: UserManager(
+            services: MockUserServicesContainer(user: isSignedIn ? .mock : nil),
+            logManager: logManager
+        ))
+
+        container.register(AvatarManager.self, service: AvatarManager(
+            services: MockAvatarServices(
+                remote: remoteAvatarService,
+                local: localAvatarPersistence
+            )
+        ))
+
+        container.register(AIManager.self, service: AIManager(
+            aiServices: MockAIServices()
+        ))
+
+        container.register(ChatManager.self, service: ChatManager(
+            service: MockChatService()
+        ))
+
+        container.register(PushManager.self, service: PushManager())
+
+        container.register(ABTestManager.self, service: ABTestManager(
+            service: MockABTestService(),
+            logManager: logManager
+        ))
+
+        return self.environment(container)
+    }
+}

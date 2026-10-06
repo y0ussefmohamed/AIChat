@@ -8,11 +8,8 @@
 import SwiftUI
 
 struct TabBarView: View {
+    @Environment(DependencyContainer.self) private var dependencyContainer
     @Environment(LogManager.self) private var logManager
-    @Environment(AuthManager.self) private var authManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(AvatarManager.self) private var avatarManager
-    @Environment(AIManager.self) private var aiManager
 
     @State private var selectedTab: AppTap = .explore
 
@@ -31,13 +28,7 @@ struct TabBarView: View {
                 .tag(AppTap.chats)
 
             ProfileView(
-                viewModel: ProfileViewModel(
-                    logManager: logManager,
-                    authManager: authManager,
-                    userManager: userManager,
-                    avatarManager: avatarManager,
-                    aiManager: aiManager
-                )
+                viewModel: ProfileViewModel(container: dependencyContainer)
             )
             .tabItem {
                 Label("Profile", systemImage: "person.fill")
@@ -79,5 +70,6 @@ extension TabBarView {
 
 #Preview {
     TabBarView()
+        .previewContainerEnvironment()
         .previewEnvironment()
 }

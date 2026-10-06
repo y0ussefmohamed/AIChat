@@ -15,8 +15,6 @@ class ProfileViewModel {
     let userManager: UserManager
     let avatarManager: AvatarManager
 
-    let aiManager: AIManager
-
     private(set) var currentUser: UserModel?
     private(set) var currentUserAvatars: [Avatar] = []
 
@@ -26,18 +24,11 @@ class ProfileViewModel {
     var alert: AnyAppAlert?
     var navPathStack: [String] = []
 
-    init(
-        logManager: LogManager,
-        authManager: AuthManager,
-        userManager: UserManager,
-        avatarManager: AvatarManager,
-        aiManager: AIManager
-    ) {
-        self.logManager = logManager
-        self.authManager = authManager
-        self.userManager = userManager
-        self.avatarManager = avatarManager
-        self.aiManager = aiManager
+    init(container: DependencyContainer) {
+        self.logManager = container.resolve(LogManager.self)!
+        self.authManager = container.resolve(AuthManager.self)!
+        self.userManager = container.resolve(UserManager.self)!
+        self.avatarManager = container.resolve(AvatarManager.self)!
     }
 
     func loadData() async {
@@ -150,11 +141,8 @@ extension ProfileViewModel {
 }
 
 struct ProfileView: View {
-    @State private var viewModel: ProfileViewModel
-
-    init(viewModel: ProfileViewModel) {
-        _viewModel = State(wrappedValue: viewModel)
-    }
+    @Environment(DependencyContainer.self) private var container
+    @State var viewModel: ProfileViewModel
 
     var body: some View {
         NavigationStack(path: $viewModel.navPathStack) {
@@ -243,12 +231,7 @@ struct ProfileView: View {
             }
         }, content: {
             CreateAvatarView(
-                viewModel: CreateAvatarViewModel(
-                    logManager: viewModel.logManager,
-                    authManager: viewModel.authManager,
-                    aiManager: viewModel.aiManager,
-                    avatarManager: viewModel.avatarManager
-                )
+                viewModel: CreateAvatarViewModel(container: container)
             )
         })
     }
@@ -296,14 +279,9 @@ struct ProfileView: View {
 #Preview {
     NavigationStack {
         ProfileView(
-            viewModel: ProfileViewModel(
-                logManager: DevPreview.shared.logManager,
-                authManager: DevPreview.shared.authManager,
-                userManager: DevPreview.shared.userManager,
-                avatarManager: DevPreview.shared.avatarManager,
-                aiManager: DevPreview.shared.aiManager
-            )
+            viewModel: ProfileViewModel(container: DevPreview.shared.container)
         )
     }
+    .previewContainerEnvironment()
     .previewEnvironment()
 }
