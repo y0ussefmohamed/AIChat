@@ -114,7 +114,7 @@ extension View {
     ) -> some View {
         self
             .environment(AppState())
-            .environment(DependencyContainer())
+            .environment(DevPreview.shared.container)
             .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
             .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
             .environment(AvatarManager(services: MockAvatarServices(remote: remoteAvatarService, local: localAvatarPersistence)))

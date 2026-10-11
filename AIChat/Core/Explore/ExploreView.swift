@@ -229,6 +229,7 @@ extension ExploreViewModel {
 }
 
 struct ExploreView: View {
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: ExploreViewModel
 
     var body: some View {
@@ -289,7 +290,7 @@ struct ExploreView: View {
                 case .chat(let avatarId):
                     ChatView(avatarId: avatarId)
                 case .category(let category, let imageName):
-                    CategoryListView(category: category, categoryImageName: imageName, navPathStack: $viewModel.navPathStack)
+                    CategoryListView(viewModel: CategoryListViewModel(container: container), category: category, categoryImageName: imageName, navPathStack: $viewModel.navPathStack)
                 }
             }
             .task {
@@ -540,6 +541,8 @@ extension ExploreView {
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(createAccountTest: true)))
 
     return ExploreView(viewModel: ExploreViewModel(container: container))
+        .previewContainerEnvironment()
+        .previewEnvironment()
 }
 
 #Preview("CategoryRowTest: Original") {
