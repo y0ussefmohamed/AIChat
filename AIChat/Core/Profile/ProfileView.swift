@@ -10,10 +10,10 @@ import SwiftUI
 @MainActor
 @Observable
 class ProfileViewModel {
-    let logManager: LogManager
-    let authManager: AuthManager
-    let userManager: UserManager
-    let avatarManager: AvatarManager
+    private let logManager: LogManager
+    private let authManager: AuthManager
+    private let userManager: UserManager
+    private let avatarManager: AvatarManager
 
     private(set) var currentUser: UserModel?
     private(set) var currentUserAvatars: [Avatar] = []
