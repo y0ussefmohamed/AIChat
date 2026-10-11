@@ -15,7 +15,9 @@ struct TabBarView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            ExploreView()
+            ExploreView(
+                viewModel: ExploreViewModel(container: dependencyContainer)
+            )
                 .tabItem {
                     Label("Explore", systemImage: "eyes")
                 }

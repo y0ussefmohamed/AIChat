@@ -5,8 +5,7 @@ enum Secrets {
         guard let path = Bundle.main.path(forResource: "Secrets", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path),
               let value = dict[key] as? String else {
-            // fatalError("Missing secret: \(key)")
-            return ""
+            fatalError("Missing secret: \(key)")
         }
         return value
     }

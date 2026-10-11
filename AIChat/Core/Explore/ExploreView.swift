@@ -7,46 +7,249 @@
 
 import SwiftUI
 
+@MainActor
+@Observable
+class ExploreViewModel {
+    private let logManager: LogManager
+    private let authManager: AuthManager
+    private let avatarManager: AvatarManager
+    private let pushManager: PushManager
+    private let abTestManager: ABTestManager
+    
+    let categories: [CharacterOption] = CharacterOption.allCases
+    
+    /// changes inside the ViewModel
+    private(set) var featuredAvatars: [Avatar] = []
+    private(set) var popularAvatars: [Avatar] = []
+    private(set) var featuredDidLoad: Bool = false
+    private(set) var popularDidLoad: Bool = false
+    private(set) var showNotificationButton: Bool = true
+
+    /// changes outside the ViewModel (in the View)
+    var navPathStack: [NavigationPathOption] = []
+    var showDevSettings: Bool = false
+    var alert: AnyAppAlert?
+    var showPushNotificationModal: Bool = false
+    var showCreateAccountView: Bool = false
+
+    var categoryRowTest: CategoryRowTestOption {
+        abTestManager.activeTests.categoryRowTest
+    }
+
+    init(container: DependencyContainer) {
+        self.logManager = container.resolve(LogManager.self)!
+        self.authManager = container.resolve(AuthManager.self)!
+        self.avatarManager = container.resolve(AvatarManager.self)!
+        self.pushManager = container.resolve(PushManager.self)!
+        self.abTestManager = container.resolve(ABTestManager.self)!
+    }
+
+    func loadData() {
+        loadFeaturedAvatars()
+        loadPopularAvatars()
+        showCreateAccountIfNeeded()
+    }
+
+    func handleNotifications() async {
+        await handleShowNotificationButton()
+
+        let userAllowedNotifications = await pushManager.isAuthorized()
+        if userAllowedNotifications {
+            try? await pushManager.schedulePushNotificationsForTheNextWeek()
+        }
+    }
+
+    func onNotificationButtonPressed() {
+        showPushNotificationModal = true
+    }
+
+    func onEnableNotificationsPressed() {
+        showPushNotificationModal = false
+
+        Task {
+            do {
+                let userDidAllowNotifications = try await pushManager.requestAuthorization()
+                if userDidAllowNotifications {
+                    try await pushManager.schedulePushNotificationsForTheNextWeek()
+                }
+                await handleShowNotificationButton()
+            } catch {
+                alert = AnyAppAlert(error: error)
+            }
+        }
+    }
+
+    func onDismissNotificationsPressed() {
+        showPushNotificationModal = false
+    }
+
+    func handleDeepLink(url: URL) {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems else {
+            return
+        }
+
+        for queryItem in queryItems {
+            if queryItem.name == "category",
+               let value = queryItem.value,
+               let category = CharacterOption(rawValue: value) {
+
+                let imageName = popularAvatars.first {
+                    $0.characterOption == category
+                }?.profileImageName ?? Constants.randomImage
+
+                navPathStack.append(.category(category, imageName))
+                return
+            }
+        }
+    }
+
+    private func handleShowNotificationButton() async {
+        /// returns false if user allowed or disallowed the notifications
+        showNotificationButton = await pushManager.canRequestAuthorization()
+    }
+
+    private func loadFeaturedAvatars() {
+        featuredDidLoad = false
+        logManager.trackEvent(event: ExploreViewEvent.loadFeaturedStart)
+
+        Task {
+            do {
+                featuredAvatars = try await avatarManager.getFeaturedAvatars()
+                featuredDidLoad = true
+                logManager.trackEvent(event: ExploreViewEvent.loadFeaturedSuccess(count: featuredAvatars.count))
+            } catch {
+                logManager.trackEvent(event: ExploreViewEvent.loadFeaturedFail(error: error))
+                alert = AnyAppAlert(error: error)
+            }
+        }
+    }
+
+    private func loadPopularAvatars() {
+        popularDidLoad = false
+        logManager.trackEvent(event: ExploreViewEvent.loadPopularStart)
+
+        Task {
+            do {
+                popularAvatars = try await avatarManager.getPopularAvatars()
+                popularDidLoad = true
+                logManager.trackEvent(event: ExploreViewEvent.loadPopularSuccess(count: popularAvatars.count))
+            } catch {
+                logManager.trackEvent(event: ExploreViewEvent.loadPopularFail(error: error))
+                alert = AnyAppAlert(error: error)
+            }
+        }
+    }
+
+    func onAvatarPressed(_ avatarId: String) {
+        logManager.trackEvent(event: ExploreViewEvent.avatarPressed(avatarId: avatarId))
+        navPathStack.append(.chat(avatarId))
+    }
+
+    func onCategoryPressed(_ category: CharacterOption, _ imageName: String) {
+        logManager.trackEvent(event: ExploreViewEvent.categoryPressed(category: category))
+        navPathStack.append(.category(category, imageName))
+    }
+
+    func onDevSettingsPressed() {
+        logManager.trackEvent(event: ExploreViewEvent.devSettingsPressed)
+        showDevSettings.toggle()
+    }
+
+    /// Shows the account sheet for anonymous users in the create-account experiment.
+    private func showCreateAccountIfNeeded() {
+        guard authManager.auth?.isAnonymous == true &&
+              abTestManager.activeTests.createAccountTest == true else { return }
+
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            showCreateAccountView = true
+        }
+    }
+}
+
+extension ExploreViewModel {
+    enum ExploreViewEvent: LoggableEvent {
+        case loadFeaturedStart, loadFeaturedSuccess(count: Int), loadFeaturedFail(error: Error)
+        case loadPopularStart, loadPopularSuccess(count: Int), loadPopularFail(error: Error)
+        case avatarPressed(avatarId: String)
+        case categoryPressed(category: CharacterOption)
+        case devSettingsPressed
+
+        var eventName: String {
+            switch self {
+            case .loadFeaturedStart:
+                return "ExploreView_LoadFeatured_Start"
+            case .loadFeaturedSuccess:
+                return "ExploreView_LoadFeatured_Success"
+            case .loadFeaturedFail:
+                return "ExploreView_LoadFeatured_Fail"
+            case .loadPopularStart:
+                return "ExploreView_LoadPopular_Start"
+            case .loadPopularSuccess:
+                return "ExploreView_LoadPopular_Success"
+            case .loadPopularFail:
+                return "ExploreView_LoadPopular_Fail"
+            case .avatarPressed:
+                return "ExploreView_Avatar_Pressed"
+            case .categoryPressed:
+                return "ExploreView_Category_Pressed"
+            case .devSettingsPressed:
+                return "ExploreView_DevSettings_Pressed"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .loadFeaturedSuccess(count: let count):
+                return count.asEventParameter(key: "featured_count")
+            case .loadPopularSuccess(count: let count):
+                return count.asEventParameter(key: "popular_count")
+            case .loadFeaturedFail(error: let error),
+                 .loadPopularFail(error: let error):
+                return error.asEventParameter
+            case .avatarPressed(avatarId: let avatarId):
+                return avatarId.asEventParameter(key: "avatar_id")
+            case .categoryPressed(category: let category):
+                return category.asEventParameter
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .loadFeaturedFail, .loadPopularFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
+    }
+}
+
 struct ExploreView: View {
-    @Environment(LogManager.self) private var logManager
-    @Environment(AuthManager.self) private var authManager
-    @Environment(AvatarManager.self) private var avatarManager
-    @Environment(PushManager.self) private var pushManager
-    @Environment(ABTestManager.self) private var abTestManager
-
-    @State private var featuredAvatars: [Avatar] = []
-    @State private var categories: [CharacterOption] = CharacterOption.allCases
-    @State private var popularAvatars: [Avatar] = []
-
-    @State private var navPathStack: [NavigationPathOption] = []
-    @State private var featuredDidLoad: Bool = false
-    @State private var popularDidLoad: Bool = false
-    @State private var showDevSettings: Bool = false
-    @State private var alert: AnyAppAlert?
-    @State private var showNotificationButton: Bool = true
-    @State private var showPushNotificationModal: Bool = false
-
-    @State private var showCreateAccountView: Bool = false
+    @State var viewModel: ExploreViewModel
 
     var body: some View {
-        NavigationStack(path: $navPathStack) {
+        NavigationStack(path: $viewModel.navPathStack) {
             List {
 
-                if abTestManager.activeTests.categoryRowTest == .top {
+                if viewModel.categoryRowTest == .top {
                     categoryRow
                 }
 
-                if featuredDidLoad {
+                if viewModel.featuredDidLoad {
                     featuredSection
                 } else {
                     featuredLoadingView
                 }
 
-                if abTestManager.activeTests.categoryRowTest == .original {
+                if viewModel.categoryRowTest == .original {
                     categoryRow
                 }
 
-                if popularDidLoad {
+                if viewModel.popularDidLoad {
                     popularSection
                 } else {
                     popularLoadingView
@@ -63,22 +266,22 @@ struct ExploreView: View {
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !popularDidLoad || !featuredDidLoad {
+                    if !viewModel.popularDidLoad || !viewModel.featuredDidLoad {
                         ProgressView()
                     } else {
-                        if showNotificationButton {
+                        if viewModel.showNotificationButton {
                             pushNotificationButton
                         }
                     }
                 }
             })
-            .showModal(isPresented: $showPushNotificationModal) {
+            .showModal(isPresented: $viewModel.showPushNotificationModal) {
                 pushNotificationModal
             }
-            .sheet(isPresented: $showDevSettings) {
+            .sheet(isPresented: $viewModel.showDevSettings) {
                 DevSettingsView()
             }
-            .sheet(isPresented: $showCreateAccountView) {
+            .sheet(isPresented: $viewModel.showCreateAccountView) {
                 LinkProviderView(usageOption: .createAccount)
             }
             .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
@@ -86,26 +289,20 @@ struct ExploreView: View {
                 case .chat(let avatarId):
                     ChatView(avatarId: avatarId)
                 case .category(let category, let imageName):
-                    CategoryListView(category: category, categoryImageName: imageName, navPathStack: $navPathStack)
+                    CategoryListView(category: category, categoryImageName: imageName, navPathStack: $viewModel.navPathStack)
                 }
             }
             .task {
-                await handleShowNotificationButton()
-
-                let userAllowedNotifications = await pushManager.isAuthorized()
-                if userAllowedNotifications {
-                    try? await pushManager.schedulePushNotificationsForTheNextWeek()
-                }
+                await viewModel.handleNotifications()
             }
             .onFirstAppear {
-                loadFeaturedAvatars()
-                loadPopularAvatars()
-                showCreateAccountIfNeeded()
+                viewModel.loadData()
             }
             .onOpenURL { url in
-                handleDeepLink(url: url)
+                viewModel.handleDeepLink(url: url)
             }
         }
+        .showCustomAlert(alert: $viewModel.alert)
     }
 }
 
@@ -198,14 +395,14 @@ extension ExploreView {
 
     private var featuredSection: some View {
         Section {
-            CarouselView(items: featuredAvatars) { avatar in
+            CarouselView(items: viewModel.featuredAvatars) { avatar in
                 HeroCellView(
                     imageName: avatar.profileImageName,
                     title: avatar.name,
                     subtitle: avatar.characterDescription,
                 )
                 .styledButton {
-                    onAvatarPressed(avatar.avatarId)
+                    viewModel.onAvatarPressed(avatar.avatarId)
                 }
                 .accessibilityIdentifier(AccessibilityID.Explore.featured(avatar.avatarId))
             }
@@ -234,8 +431,8 @@ extension ExploreView {
         Section {
             ScrollView(.horizontal) {
                 HStack(spacing: 12) {
-                    ForEach(categories, id: \.self) { category in
-                        let imageName = popularAvatars.last(
+                    ForEach(viewModel.categories, id: \.self) { category in
+                        let imageName = viewModel.popularAvatars.last(
                             where: {
                                 $0.characterOption == category
                             })?.profileImageName
@@ -246,7 +443,7 @@ extension ExploreView {
                                 imageName: imageName
                             )
                             .styledButton(.pressable) {
-                                onCategoryPressed(category, imageName)
+                                viewModel.onCategoryPressed(category, imageName)
                             }
                             .accessibilityIdentifier(AccessibilityID.Explore.category(category.rawValue))
                         }
@@ -269,14 +466,14 @@ extension ExploreView {
     private var popularSection: some View {
         Section {
 
-            ForEach(popularAvatars, id: \.self) { avatar in
+            ForEach(viewModel.popularAvatars, id: \.self) { avatar in
                 CustomListCellView(
                     avatarName: avatar.name,
                     avatarDescription: avatar.characterDescription,
                     imageName: avatar.profileImageName
                 )
                 .styledButton(.highlighted) {
-                    onAvatarPressed(avatar.avatarId)
+                    viewModel.onAvatarPressed(avatar.avatarId)
                 }
                 .accessibilityIdentifier(AccessibilityID.Explore.popular(avatar.avatarId))
                 .removeListRowFormatting()
@@ -290,45 +487,17 @@ extension ExploreView {
 
     @ViewBuilder
     private var categoryRow: some View {
-        if popularDidLoad {
+        if viewModel.popularDidLoad {
             categoriesSection
         } else {
             categoriesLoadingView
         }
     }
 
-    private func handleDeepLink(url: URL) {
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-        let queryItems = components.queryItems else {
-            return
-        }
-
-        for queryItem in queryItems {
-            if queryItem.name == "category",
-               let value = queryItem.value,
-               let category = CharacterOption(rawValue: value) {
-
-                let imageName = popularAvatars.first {
-                    $0.characterOption == category
-                }?.profileImageName ?? Constants.randomImage
-
-                navPathStack.append(.category(category, imageName))
-                return
-            }
-        }
-    }
-
-    private func handleShowNotificationButton() async {
-        /// returns false if user allowed or disallowed the notifications
-        showNotificationButton = await pushManager.canRequestAuthorization()
-    }
-
     private var pushNotificationButton: some View {
         Image(systemName: "bell.fill")
             .font(.headline)
-            .styledButton {
-                showPushNotificationModal = true
-            }
+            .styledButton(action: viewModel.onNotificationButtonPressed)
             .accessibilityLabel("Notification settings")
             .accessibilityIdentifier(AccessibilityID.Explore.notifications)
     }
@@ -338,207 +507,77 @@ extension ExploreView {
             title: "Enable Notifications",
             subtitle: "Turn on push notifications to stay updated with important alerts and reminders.",
             primaryButtonTitle: "Enable",
-            primaryButtonAction: {
-                showPushNotificationModal = false
-
-                Task {
-                    do {
-                        /// this opens the IOS Real `Built-in` Push Notification Enable Modal
-                        let userDidAllowNotifications = try await pushManager.requestAuthorization()
-
-                        if userDidAllowNotifications {
-                            try await pushManager.schedulePushNotificationsForTheNextWeek()
-                        }
-
-                        /// if notifications is allowed/disallowed then reset `showNotificationButton`
-                        await handleShowNotificationButton()
-                    } catch {
-                        alert = AnyAppAlert(error: error)
-                    }
-                }
-            },
+            primaryButtonAction: viewModel.onEnableNotificationsPressed,
             secondaryButtonTitle: "Not Now",
-            secondaryButtonAction: {
-                showPushNotificationModal = false
-            },
+            secondaryButtonAction: viewModel.onDismissNotificationsPressed,
             accessibilityIdentifier: AccessibilityID.Modal.notifications
         )
-    }
-
-    private func loadFeaturedAvatars() {
-        featuredDidLoad = false
-        logManager.trackEvent(event: ExploreViewEvent.loadFeaturedStart)
-
-        Task {
-            do {
-                featuredAvatars = try await avatarManager.getFeaturedAvatars()
-                featuredDidLoad = true
-                logManager.trackEvent(event: ExploreViewEvent.loadFeaturedSuccess(count: featuredAvatars.count))
-            } catch {
-                logManager.trackEvent(event: ExploreViewEvent.loadFeaturedFail(error: error))
-                alert = AnyAppAlert(error: error)
-            }
-        }
-    }
-
-    private func loadPopularAvatars() {
-        popularDidLoad = false
-        logManager.trackEvent(event: ExploreViewEvent.loadPopularStart)
-
-        Task {
-            do {
-                popularAvatars = try await avatarManager.getPopularAvatars()
-                popularDidLoad = true
-                logManager.trackEvent(event: ExploreViewEvent.loadPopularSuccess(count: popularAvatars.count))
-            } catch {
-                logManager.trackEvent(event: ExploreViewEvent.loadPopularFail(error: error))
-                alert = AnyAppAlert(error: error)
-            }
-        }
-    }
-
-    private func onAvatarPressed(_ avatarId: String) {
-        logManager.trackEvent(event: ExploreViewEvent.avatarPressed(avatarId: avatarId))
-        navPathStack.append(.chat(avatarId))
-    }
-
-    private func onCategoryPressed(_ category: CharacterOption, _ imageName: String) {
-        logManager.trackEvent(event: ExploreViewEvent.categoryPressed(category: category))
-        navPathStack.append(.category(category, imageName))
     }
 
     private var devSettingsButton: some View {
         Text("DEV")
             .foregroundStyle(.blue)
             .styledButton(.plain) {
-                onDevSettingsPressed()
+                viewModel.onDevSettingsPressed()
             }
             .accessibilityIdentifier(AccessibilityID.Explore.developerSettings)
     }
 
-    private func onDevSettingsPressed() {
-        logManager.trackEvent(event: ExploreViewEvent.devSettingsPressed)
-        showDevSettings.toggle()
-    }
-
-    /// run this if user is anonymous and the create account AB test is valid for users
-    private func showCreateAccountIfNeeded() {
-        guard authManager.auth?.isAnonymous == true &&
-              abTestManager.activeTests.createAccountTest == true else { return }
-
-        Task {
-            try? await Task.sleep(for: .seconds(1))
-            showCreateAccountView = true
-        }
-    }
-
-}
-
-extension ExploreView {
-    enum ExploreViewEvent: LoggableEvent {
-        case loadFeaturedStart, loadFeaturedSuccess(count: Int), loadFeaturedFail(error: Error)
-        case loadPopularStart, loadPopularSuccess(count: Int), loadPopularFail(error: Error)
-        case avatarPressed(avatarId: String)
-        case categoryPressed(category: CharacterOption)
-        case devSettingsPressed
-
-        var eventName: String {
-            switch self {
-            case .loadFeaturedStart:
-                return "ExploreView_LoadFeatured_Start"
-            case .loadFeaturedSuccess:
-                return "ExploreView_LoadFeatured_Success"
-            case .loadFeaturedFail:
-                return "ExploreView_LoadFeatured_Fail"
-            case .loadPopularStart:
-                return "ExploreView_LoadPopular_Start"
-            case .loadPopularSuccess:
-                return "ExploreView_LoadPopular_Success"
-            case .loadPopularFail:
-                return "ExploreView_LoadPopular_Fail"
-            case .avatarPressed:
-                return "ExploreView_Avatar_Pressed"
-            case .categoryPressed:
-                return "ExploreView_Category_Pressed"
-            case .devSettingsPressed:
-                return "ExploreView_DevSettings_Pressed"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .loadFeaturedSuccess(count: let count):
-                return count.asEventParameter(key: "featured_count")
-            case .loadPopularSuccess(count: let count):
-                return count.asEventParameter(key: "popular_count")
-            case .loadFeaturedFail(error: let error),
-                 .loadPopularFail(error: let error):
-                return error.asEventParameter
-            case .avatarPressed(avatarId: let avatarId):
-                return avatarId.asEventParameter(key: "avatar_id")
-            case .categoryPressed(category: let category):
-                return category.asEventParameter
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .loadFeaturedFail, .loadPopularFail:
-                return .severe
-            default:
-                return .analytic
-            }
-        }
-    }
 }
 
 #Preview("Has Data") {
-    ExploreView()
-        .environment(LogManager(services: [ConsoleService()]))
-        .environment(AvatarManager(services: MockAvatarServices()))
+    ExploreView(viewModel: ExploreViewModel(container: DevPreview.shared.container))
+        .previewContainerEnvironment()
         .previewEnvironment()
 }
 
 #Preview("Has Data w/ Create Acc Test") {
-    ExploreView()
-        /// to mock create account test
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: true))))
-        .environment(ABTestManager(service: MockABTestService(createAccountTest: true)))
-        .environment(LogManager(services: [ConsoleService()]))
-        .environment(AvatarManager(services: MockAvatarServices()))
-        .previewEnvironment()
+    let container = DevPreview.shared.container
+    container.register(AuthManager.self, service: AuthManager(
+        service: MockAuthService(user: .mock(isAnonymous: true)),
+        logManager: DevPreview.shared.logManager
+    ))
+    container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(createAccountTest: true)))
+
+    return ExploreView(viewModel: ExploreViewModel(container: container))
 }
 
 #Preview("CategoryRowTest: Original") {
-    ExploreView()
-        .environment(ABTestManager(service: MockABTestService(categoryRowTest: .original)))
+    let container = DevPreview.shared.container
+    container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(categoryRowTest: .original)))
+
+    return ExploreView(viewModel: ExploreViewModel(container: container))
         .previewEnvironment()
 }
 
 #Preview("CategoryRowTest: Top") {
-    ExploreView()
-        .environment(ABTestManager(service: MockABTestService(categoryRowTest: .top)))
+    let container = DevPreview.shared.container
+    container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(categoryRowTest: .top)))
+
+    return ExploreView(viewModel: ExploreViewModel(container: container))
         .previewEnvironment()
 }
 
 #Preview("CategoryRowTest: Hidden") {
-    ExploreView()
-        .environment(ABTestManager(service: MockABTestService(categoryRowTest: .hidden)))
+    let container = DevPreview.shared.container
+    container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(categoryRowTest: .hidden)))
+
+    return ExploreView(viewModel: ExploreViewModel(container: container))
         .previewEnvironment()
 }
 
 #Preview("No Data") {
-    ExploreView()
-        .environment(LogManager(services: [ConsoleService()]))
-        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 3))))
+    let container = DevPreview.shared.container
+    container.register(AvatarManager.self, service: AvatarManager(services: MockAvatarServices(remote: MockAvatarService(avatars: [], delay: 3))))
+
+    return ExploreView(viewModel: ExploreViewModel(container: container))
         .previewEnvironment()
 }
 
 #Preview("Slow Loading") {
-    ExploreView()
-        .environment(LogManager(services: [ConsoleService()]))
-        .environment(AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 4))))
+    let container = DevPreview.shared.container
+    container.register(AvatarManager.self, service: AvatarManager(services: MockAvatarServices(remote: MockAvatarService(delay: 4))))
+
+    return ExploreView(viewModel: ExploreViewModel(container: container))
         .previewEnvironment()
 }

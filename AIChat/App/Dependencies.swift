@@ -112,19 +112,19 @@ class DependencyContainer {
     private var services: [String: Any] = [:]
 
     /// puts the Manager name as a key string with its type and class passed as the value
-    func register<T> (_ type: T.Type, service: T) {
+    func register<T>(_ type: T.Type, service: T) {
         let key = "\(type)"
         services[key] = service
     }
 
     /// puts the Manager name as a key string with its type and class passed as the value
-    func register<T> (_ type: T.Type, service: () -> T) {
+    func register<T>(_ type: T.Type, service: () -> T) {
         let key = "\(type)"
         services[key] = service()
     }
 
     /// gets the value of this key (which is string name of this class) from the map
-    func resolve<T> (_ type: T.Type) -> T? {
+    func resolve<T>(_ type: T.Type) -> T? {
         let key = "\(type)"
         return services[key] as? T
     }
@@ -135,7 +135,20 @@ class DependencyContainer {
 final class DevPreview {
     static let shared = DevPreview()
 
-    let container: DependencyContainer
+    /// Returns a fresh container on every access, so previews can register
+    /// overrides (e.g. a slow AvatarManager) without affecting other previews.
+    var container: DependencyContainer {
+        let container = DependencyContainer()
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(AvatarManager.self, service: avatarManager)
+        container.register(ChatManager.self, service: chatManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(ABTestManager.self, service: abTestManager)
+        return container
+    }
 
     let authManager: AuthManager
     let userManager: UserManager
@@ -155,17 +168,5 @@ final class DevPreview {
         self.chatManager = ChatManager(service: MockChatService())
         self.pushManager = PushManager()
         self.abTestManager = ABTestManager(service: MockABTestService(createAccountTest: true, onboardingCommunityTest: true, categoryRowTest: .default), logManager: logManager)
-
-        let container = DependencyContainer()
-        container.register(AuthManager.self, service: authManager)
-        container.register(UserManager.self, service: userManager)
-        container.register(AIManager.self, service: aiManager)
-        container.register(AvatarManager.self, service: avatarManager)
-        container.register(ChatManager.self, service: chatManager)
-        container.register(LogManager.self, service: logManager)
-        container.register(PushManager.self, service: pushManager)
-        container.register(ABTestManager.self, service: abTestManager)
-
-        self.container = container
     }
 }
