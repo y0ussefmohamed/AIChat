@@ -38,13 +38,13 @@ class CategoryListViewModel {
         }
     }
 
-    func onRowTap(_ avatarId: String, navPathStack: Binding<[NavigationPathOption]>) {
+    func onRowTap(_ avatarId: String, navPathStack: inout [NavigationPathOption]) {
         guard let avatar = avatars.first(where: { $0.avatarId == avatarId }) else {
             return
         }
 
         logManager.trackEvent(event: CategoryListEvent.avatarPressed(avatar: avatar))
-        navPathStack.wrappedValue.append(.chat(avatarId))
+        navPathStack.append(.chat(avatarId))
     }
 }
 
@@ -125,7 +125,7 @@ struct CategoryListView: View {
                             imageName: avatar.profileImageName
                         )
                         .styledButton(.highlighted) {
-                            viewModel.onRowTap(avatar.avatarId, navPathStack: $navPathStack)
+                            viewModel.onRowTap(avatar.avatarId, navPathStack: &navPathStack)
                         }
                         .accessibilityIdentifier(AccessibilityID.Category.avatar(avatar.avatarId))
                         .removeListRowFormatting()

@@ -1,7 +1,6 @@
 //
 //  Dependencies.swift
 //  AIChat
-//  swiftlint:disable function_body_length
 //  Created by Youssef Mohamed on 29/06/2026.
 //
 import Foundation
