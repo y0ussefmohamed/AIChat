@@ -11,9 +11,10 @@ import SwiftUI
 /// 1. The Avatar Model to get the image, username of the avatar that sent the message
 /// 2. The ChatMessage Model to get the latest message and check if the user has seen the message or not
 
-/// This means we need to make a `ViewBuilder` in order to fetch those Models with the avatarId and chatId to get our desired data, and we can't do this here because we can't make .task{} in each item in the for loop, we don't want to load the view unless we have the data to show
+/// Each row uses a `ViewBuilder` wrapper to fetch these models and own its loading state and tasks.
 
 struct UserChatsView: View {
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: UserChatsViewModel
 
     @Binding var selectedTab: AppTap
@@ -65,10 +66,10 @@ struct UserChatsView: View {
 
             Section {
                 ForEach(0..<5, id: \.self) { _ in
-                    ChatRowCellViewBuilder(
-                        currentUserId: nil,
-                        getAvatar: { Avatar.mock },
-                        streamLastMessage: { _ in }
+                    ChatRowCellView(
+                        imageName: Avatar.mock.profileImageName,
+                        headline: ".... ....",
+                        subheadline: ".... .... .... ...."
                     )
                     .removeListRowFormatting()
                 }
@@ -157,16 +158,11 @@ struct UserChatsView: View {
             ForEach(viewModel.chats) { chat in
                 /// use a ViewBuilder wrapper when the view of the for loop depends on its items (the chat item in our case)
                 ChatRowCellViewBuilder(
-                    currentUserId: viewModel.currentUserId,
-                    getAvatar: {
-                        await viewModel.getAvatarForCell(chat.avatarId)
-                    },
-                    streamLastMessage: { onUpdate in
-                        await viewModel.streamLastMessageForCell(
-                            chatId: chat.id,
-                            onUpdate: onUpdate
-                        )
-                    }
+                    viewModel: ChatRowCellViewModel(
+                        interactor: CoreInteractor(container: container),
+                        chatId: chat.id,
+                        avatarId: chat.avatarId
+                    )
                 )
                 .styledButton {
                     viewModel.onRowTap(for: chat)

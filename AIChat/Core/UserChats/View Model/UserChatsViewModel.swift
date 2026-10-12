@@ -53,28 +53,6 @@ class UserChatsViewModel {
         }
     }
 
-    func getAvatarForCell(_ avatarId: String) async -> Avatar? {
-        do {
-            return try await interactor.getAvatar(id: avatarId)
-        } catch {
-            interactor.trackEvent(event: UserChatsViewEvent.loadCellAvatarFail(error: error))
-        }
-        return nil
-    }
-
-    /// Continuously streams chat changes and calls `onUpdate` every time a new value is emitted.
-    /// This keeps the cell in sync with the latest message and seen status in real time.
-    func streamLastMessageForCell(chatId: String, onUpdate: @escaping @MainActor (ChatMessage?) -> Void) async {
-        do {
-            for try await value in interactor.streamChatChanges(chatId: chatId) {
-                let messages = value.sorted(by: { $0.dateCreatedCalculated < $1.dateCreatedCalculated })
-                onUpdate(messages.last)
-            }
-        } catch {
-            interactor.trackEvent(event: UserChatsViewEvent.streamLastMessageFail(error: error))
-        }
-    }
-
     func onRowTap(for chat: Chat) {
         interactor.trackEvent(event: UserChatsViewEvent.chatRowPressed(chat: chat))
         navPathStack.append(chat.avatarId)
@@ -99,8 +77,6 @@ extension UserChatsViewModel {
         case chatRowPressed(chat: Chat)
         case recentAvatarPressed(avatarId: String)
         case exploreAvatarsPressed
-        case loadCellAvatarFail(error: Error)
-        case streamLastMessageFail(error: Error)
 
         var eventName: String {
             switch self {
@@ -122,19 +98,13 @@ extension UserChatsViewModel {
                 return "UserChatsView_RecentAvatar_Pressed"
             case .exploreAvatarsPressed:
                 return "UserChatsView_ExploreAvatars_Pressed"
-            case .loadCellAvatarFail:
-                return "UserChatsView_LoadCellAvatar_Fail"
-            case .streamLastMessageFail:
-                return "UserChatsView_StreamLastMessage_Fail"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
             case .loadChatsFail(error: let error),
-                 .loadRecentsFail(error: let error),
-                 .loadCellAvatarFail(error: let error),
-                 .streamLastMessageFail(error: let error):
+                 .loadRecentsFail(error: let error):
                 return error.asEventParameter
 
             case .loadChatsSuccess(count: let count):
@@ -156,7 +126,7 @@ extension UserChatsViewModel {
 
         var type: LogType {
             switch self {
-            case .loadChatsFail, .loadRecentsFail, .loadCellAvatarFail, .streamLastMessageFail:
+            case .loadChatsFail, .loadRecentsFail:
                 return .severe
             default:
                 return .analytic
