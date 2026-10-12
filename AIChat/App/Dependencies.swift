@@ -1,6 +1,7 @@
 //
 //  Dependencies.swift
 //  AIChat
+//
 //  Created by Youssef Mohamed on 29/06/2026.
 //
 import Foundation

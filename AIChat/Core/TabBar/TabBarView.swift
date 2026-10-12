@@ -30,7 +30,7 @@ struct TabBarView: View {
                 .tag(AppTap.chats)
 
             ProfileView(
-                viewModel: ProfileViewModel(container: dependencyContainer)
+                viewModel: ProfileViewModel(interactor: ProductionProfileInteractor(container: dependencyContainer))
             )
             .tabItem {
                 Label("Profile", systemImage: "person.fill")

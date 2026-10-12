@@ -8,12 +8,53 @@
 import SwiftUI
 
 @MainActor
-@Observable
-class ProfileViewModel {
+struct ProductionProfileInteractor: ProfileInteractor {
     private let logManager: LogManager
     private let authManager: AuthManager
     private let userManager: UserManager
     private let avatarManager: AvatarManager
+
+    var currentUser: UserModel? {
+        userManager.currentUser
+    }
+
+    init(container: DependencyContainer) {
+        self.logManager = container.resolve(LogManager.self)!
+        self.authManager = container.resolve(AuthManager.self)!
+        self.userManager = container.resolve(UserManager.self)!
+        self.avatarManager = container.resolve(AvatarManager.self)!
+    }
+
+    func getCurrentUserAvatars(userId: String) async throws -> [Avatar] {
+        return try await avatarManager.getCurrentUserAvatars(userId: userId)
+    }
+
+    func deleteAvatar(id: String) async throws {
+        try await avatarManager.deleteAvatar(id: id)
+    }
+
+
+    func trackEvent(event: any LoggableEvent) {
+        logManager.trackEvent(event: event)
+    }
+}
+
+
+/// this protocol carries the functions that is called by the view model from the managers
+/// to decouple the view model from the managers
+protocol ProfileInteractor {
+    var currentUser: UserModel? { get }
+
+    func getCurrentUserAvatars(userId: String) async throws -> [Avatar]
+    func deleteAvatar(id: String) async throws
+    func trackEvent(event: any LoggableEvent)
+}
+
+@MainActor
+@Observable
+class ProfileViewModel {
+    /// the view model depends on the interactor, which only has the functions needed by this view model
+    private let interactor: ProfileInteractor
 
     private(set) var currentUser: UserModel?
     private(set) var currentUserAvatars: [Avatar] = []
@@ -24,24 +65,21 @@ class ProfileViewModel {
     var alert: AnyAppAlert?
     var navPathStack: [String] = []
 
-    init(container: DependencyContainer) {
-        self.logManager = container.resolve(LogManager.self)!
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.avatarManager = container.resolve(AvatarManager.self)!
+    init(interactor: ProfileInteractor) {
+        self.interactor = interactor
     }
 
     func loadData() async {
-        self.currentUser = userManager.currentUser
+        self.currentUser = interactor.currentUser
 
         isLoading = true
         if let userId = currentUser?.userId {
-            logManager.trackEvent(event: ProfileViewEvent.loadAvatarsStart)
+            interactor.trackEvent(event: ProfileViewEvent.loadAvatarsStart)
             do {
-                currentUserAvatars = try await avatarManager.getCurrentUserAvatars(userId: userId)
-                logManager.trackEvent(event: ProfileViewEvent.loadAvatarsSuccess(count: currentUserAvatars.count))
+                currentUserAvatars = try await interactor.getCurrentUserAvatars(userId: userId)
+                interactor.trackEvent(event: ProfileViewEvent.loadAvatarsSuccess(count: currentUserAvatars.count))
             } catch {
-                logManager.trackEvent(event: ProfileViewEvent.loadAvatarsFail(error: error))
+                interactor.trackEvent(event: ProfileViewEvent.loadAvatarsFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
@@ -49,17 +87,17 @@ class ProfileViewModel {
     }
 
     func onSettingsButtonPressed() {
-        logManager.trackEvent(event: ProfileViewEvent.settingsButtonPressed)
+        interactor.trackEvent(event: ProfileViewEvent.settingsButtonPressed)
         showSettingsView = true
     }
 
     func onNewAvatarButtonPressed() {
-        logManager.trackEvent(event: ProfileViewEvent.newAvatarButtonPressed)
+        interactor.trackEvent(event: ProfileViewEvent.newAvatarButtonPressed)
         showCreateAvatarView = true
     }
 
     func onAvatarPressed(avatar: Avatar) {
-        logManager.trackEvent(event: ProfileViewEvent.avatarPressed(avatar: avatar))
+        interactor.trackEvent(event: ProfileViewEvent.avatarPressed(avatar: avatar))
         navPathStack.append(avatar.avatarId)
     }
 
@@ -68,14 +106,14 @@ class ProfileViewModel {
         let avatarToDelete = currentUserAvatars[index]
         currentUserAvatars.remove(atOffsets: IndexSet(integer: index))
 
-        logManager.trackEvent(event: ProfileViewEvent.deleteAvatarStart(avatar: avatarToDelete))
+        interactor.trackEvent(event: ProfileViewEvent.deleteAvatarStart(avatar: avatarToDelete))
 
         Task {
             do {
-                try await avatarManager.deleteAvatar(id: avatarToDelete.avatarId)
-                logManager.trackEvent(event: ProfileViewEvent.deleteAvatarSuccess(avatar: avatarToDelete))
+                try await interactor.deleteAvatar(id: avatarToDelete.avatarId)
+                interactor.trackEvent(event: ProfileViewEvent.deleteAvatarSuccess(avatar: avatarToDelete))
             } catch {
-                logManager.trackEvent(event: ProfileViewEvent.deleteAvatarFail(error: error))
+                interactor.trackEvent(event: ProfileViewEvent.deleteAvatarFail(error: error))
                 alert = AnyAppAlert(error: error)
             }
         }
@@ -275,11 +313,10 @@ struct ProfileView: View {
     }
 }
 
-
 #Preview {
     NavigationStack {
         ProfileView(
-            viewModel: ProfileViewModel(container: DevPreview.shared.container)
+            viewModel: ProfileViewModel(interactor: ProductionProfileInteractor(container: DevPreview.shared.container))
         )
     }
     .previewContainerEnvironment()
