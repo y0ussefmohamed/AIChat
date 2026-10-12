@@ -7,41 +7,9 @@
 
 import SwiftUI
 
-@MainActor
-struct ProductionProfileInteractor: ProfileInteractor {
-    private let logManager: LogManager
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let avatarManager: AvatarManager
-
-    var currentUser: UserModel? {
-        userManager.currentUser
-    }
-
-    init(container: DependencyContainer) {
-        self.logManager = container.resolve(LogManager.self)!
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.avatarManager = container.resolve(AvatarManager.self)!
-    }
-
-    func getCurrentUserAvatars(userId: String) async throws -> [Avatar] {
-        return try await avatarManager.getCurrentUserAvatars(userId: userId)
-    }
-
-    func deleteAvatar(id: String) async throws {
-        try await avatarManager.deleteAvatar(id: id)
-    }
-
-
-    func trackEvent(event: any LoggableEvent) {
-        logManager.trackEvent(event: event)
-    }
-}
-
-
 /// this protocol carries the functions that is called by the view model from the managers
 /// to decouple the view model from the managers
+/// this interactor protocol is asking the CoreInteractor for these methods implementation
 protocol ProfileInteractor {
     var currentUser: UserModel? { get }
 
@@ -49,6 +17,7 @@ protocol ProfileInteractor {
     func deleteAvatar(id: String) async throws
     func trackEvent(event: any LoggableEvent)
 }
+extension CoreInteractor: ProfileInteractor {} /// the `CoreInteractor` will only expose methods in this protocol
 
 @MainActor
 @Observable
@@ -316,7 +285,7 @@ struct ProfileView: View {
 #Preview {
     NavigationStack {
         ProfileView(
-            viewModel: ProfileViewModel(interactor: ProductionProfileInteractor(container: DevPreview.shared.container))
+            viewModel: ProfileViewModel(interactor: CoreInteractor(container: DevPreview.shared.container))
         )
     }
     .previewContainerEnvironment()
