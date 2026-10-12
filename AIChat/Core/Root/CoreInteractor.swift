@@ -8,6 +8,9 @@
 import SwiftUI
 import Foundation
 
+/// CoreInteractor is a struct that has all the managers and contain the funcionality of all methods in managers
+/// when it conforms to a protocol and this protocol have lets say needs 4 methods only from 2 managers.
+/// this protocol type variable can be intialized with CoreInteractor and will only retrieve the functions needed by this protocol
 @MainActor
 struct CoreInteractor {
     private let authManager: AuthManager

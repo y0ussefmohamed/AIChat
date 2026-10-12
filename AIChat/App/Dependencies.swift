@@ -42,6 +42,7 @@ struct Dependencies {
     let pushManager: PushManager
     let abTestManager: ABTestManager
 
+    // swiftlint:disable:next function_body_length
     init(buildConfig: BuildConfiguration) {
         switch buildConfig {
         case .mock(isSignedIn: let isSignedIn):
@@ -109,7 +110,7 @@ struct Dependencies {
 @MainActor
 @Observable
 class DependencyContainer {
-    private var services: [String: Any] = [:]
+    private var services: [String: Any] = [:] /// Encapsulation
 
     /// puts the Manager name as a key string with its type and class passed as the value
     func register<T>(_ type: T.Type, service: T) {

@@ -18,11 +18,12 @@ protocol ProfileInteractor {
     func trackEvent(event: any LoggableEvent)
 }
 extension CoreInteractor: ProfileInteractor {} /// the `CoreInteractor` will only expose methods in this protocol
+/// CoreInteractor is used to solve the problem of not doing a seperate ClassInteractor for every ViewModel, this would be too much
 
 @MainActor
 @Observable
 class ProfileViewModel {
-    /// the view model depends on the interactor, which only has the functions needed by this view model
+    /// the view model depends on this interactor, which only has the functions needed by this view model instead of several manager classes
     private let interactor: ProfileInteractor
 
     private(set) var currentUser: UserModel?
