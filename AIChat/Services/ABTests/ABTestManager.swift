@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor @Observable
 class ABTestManager {
-    private(set) var activeTests: ActiveABTests /// accessing active tests from here
+    private(set) var activeTests: ActiveABTests /// setting active tests from here only
 
     private let service: ABTestService
     private let editableService: (any EditableABTestService)?

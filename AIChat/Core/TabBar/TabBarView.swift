@@ -16,14 +16,17 @@ struct TabBarView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             ExploreView(
-                viewModel: ExploreViewModel(container: dependencyContainer)
+                viewModel: ExploreViewModel(interactor: CoreInteractor(container: dependencyContainer))
             )
                 .tabItem {
                     Label("Explore", systemImage: "eyes")
                 }
                 .tag(AppTap.explore)
 
-            UserChatsView(selectedTab: $selectedTab)
+            UserChatsView(
+                viewModel: UserChatsViewModel(interactor: CoreInteractor(container: dependencyContainer)),
+                selectedTab: $selectedTab
+            )
                 .tabItem {
                     Label("Chats", systemImage: "message")
                 }
