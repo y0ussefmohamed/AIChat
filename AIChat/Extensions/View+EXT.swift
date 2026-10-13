@@ -113,7 +113,6 @@ extension View {
         localAvatarPersistence: LocalAvatarPersistence = MockLocalAvatarPersistence()
     ) -> some View {
         self
-            .environment(AppState())
             .environment(DevPreview.shared.container)
             .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
             .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
@@ -167,6 +166,8 @@ extension View {
             service: MockABTestService(),
             logManager: logManager
         ))
+
+        container.register(AppState.self, service: AppState(showTabBar: isSignedIn))
 
         return self.environment(container)
     }

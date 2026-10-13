@@ -11,7 +11,6 @@ import SwiftfulUtilities
 struct AppView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: AppViewModel
-    @State var appState: AppState = AppState()
 
     var body: some View {
         RootView(
@@ -28,7 +27,7 @@ struct AppView: View {
                 onApplicationWillTerminate: nil)
         ) {
             AppViewBuilder(
-                showTabBar: appState.showTabBar,
+                showTabBar: viewModel.showTabBar,
                 tabbarView: {
                     TabBarView()
                 },
@@ -36,7 +35,6 @@ struct AppView: View {
                     WelcomeView(viewModel: WelcomeViewModel(interactor: CoreInteractor(container: container)))
             })
             /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
-            .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
             .screenAppearAnalytics(viewName: "AppView")
             .task {
                 await viewModel.checkUserStatus()
@@ -44,7 +42,7 @@ struct AppView: View {
             .task {
                 await viewModel.showATTPromptIfNeeded()
             }
-            .onChange(of: appState.showTabBar) { _, showTabBar in
+            .onChange(of: viewModel.showTabBar) { _, showTabBar in
                 /// if user signedOut\deletedAccount then create a new anonymous account
                 if !showTabBar {
                     Task {
@@ -58,10 +56,14 @@ struct AppView: View {
 
 #Preview("Tabbar") {
     let container = DevPreview.shared.container
+    container.register(AppState.self, service: AppState(showTabBar: true))
 
     return AppView(
-        viewModel: AppViewModel(interactor: CoreInteractor(container: container)),
-        appState: AppState(showTabBar: true)
+        viewModel: AppViewModel(
+            interactor: CoreInteractor(
+                container: container
+            )
+        )
     )
     .previewEnvironment()
     .environment(container)
@@ -69,10 +71,14 @@ struct AppView: View {
 
 #Preview("Onboarding") {
     let container = DevPreview.shared.container
+    container.register(AppState.self, service: AppState(showTabBar: false))
 
     return AppView(
-        viewModel: AppViewModel(interactor: CoreInteractor(container: container)),
-        appState: AppState(showTabBar: false)
+        viewModel: AppViewModel(
+            interactor: CoreInteractor(
+                container: container
+            )
+        )
     )
     .previewEnvironment()
     .environment(container)

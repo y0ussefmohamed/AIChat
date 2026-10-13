@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct OnboardingCompletedView: View {
-    @Environment(AppState.self) private var rootAppState
     @State var viewModel: OnboardingCompletedViewModel
 
     var body: some View {
@@ -30,7 +29,7 @@ struct OnboardingCompletedView: View {
         .safeAreaInset(edge: .bottom) {
             AsyncCallToActionButton(title: "Finish", buttonColor: viewModel.selectedColor, conditionToLoad: .constant(viewModel.isLoadingToSetupProfile)) {
                 viewModel.onFinishButtonPressed {
-                    rootAppState.updateViewState(showTabBar: true)
+                    viewModel.updateAppState(showTabBar: true)
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Onboarding.finish)

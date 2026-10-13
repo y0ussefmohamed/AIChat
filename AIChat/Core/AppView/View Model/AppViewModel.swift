@@ -14,6 +14,10 @@ class AppViewModel {
     private let interactor: AppInteractor
     private var isCheckingUserStatus = false
 
+    var showTabBar: Bool {
+        interactor.showTabBar
+    }
+
     init(interactor: AppInteractor) {
         self.interactor = interactor
     }

@@ -17,5 +17,6 @@ protocol SettingsInteractor {
     func deleteUserAccount(userId: String) async throws
     func deleteUserProfile()
     func trackEvent(event: any LoggableEvent)
+    func updateAppState(showTabBar: Bool)
 }
 extension CoreInteractor: SettingsInteractor {}

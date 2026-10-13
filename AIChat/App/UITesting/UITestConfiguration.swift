@@ -90,6 +90,7 @@ extension Dependencies {
             onboardingCommunityTest: config.scenario != .communityDisabled,
             categoryRowTest: config.scenario == .categoriesHidden ? .hidden : (config.scenario == .categoriesTop ? .top : .original)
         ), logManager: log)
+        appState = AppState()
 
         container = DependencyContainer()
 
@@ -101,6 +102,7 @@ extension Dependencies {
         container.register(LogManager.self, service: logManager)
         container.register(PushManager.self, service: pushManager)
         container.register(ABTestManager.self, service: abTestManager)
+        container.register(AppState.self, service: appState)
     }
 }
 #endif

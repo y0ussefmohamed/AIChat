@@ -26,6 +26,10 @@ class OnboardingCompletedViewModel {
         self.selectedColor = selectedColor
     }
 
+    func updateAppState(showTabBar: Bool) {
+        interactor.updateAppState(showTabBar: showTabBar)
+    }
+
     func onFinishButtonPressed(onCompleted: @escaping () -> Void) {
         guard !isLoadingToSetupProfile else { return }
         let hex = selectedColorHex

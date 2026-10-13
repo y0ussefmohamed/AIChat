@@ -9,7 +9,6 @@ import SwiftUI
 
 struct WelcomeView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(AppState.self) private var rootAppState
     @State var viewModel: WelcomeViewModel
 
     var body: some View {
@@ -117,7 +116,7 @@ extension WelcomeView {
 
     private func handleDidSignIn(isNewUser: Bool) {
         viewModel.handleDidSignIn(isNewUser: isNewUser) {
-            rootAppState.updateViewState(showTabBar: true)
+            viewModel.updateAppState(showTabBar: true)
         }
     }
 

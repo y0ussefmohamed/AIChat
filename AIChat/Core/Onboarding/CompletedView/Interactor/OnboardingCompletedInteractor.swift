@@ -11,5 +11,6 @@ import Foundation
 protocol OnboardingCompletedInteractor {
     func markOnboardingAsCompleted(profileColorHex: String) async throws
     func trackEvent(event: any LoggableEvent)
+    func updateAppState(showTabBar: Bool)
 }
 extension CoreInteractor: OnboardingCompletedInteractor {}

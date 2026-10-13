@@ -10,6 +10,7 @@ import Foundation
 @MainActor
 protocol AppInteractor {
     var auth: UserAuthInfo? { get }
+    var showTabBar: Bool { get }
 
     func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool)
     func logIn(auth: UserAuthInfo, isNewUser: Bool) async throws

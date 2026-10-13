@@ -30,6 +30,10 @@ class SettingsViewModel {
         self.interactor = interactor
     }
 
+    func updateAppState(showTabBar: Bool) {
+        interactor.updateAppState(showTabBar: showTabBar)
+    }
+
     func onSignOutPressed(onDismiss: @escaping () async -> Void) {
         interactor.trackEvent(event: SettingsViewEvent.signOutStart)
         Task {

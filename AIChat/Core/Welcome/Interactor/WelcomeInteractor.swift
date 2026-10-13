@@ -10,5 +10,6 @@ import Foundation
 @MainActor
 protocol WelcomeInteractor {
     func trackEvent(event: any LoggableEvent)
+    func updateAppState(showTabBar: Bool)
 }
 extension CoreInteractor: WelcomeInteractor {}

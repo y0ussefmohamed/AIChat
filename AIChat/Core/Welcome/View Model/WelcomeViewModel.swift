@@ -25,6 +25,10 @@ class WelcomeViewModel {
         navPathStack.append(route)
     }
 
+    func updateAppState(showTabBar: Bool) {
+        interactor.updateAppState(showTabBar: showTabBar)
+    }
+
     func onGetStartedPressed() {
         interactor.trackEvent(event: WelcomeViewEvent.getStartedPressed)
         addToNavPathStack(route: .onboardingIntro)

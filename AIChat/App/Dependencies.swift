@@ -41,6 +41,7 @@ struct Dependencies {
     let logManager: LogManager
     let pushManager: PushManager
     let abTestManager: ABTestManager
+    let appState: AppState
 
     // swiftlint:disable:next function_body_length
     init(buildConfig: BuildConfiguration) {
@@ -60,6 +61,7 @@ struct Dependencies {
                 ),
                 logManager: logManager
             )
+            appState = AppState(showTabBar: isSignedIn)
 
         case .dev:
             logManager = LogManager(
@@ -76,6 +78,7 @@ struct Dependencies {
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
             abTestManager = ABTestManager(service: LocalABTestService(), logManager: logManager)
+            appState = AppState()
 
         case .production:
             logManager = LogManager(services: [
@@ -89,9 +92,11 @@ struct Dependencies {
             avatarManager = AvatarManager(services: ProductionAvatarServices())
             chatManager = ChatManager(service: FirebaseChatService())
             abTestManager = ABTestManager(service: FirebaseABTestService(logManager: logManager), logManager: logManager)
+            appState = AppState()
         }
 
         pushManager = PushManager() /// same manager for all builds
+
 
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
@@ -102,6 +107,7 @@ struct Dependencies {
         container.register(LogManager.self, service: logManager)
         container.register(PushManager.self, service: pushManager)
         container.register(ABTestManager.self, service: abTestManager)
+        container.register(AppState.self, service: appState)
 
         self.container = container
     }
@@ -148,6 +154,7 @@ final class DevPreview {
         container.register(LogManager.self, service: logManager)
         container.register(PushManager.self, service: pushManager)
         container.register(ABTestManager.self, service: abTestManager)
+        container.register(AppState.self, service: appState)
         return container
     }
 
@@ -159,8 +166,9 @@ final class DevPreview {
     let logManager: LogManager
     let pushManager: PushManager
     let abTestManager: ABTestManager
+    let appState: AppState
 
-    init() {
+    init(showTabBar: Bool = true) {
         self.logManager = LogManager(services: [ConsoleService(printParams: false)])
         self.authManager = AuthManager(service: MockAuthService(user: .mock()), logManager: logManager)
         self.userManager = UserManager(services: MockUserServicesContainer(user: .mock), logManager: logManager)
@@ -169,5 +177,6 @@ final class DevPreview {
         self.chatManager = ChatManager(service: MockChatService())
         self.pushManager = PushManager()
         self.abTestManager = ABTestManager(service: MockABTestService(createAccountTest: true, onboardingCommunityTest: true, categoryRowTest: .default), logManager: logManager)
+        self.appState = AppState(showTabBar: showTabBar)
     }
 }

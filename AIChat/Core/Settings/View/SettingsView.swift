@@ -10,7 +10,6 @@ import SwiftfulUtilities
 
 struct SettingsView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State var viewModel: SettingsViewModel
     @State private var versionTextWidth: CGFloat = 0
@@ -200,7 +199,7 @@ private extension SettingsView {
     func dismissScreen() async {
         dismiss()
         try? await Task.sleep(for: .seconds(0.25))
-        appState.updateViewState(showTabBar: false)
+        viewModel.updateAppState(showTabBar: false)
     }
 }
 
