@@ -72,7 +72,7 @@ struct ExploreView: View {
             .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
                 switch pathOptionTop {
                 case .chat(let avatarId):
-                    ChatView(avatarId: avatarId)
+                    ChatView(viewModel: ChatViewModel(interactor: CoreInteractor(container: container), avatarId: avatarId))
                 case .category(let category, let imageName):
                     CategoryListView(viewModel: CategoryListViewModel(interactor: CoreInteractor(container: container)), category: category, categoryImageName: imageName, navPathStack: $viewModel.navPathStack)
                 }

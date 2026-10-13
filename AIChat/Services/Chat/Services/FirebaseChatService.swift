@@ -18,7 +18,7 @@ struct FirebaseChatService: ChatService {
     }
 
     func reportChat(chatId: String?, userId: String) async throws {
-        guard let chatId, chatId.isEmpty else { return }
+        guard let chatId, !chatId.isEmpty else { return }
         
         let report = ChatReport(chatId: chatId, userId: userId)
         try reportsCollection.document(report.id).setData(from: report)

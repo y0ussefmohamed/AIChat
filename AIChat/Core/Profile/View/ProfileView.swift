@@ -81,7 +81,7 @@ struct ProfileView: View {
                 }
             }
             .navigationDestination(for: String.self) { avatarId in
-                ChatView(avatarId: avatarId)
+                ChatView(viewModel: ChatViewModel(interactor: CoreInteractor(container: container), avatarId: avatarId))
             }
         }
         .showCustomAlert(alert: $viewModel.alert)

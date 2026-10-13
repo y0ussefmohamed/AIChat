@@ -41,7 +41,7 @@ struct UserChatsView: View {
                 await viewModel.loadData()
             }
             .navigationDestination(for: String.self) { avatarId in
-                ChatView(avatarId: avatarId)
+                ChatView(viewModel: ChatViewModel(interactor: CoreInteractor(container: container), avatarId: avatarId))
             }
         }
     }
