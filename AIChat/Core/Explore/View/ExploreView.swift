@@ -62,14 +62,19 @@ struct ExploreView: View {
                 DevSettingsView()
             }
             .sheet(isPresented: $viewModel.showCreateAccountView) {
-                LinkProviderView(usageOption: .createAccount)
+                LinkProviderView(
+                    viewModel: LinkProviderViewModel(
+                        interactor: CoreInteractor(container: container),
+                        usageOption: .createAccount
+                    )
+                )
             }
             .navigationDestination(for: NavigationPathOption.self) { pathOptionTop in
                 switch pathOptionTop {
                 case .chat(let avatarId):
                     ChatView(avatarId: avatarId)
                 case .category(let category, let imageName):
-                    CategoryListView(viewModel: CategoryListViewModel(container: container), category: category, categoryImageName: imageName, navPathStack: $viewModel.navPathStack)
+                    CategoryListView(viewModel: CategoryListViewModel(interactor: CoreInteractor(container: container)), category: category, categoryImageName: imageName, navPathStack: $viewModel.navPathStack)
                 }
             }
             .task {

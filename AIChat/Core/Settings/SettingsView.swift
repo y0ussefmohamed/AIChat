@@ -16,6 +16,7 @@ struct TextWidthPreferenceKey: PreferenceKey {
 }
 
 struct SettingsView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(LogManager.self) private var logManager
     @Environment(AppState.self) private var appState
     @Environment(AuthManager.self) private var authManager
@@ -51,7 +52,12 @@ struct SettingsView: View {
             .screenAppearAnalytics(viewName: "SettingsView")
             .showCustomAlert(alert: $showAlert)
             .sheet(isPresented: $showCreateAccountView) {
-                LinkProviderView(usageOption: .createAccount)
+                LinkProviderView(
+                    viewModel: LinkProviderViewModel(
+                        interactor: CoreInteractor(container: container),
+                        usageOption: .createAccount
+                    )
+                )
             }
             .showModal(isPresented: $showRatingModal) {
                 ratingsModal

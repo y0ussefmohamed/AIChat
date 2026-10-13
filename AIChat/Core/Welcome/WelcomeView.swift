@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(LogManager.self) private var logManager
     @Environment(AppState.self) private var rootAppState
     @State private var showSignInView: Bool = false
@@ -30,7 +31,10 @@ struct WelcomeView: View {
             .screenAppearAnalytics(viewName: "WelcomeView")
             .sheet(isPresented: $showSignInView) {
                 LinkProviderView(
-                    usageOption: .signIn,
+                    viewModel: LinkProviderViewModel(
+                        interactor: CoreInteractor(container: container),
+                        usageOption: .signIn
+                    ),
                     onDidSignIn: handleDidSignIn
                 )
             }
