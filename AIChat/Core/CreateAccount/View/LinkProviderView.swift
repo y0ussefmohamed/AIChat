@@ -157,7 +157,7 @@ struct LinkProviderView: View {
             usageOption: .createAccount
         )
     )
-    .previewEnvironment(isSignedIn: false)
+    .previewEnvironment()
     .environment(container)
     .environment(logManager)
 }
@@ -175,7 +175,7 @@ struct LinkProviderView: View {
             usageOption: .signIn
         )
     )
-    .previewEnvironment(isSignedIn: true)
+    .previewEnvironment()
     .environment(container)
     .environment(logManager)
 }

@@ -107,21 +107,10 @@ extension View {
 }
 
 extension View {
-    func previewEnvironment(
-        isSignedIn: Bool = true,
-        remoteAvatarService: RemoteAvatarService = MockAvatarService(),
-        localAvatarPersistence: LocalAvatarPersistence = MockLocalAvatarPersistence()
-    ) -> some View {
+    func previewEnvironment() -> some View {
         self
             .environment(DevPreview.shared.container)
-            .environment(UserManager(services: MockUserServicesContainer(user: isSignedIn ? .mock : nil)))
-            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
-            .environment(AvatarManager(services: MockAvatarServices(remote: remoteAvatarService, local: localAvatarPersistence)))
-            .environment(AIManager(aiServices: MockAIServices()))
-            .environment(ChatManager(service: MockChatService()))
             .environment(LogManager(services: []))
-            .environment(PushManager())
-            .environment(ABTestManager(service: MockABTestService()))
     }
 
     @MainActor

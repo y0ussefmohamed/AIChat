@@ -34,7 +34,6 @@ struct AppView: View {
                 onboardingView: {
                     WelcomeView(viewModel: WelcomeViewModel(interactor: CoreInteractor(container: container)))
             })
-            /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
             .screenAppearAnalytics(viewName: "AppView")
             .task {
                 await viewModel.checkUserStatus()

@@ -199,6 +199,4 @@ struct UserChatsView: View {
         .previewEnvironment()
         .environment(container)
         .environment(logManager)
-        .environment(chatManager)
-        .environment(avatarManager)
 }

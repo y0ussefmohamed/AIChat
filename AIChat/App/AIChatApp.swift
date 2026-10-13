@@ -52,14 +52,7 @@ struct AIChatApp: App {
                 )
             )
                 .environment(delegate.dependencies.container)
-                .environment(delegate.dependencies.authManager)
-                .environment(delegate.dependencies.userManager)
-                .environment(delegate.dependencies.aiManager)
-                .environment(delegate.dependencies.avatarManager)
-                .environment(delegate.dependencies.chatManager)
                 .environment(delegate.dependencies.logManager)
-                .environment(delegate.dependencies.pushManager)
-                .environment(delegate.dependencies.abTestManager)
                 .environment(\.imageURLOverride, delegate.imageURLOverride)
         }
     }
