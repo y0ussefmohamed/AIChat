@@ -8,10 +8,8 @@
 import SwiftUI
 
 struct OnboardingColorView: View {
-    @Environment(LogManager.self) private var logManager
-    @State private var selectedColorIdx: Int?
-    let profileColors: [Color] = [.red, .green, .orange, .blue, .mint, .purple, .cyan, .teal, .indigo]
-    private let profileColorNames = ["Red", "Green", "Orange", "Blue", "Mint", "Purple", "Cyan", "Teal", "Indigo"]
+    @State var viewModel: OnboardingColorViewModel
+    var onNavigate: (NavigationOnboardingPathOption) -> Void
 
     var body: some View {
         ScrollView {
@@ -21,9 +19,9 @@ struct OnboardingColorView: View {
         .screenAppearAnalytics(viewName: "OnboardingColorView")
         .navigationBarBackButtonHidden()
         .safeAreaInset(edge: .bottom, alignment: .center, spacing: 16) {
-            if let selectedColorIdx {
+            if let selectedColor = viewModel.selectedColor {
                 ZStack {
-                    ctaButton(selectedColor: profileColors[selectedColorIdx])
+                    ctaButton(selectedColor: selectedColor)
                         .background(Color(.systemBackground))
                 }
                 .transition(.move(edge: .bottom))
@@ -41,7 +39,7 @@ extension OnboardingColorView {
             pinnedViews: [.sectionHeaders],
             content: {
                 Section(content: {
-                    ForEach(profileColors.indices, id: \.self) { colorIdx in
+                    ForEach(viewModel.profileColors.indices, id: \.self) { colorIdx in
                         Button {
                             onColorSelected(index: colorIdx)
                         } label: {
@@ -49,14 +47,14 @@ extension OnboardingColorView {
                                 .fill(.accent)
                                 .overlay(
                                     Circle()
-                                        .fill(profileColors[colorIdx])
-                                        .padding(selectedColorIdx == colorIdx ? 10 : 0)
+                                        .fill(viewModel.profileColors[colorIdx])
+                                        .padding(viewModel.selectedColorIdx == colorIdx ? 10 : 0)
                                 )
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier(AccessibilityID.Onboarding.color(colorIdx))
-                        .accessibilityLabel(profileColorNames[colorIdx])
-                        .accessibilityValue(selectedColorIdx == colorIdx ? "Selected" : "Not selected")
+                        .accessibilityLabel(viewModel.profileColorNames[colorIdx])
+                        .accessibilityValue(viewModel.selectedColorIdx == colorIdx ? "Selected" : "Not selected")
                     }
                 }, header: {
                     Text("Select a Profile Color")
@@ -70,51 +68,32 @@ extension OnboardingColorView {
 
     private func onColorSelected(index: Int) {
         withAnimation(.bouncy) {
-            selectedColorIdx = index
+            viewModel.onColorSelected(index: index)
         }
     }
 
     private func ctaButton(selectedColor: Color) -> some View {
-        NavigationLink {
-            OnboardingCompletedView(selectedColor: selectedColor)
+        Button {
+            viewModel.onContinueButtonPressed(onNavigate: onNavigate)
         } label: {
             Text("Continue")
                 .callToActionButton(buttonColor: selectedColor)
                 .padding(16)
         }
         .accessibilityIdentifier(AccessibilityID.Onboarding.colorContinue)
-        .simultaneousGesture(TapGesture().onEnded {
-            let hex = selectedColor.toHex()
-            logManager.trackEvent(event: OnboardingColorViewEvent.continueButtonPressed(hex: hex))
-        })
-    }
-}
-
-extension OnboardingColorView {
-    enum OnboardingColorViewEvent: LoggableEvent {
-        case continueButtonPressed(hex: String)
-
-        var eventName: String {
-            switch self {
-            case .continueButtonPressed:
-                return "OnboardingColorView_Continue_Pressed"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .continueButtonPressed(hex: let hex):
-                return hex.asEventParameter(key: "profile_color_hex")
-            }
-        }
-
-        var type: LogType {
-            .analytic
-        }
     }
 }
 
 #Preview {
-    OnboardingColorView()
-        .environment(LogManager(services: [ConsoleService()]))
+    let container = DevPreview.shared.container
+    let logManager = LogManager(services: [ConsoleService()])
+    container.register(LogManager.self, service: logManager)
+
+    return OnboardingColorView(
+        viewModel: OnboardingColorViewModel(interactor: CoreInteractor(container: container)),
+        onNavigate: { _ in }
+    )
+    .previewEnvironment()
+    .environment(container)
+    .environment(logManager)
 }

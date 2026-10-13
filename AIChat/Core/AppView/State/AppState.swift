@@ -11,7 +11,7 @@ import SwiftUI
 @Observable /// instead of using an `@Published` in the `showTabBar` variable 
 class AppState { /// holds variable for showTabBar across the whole environment
     private(set) var showTabBar: Bool {
-        didSet { /// before `=` (When it's getting changed)
+        didSet { /// Persist the new value after it changes.
             UserDefaults.showTabbarView = showTabBar /// every time we set this we save it to `UserDefaults`
         }
     }

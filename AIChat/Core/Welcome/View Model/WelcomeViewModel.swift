@@ -14,14 +14,20 @@ class WelcomeViewModel {
     let imageName: String
 
     var showSignInView = false
+    var navPathStack: [NavigationOnboardingPathOption] = []
 
     init(interactor: WelcomeInteractor, imageName: String = Constants.randomImage) {
         self.interactor = interactor
         self.imageName = imageName
     }
 
+    func addToNavPathStack(route: NavigationOnboardingPathOption) {
+        navPathStack.append(route)
+    }
+
     func onGetStartedPressed() {
         interactor.trackEvent(event: WelcomeViewEvent.getStartedPressed)
+        addToNavPathStack(route: .onboardingIntro)
     }
 
     func onSignInPressed() {

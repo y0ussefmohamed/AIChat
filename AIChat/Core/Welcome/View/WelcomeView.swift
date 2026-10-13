@@ -13,7 +13,7 @@ struct WelcomeView: View {
     @State var viewModel: WelcomeViewModel
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $viewModel.navPathStack) {
             VStack {
                 ImageLoaderView(imageUrlString: viewModel.imageName)
                     .ignoresSafeArea()
@@ -36,6 +36,44 @@ struct WelcomeView: View {
                     onDidSignIn: handleDidSignIn
                 )
             }
+            .navigationDestination(for: NavigationOnboardingPathOption.self) { route in
+                switch route {
+                case .onboardingIntro:
+                    /// 1: pass a function that holds destination from this view
+                    /// 2: put the destination from this view to next view in the viewmodel
+                    /// 3: call current viewModel with this destination to add to stack
+                    OnboardingIntroView(
+                        viewModel: OnboardingIntroViewModel(
+                            interactor: CoreInteractor(container: container)
+                        ),
+                        onNavigate: viewModel.addToNavPathStack
+                    )
+
+                case .colorView:
+                    OnboardingColorView(
+                        viewModel: OnboardingColorViewModel(
+                            interactor: CoreInteractor(container: container)
+                        ),
+                        onNavigate: viewModel.addToNavPathStack
+                    )
+
+                case .communityView:
+                    OnboardingCommunityView(
+                        viewModel: OnboardingCommunityViewModel(
+                            interactor: CoreInteractor(container: container)
+                        ),
+                        onNavigate: viewModel.addToNavPathStack
+                    )
+
+                case .completedView(let selectedColor):
+                    OnboardingCompletedView(
+                        viewModel: OnboardingCompletedViewModel(
+                            interactor: CoreInteractor(container: container),
+                            selectedColor: selectedColor
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -57,16 +95,11 @@ extension WelcomeView {
 
     private var ctaButtons: some View {
         VStack {
-            NavigationLink {
-                OnboardingIntroView()
-            } label: {
+            Button(action: viewModel.onGetStartedPressed) {
                 Text("Get Started")
                     .callToActionButton()
             }
             .accessibilityIdentifier(AccessibilityID.Welcome.getStarted)
-            .simultaneousGesture(TapGesture().onEnded {
-                viewModel.onGetStartedPressed()
-            })
             .padding(.vertical, 8)
             .padding(.horizontal, 16)
 
