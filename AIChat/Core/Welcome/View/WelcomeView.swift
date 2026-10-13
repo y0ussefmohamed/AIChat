@@ -9,15 +9,13 @@ import SwiftUI
 
 struct WelcomeView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(LogManager.self) private var logManager
     @Environment(AppState.self) private var rootAppState
-    @State private var showSignInView: Bool = false
-    @State var imageName: String = Constants.randomImage
+    @State var viewModel: WelcomeViewModel
 
     var body: some View {
         NavigationStack {
             VStack {
-                ImageLoaderView(imageUrlString: imageName)
+                ImageLoaderView(imageUrlString: viewModel.imageName)
                     .ignoresSafeArea()
 
                 titleSection
@@ -29,7 +27,7 @@ struct WelcomeView: View {
                     .foregroundStyle(.accent)
             }
             .screenAppearAnalytics(viewName: "WelcomeView")
-            .sheet(isPresented: $showSignInView) {
+            .sheet(isPresented: $viewModel.showSignInView) {
                 LinkProviderView(
                     viewModel: LinkProviderViewModel(
                         interactor: CoreInteractor(container: container),
@@ -67,7 +65,7 @@ extension WelcomeView {
             }
             .accessibilityIdentifier(AccessibilityID.Welcome.getStarted)
             .simultaneousGesture(TapGesture().onEnded {
-                onGetStartedPressed()
+                viewModel.onGetStartedPressed()
             })
             .padding(.vertical, 8)
             .padding(.horizontal, 16)
@@ -78,27 +76,16 @@ extension WelcomeView {
                 .padding(8)
                 .tappableBackground()
                 .styledButton {
-                    onSignInPressed()
+                    viewModel.onSignInPressed()
                 }
                 .accessibilityIdentifier(AccessibilityID.Welcome.signIn)
         }
     }
 
-    /// if this user not first time to signIn the app, then showTabBar directly... no onboarding
     private func handleDidSignIn(isNewUser: Bool) {
-        logManager.trackEvent(event: WelcomeViewEvent.signInCompleted(isNewUser: isNewUser))
-        if !isNewUser {
+        viewModel.handleDidSignIn(isNewUser: isNewUser) {
             rootAppState.updateViewState(showTabBar: true)
         }
-    }
-
-    private func onGetStartedPressed() {
-        logManager.trackEvent(event: WelcomeViewEvent.getStartedPressed)
-    }
-
-    private func onSignInPressed() {
-        logManager.trackEvent(event: WelcomeViewEvent.signInPressed)
-        showSignInView = true
     }
 
     private var policyLinks: some View {
@@ -108,7 +95,7 @@ extension WelcomeView {
             }
             .accessibilityIdentifier(AccessibilityID.Welcome.terms)
             .simultaneousGesture(TapGesture().onEnded {
-                logManager.trackEvent(event: WelcomeViewEvent.termsOfServicePressed)
+                viewModel.onTermsOfServicePressed()
             })
 
             Circle()
@@ -119,53 +106,19 @@ extension WelcomeView {
             }
             .accessibilityIdentifier(AccessibilityID.Welcome.privacy)
             .simultaneousGesture(TapGesture().onEnded {
-                logManager.trackEvent(event: WelcomeViewEvent.privacyPolicyPressed)
+                viewModel.onPrivacyPolicyPressed()
             })
         }
     }
 }
 
-extension WelcomeView {
-    enum WelcomeViewEvent: LoggableEvent {
-        case getStartedPressed
-        case signInPressed
-        case termsOfServicePressed
-        case privacyPolicyPressed
-        case signInCompleted(isNewUser: Bool)
-
-        var eventName: String {
-            switch self {
-            case .getStartedPressed:
-                return "WelcomeView_GetStarted_Pressed"
-            case .signInPressed:
-                return "WelcomeView_SignIn_Pressed"
-            case .termsOfServicePressed:
-                return "WelcomeView_TermsOfService_Pressed"
-            case .privacyPolicyPressed:
-                return "WelcomeView_PrivacyPolicy_Pressed"
-            case .signInCompleted:
-                return "WelcomeView_SignInCompleted_Success"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .signInCompleted(isNewUser: let isNewUser):
-                return isNewUser.asEventParameter(key: "is_new_user")
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            .analytic
-        }
-    }
-}
-
 #Preview {
-    WelcomeView()
-        .environment(LogManager(services: [ConsoleService()]))
-        .environment(AppState())
+    let container = DevPreview.shared.container
+    let logManager = LogManager(services: [ConsoleService()])
+    container.register(LogManager.self, service: logManager)
+
+    return WelcomeView(viewModel: WelcomeViewModel(interactor: CoreInteractor(container: container)))
         .previewEnvironment()
+        .environment(container)
+        .environment(logManager)
 }

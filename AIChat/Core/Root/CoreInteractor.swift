@@ -235,6 +235,15 @@ struct CoreInteractor {
 
     // MARK: - Shared
 
+    func deleteUserAccount(userId: String) async throws {
+        async let removeAvatars = avatarManager.removeAuthorIdFromTheDeletedUserAvatars(userId: userId)
+        async let deleteUser = userManager.deleteCurrentUser()
+        async let deleteAuth = authManager.deleteAccount()
+        async let deleteChats = chatManager.deleteAllChats(userId: userId)
+
+        _ = try await (removeAvatars, deleteUser, deleteAuth, deleteChats)
+    }
+
     func signOut() throws {
         try authManager.signOut()
         userManager.signOut()

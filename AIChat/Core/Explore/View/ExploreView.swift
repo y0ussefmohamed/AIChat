@@ -59,7 +59,11 @@ struct ExploreView: View {
                 pushNotificationModal
             }
             .sheet(isPresented: $viewModel.showDevSettings) {
-                DevSettingsView()
+                DevSettingsView(
+                    viewModel: DevSettingsViewModel(
+                        interactor: CoreInteractor(container: container)
+                    )
+                )
             }
             .sheet(isPresented: $viewModel.showCreateAccountView) {
                 LinkProviderView(

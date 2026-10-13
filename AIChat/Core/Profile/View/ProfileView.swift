@@ -93,7 +93,7 @@ struct ProfileView: View {
                 await viewModel.loadData()
             }
         }, content: {
-            SettingsView()
+            SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: container)))
         })
         .fullScreenCover(isPresented: $viewModel.showCreateAvatarView, onDismiss: {
             Task {

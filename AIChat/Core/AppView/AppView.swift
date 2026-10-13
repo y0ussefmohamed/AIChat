@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftfulUtilities
 
 struct AppView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -34,7 +35,7 @@ struct AppView: View {
                     TabBarView()
                 },
                 onboardingView: {
-                    WelcomeView()
+                    WelcomeView(viewModel: WelcomeViewModel(interactor: CoreInteractor(container: container)))
             })
             /// you can get access to this specific appState obj. using `@Envirnonment(AppState.self)`
             .environment(appState) /// this will be in the views that has `AppView` as parent/ancestor
